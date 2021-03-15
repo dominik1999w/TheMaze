@@ -4,7 +4,8 @@ import android.os.Bundle;
 
 import com.badlogic.gdx.backends.android.AndroidApplication;
 import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration;
-import com.pz.themaze.TheMazeGame;
+
+import game.TheMazeGame;
 
 public class AndroidLauncher extends AndroidApplication {
 	@Override
