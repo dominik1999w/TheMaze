@@ -3,9 +3,7 @@ package game;
 import org.junit.Assert;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
-
-public class TheMazeGameTest {
+public class GameAppTest {
 
     @Test
     public void addition() {
