@@ -2,12 +2,12 @@ package renderable;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
-import java.util.ArrayList;
+import java.util.List;
 
-public class TileMap implements RenderEngine {
-    private final ArrayList<Tile> map;
+public class TileMap implements Renderable {
+    private final List<Tile> map;
 
-    public TileMap(ArrayList<Tile> map) {
+    public TileMap(List<Tile> map) {
         this.map = map;
     }
 

@@ -3,6 +3,7 @@ package db;
 import com.badlogic.gdx.math.Vector2;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import renderable.Tile;
 import renderable.TileMap;
@@ -17,7 +18,7 @@ public class Database implements DatabaseGateway {
 
     @Override
     public TileMap loadMap() {
-        ArrayList<Tile> tiles = new ArrayList<>();
+        List<Tile> tiles = new ArrayList<>();
         databaseEngine.readMap((type, x, y) -> tiles.add(new Tile(TextureType.values()[type], new Vector2(x, y))));
         return new TileMap(tiles);
     }
