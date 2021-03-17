@@ -2,6 +2,6 @@ package renderable;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
-public interface RenderEngine {
+public interface Renderable {
     void render(SpriteBatch spriteBatch);
 }

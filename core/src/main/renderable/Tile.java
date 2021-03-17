@@ -7,7 +7,7 @@ import com.badlogic.gdx.math.Vector2;
 
 import types.TextureType;
 
-public class Tile implements RenderEngine {
+public class Tile implements Renderable {
     private final Texture texture;
     private final Vector2 position;
 
