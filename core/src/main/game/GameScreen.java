@@ -5,9 +5,11 @@ import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Vector2;
 
 import input.IPlayerInput;
 import loader.GameLoader;
+import renderable.Player;
 import renderable.Tile;
 import renderable.TileMap;
 import ui.GameUI;
@@ -16,6 +18,7 @@ public class GameScreen extends ScreenAdapter {
     private final OrthographicCamera camera;
     private final SpriteBatch batch;
     private final TileMap tileMap;
+    private final Player player;
     private final GameUI gameUI;
 
     public GameScreen(SpriteBatch batch, GameLoader loader) {
@@ -32,6 +35,8 @@ public class GameScreen extends ScreenAdapter {
         this.batch = batch;
         this.tileMap = loader.getTileMap();
 
+        player = new Player(new Vector2(3,2));
+
         this.gameUI = new GameUI();
         this.gameUI.build();
     }
@@ -43,9 +48,11 @@ public class GameScreen extends ScreenAdapter {
 
         // update the world according to player input
         IPlayerInput playerInput = gameUI.getPlayerInput();
-        if (playerInput.isShootPressed()) System.out.println("SHOOT");
-        if (playerInput.getX() != 0) System.out.println("X: " + playerInput.getX());
-        if (playerInput.getY() != 0) System.out.println("Y: " + playerInput.getY());
+        if (playerInput.isShootPressed()) player.shoot();
+        player.updatePosition(playerInput, Gdx.graphics.getDeltaTime());
+
+        camera.position.set(player.getPosition(), 0);
+        camera.update();
 
         // render the world
         Gdx.gl.glClearColor(0, 1, 0, 0);
@@ -59,6 +66,11 @@ public class GameScreen extends ScreenAdapter {
 
         gameUI.render(delta);
 
+        batch.end();
+
+        //TODO: why do i have to do it separately?
+        batch.begin();
+        player.render(batch);
         batch.end();
     }
 
