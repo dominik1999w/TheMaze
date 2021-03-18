@@ -2,8 +2,8 @@ package input;
 
 public class PlayerInput implements IPlayerInput {
 
-    private int x = 0;
-    private int y = 0;
+    private float x = 0;
+    private float y = 0;
     private boolean shootPressed = false;
 
     @Override
@@ -12,20 +12,20 @@ public class PlayerInput implements IPlayerInput {
     }
 
     @Override
-    public int getX() {
+    public float getX() {
         return x;
     }
 
     @Override
-    public int getY() {
+    public float getY() {
         return y;
     }
 
-    public void setX(int x) {
+    public void setX(float x) {
         this.x = x;
     }
 
-    public void setY(int y) {
+    public void setY(float y) {
         this.y = y;
     }
 

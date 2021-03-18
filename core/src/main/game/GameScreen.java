@@ -49,7 +49,7 @@ public class GameScreen extends ScreenAdapter {
         // update the world according to player input
         IPlayerInput playerInput = gameUI.getPlayerInput();
         if (playerInput.isShootPressed()) player.shoot();
-        player.updatePosition(playerInput, Gdx.graphics.getDeltaTime());
+        player.updatePosition(playerInput, delta);
 
         camera.position.set(player.getPosition(), 0);
         camera.update();

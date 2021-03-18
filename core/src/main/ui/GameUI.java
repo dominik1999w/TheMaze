@@ -39,8 +39,8 @@ public class GameUI {
     }
 
     public void readInput() {
-        playerInput.setX(convertKnobPercentageToDirection(movementTouchpad.getKnobPercentX()));
-        playerInput.setY(convertKnobPercentageToDirection(movementTouchpad.getKnobPercentY()));
+        playerInput.setX(movementTouchpad.getKnobPercentX());
+        playerInput.setY(movementTouchpad.getKnobPercentY());
         playerInput.setShootPressed(shootButton.isPressed());
     }
 
@@ -61,9 +61,4 @@ public class GameUI {
         return playerInput;
     }
 
-    // TODO: move to some utility class
-    private static int convertKnobPercentageToDirection(float percentage) {
-        int sign = (int)Math.signum(percentage);
-        return Math.abs(percentage) > 0.5f ? sign : 0;
-    }
 }
