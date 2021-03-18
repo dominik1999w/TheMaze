@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import input.IPlayerInput;
 import loader.GameLoader;
+import renderable.Tile;
 import renderable.TileMap;
 import ui.GameUI;
 
@@ -18,12 +19,19 @@ public class GameScreen extends ScreenAdapter {
     private final GameUI gameUI;
 
     public GameScreen(SpriteBatch batch, GameLoader loader) {
+        camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        camera.translate((float) Gdx.graphics.getWidth() / 2,
+                (float) Gdx.graphics.getHeight() / 2);
+
+        int mapWidth = 20; // temporary: number of boxes horizontal-wise
+        float c = mapWidth * Tile.width / (float) Gdx.graphics.getWidth(); // temporary
+
+        camera.zoom = c;
+        camera.update();
+
         this.batch = batch;
         this.tileMap = loader.getTileMap();
-        this.camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        this.camera.position.set(camera.viewportWidth / 2f, camera.viewportHeight / 2f, 0);
-//        camera.zoom = 3.5f;
-        camera.update();
+
         this.gameUI = new GameUI();
         this.gameUI.build();
     }
@@ -42,11 +50,15 @@ public class GameScreen extends ScreenAdapter {
         // render the world
         Gdx.gl.glClearColor(0, 1, 0, 0);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
         batch.setProjectionMatrix(camera.combined);
-//        camera.update();
         batch.begin();
-        tileMap.render(batch); // maybe we can render it once only?
+
+        tileMap.setView(camera);
+        tileMap.render(batch);
+
         gameUI.render(delta);
+
         batch.end();
     }
 

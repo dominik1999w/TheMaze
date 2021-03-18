@@ -1,30 +1,33 @@
 package renderable;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 
 import types.TextureType;
 
 public class Tile implements Renderable {
-    private final Texture texture;
+    public static final int height = 32;
+    public static final int width = 32;
+
+    private final TextureRegion textureRegion;
     private final Vector2 position;
 
     public Tile(TextureType texture, Vector2 position) {
-        this.texture = texture.createTexture();
+        this.textureRegion = TextureRegion.split(texture.createTexture(), width, height)[0][0];
         this.position = position;
-        /* TODO: fix resolution issues => generate map which is suitable for universal devices */
-        /* size of a map should correspond to width/height ratio, but should remain the same for all
-            devices.
-         */
-        float ratio = (float) Gdx.graphics.getWidth() / Gdx.graphics.getHeight();
-        this.position.x = (float) Gdx.graphics.getWidth() / 50f * position.x;
-        this.position.y = (float) Gdx.graphics.getHeight() / 50f * ratio * position.y;
     }
 
     @Override
     public void render(SpriteBatch spriteBatch) {
-        spriteBatch.draw(texture, position.x, position.y);
+        spriteBatch.draw(textureRegion, position.x, position.y);
+    }
+
+    public TextureRegion getTextureRegion() {
+        return textureRegion;
+    }
+
+    public Vector2 getPosition() {
+        return position;
     }
 }
