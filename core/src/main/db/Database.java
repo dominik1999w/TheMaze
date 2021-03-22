@@ -5,8 +5,8 @@ import com.badlogic.gdx.math.Vector2;
 import java.util.ArrayList;
 import java.util.List;
 
-import map.generator.Node;
 import map.containers.MapTile;
+import map.generator.MapGenerator;
 import renderable.Map;
 
 public class Database implements DatabaseGateway {
@@ -24,7 +24,7 @@ public class Database implements DatabaseGateway {
     }
 
     @Override
-    public void saveMap(Node[][] map) {
+    public void saveMap(MapGenerator.Node[][] map) {
         databaseEngine.saveMap(map);
     }
 

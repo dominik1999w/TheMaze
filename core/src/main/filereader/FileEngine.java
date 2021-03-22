@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import db.DatabaseEngine;
-import map.generator.Node;
+import map.generator.MapGenerator;
 import types.WallTypes;
 
 public class FileEngine implements DatabaseEngine {
@@ -26,15 +26,15 @@ public class FileEngine implements DatabaseEngine {
                 String coordinates = entry.substring(1, entry.length() - 1);
                 String[] dirs = coordinates.split(",");
 
-                List<WallTypes> boarders = new ArrayList<>();
+                List<WallTypes> walls = new ArrayList<>();
                 for (String dir : dirs) {
                     if (dir.isEmpty()) {
                         continue;
                     }
-                    boarders.add(WallTypes.valueOf(dir));
+                    walls.add(WallTypes.valueOf(dir));
                 }
 
-                builder.buildCell(x, y, boarders);
+                builder.buildCell(x, y, walls);
                 y++;
             }
             x++;
@@ -42,7 +42,7 @@ public class FileEngine implements DatabaseEngine {
     }
 
     @Override
-    public void saveMap(Node[][] map) {
+    public void saveMap(MapGenerator.Node[][] map) {
         int n = map.length;
         int m = map[0].length;
         StringBuilder mapBuilder = new StringBuilder();

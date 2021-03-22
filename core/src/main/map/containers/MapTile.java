@@ -10,29 +10,18 @@ import map.config.MapConfig;
 import types.TextureType;
 import types.WallTypes;
 
-public class MapTile {
-
-    private final TextureRegion textureRegion;
-
-    private final Vector2 position;
+public class MapTile extends MapElement {
 
     private final List<MapWall> walls;
 
-    public MapTile(Vector2 position, List<WallTypes> boarders) {
+    public MapTile(Vector2 position, List<WallTypes> walls) {
         this.textureRegion = TextureRegion.split(TextureType.Ground.createTexture(), MapConfig.BOX_SIZE, MapConfig.BOX_SIZE)[0][0];
         this.position = position;
+
         this.walls = new ArrayList<>();
-        for (WallTypes type : boarders) {
-            walls.add(type.createWall(MapConfig.BOX_SIZE, position.x, position.y, MapConfig.WALL_THICKNESS));
+        for (WallTypes type : walls) {
+            this.walls.add(type.createWall(MapConfig.BOX_SIZE, position.x, position.y, MapConfig.WALL_THICKNESS));
         }
-    }
-
-    public TextureRegion getTextureRegion() {
-        return textureRegion;
-    }
-
-    public Vector2 getPosition() {
-        return position;
     }
 
     public List<MapWall> getWalls() {
