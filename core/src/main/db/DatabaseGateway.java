@@ -1,7 +1,10 @@
 package db;
 
-import renderable.TileMap;
+import map.generator.Node;
+import renderable.Map;
 
 public interface DatabaseGateway {
-    TileMap loadMap();
+    Map loadMap();
+
+    void saveMap(Node[][] map);
 }

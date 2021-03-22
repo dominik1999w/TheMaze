@@ -6,15 +6,17 @@ public enum TextureType {
     Ground {
         @Override
         public Texture createTexture() {
-            return new Texture("blacktile.png");
+            return new Texture("graytile.png");
         }
     },
+
     Wall {
         @Override
         public Texture createTexture() {
-            return new Texture("graytile.png");
+            return new Texture("blacktile.png");
         }
     };
+
 
     public abstract Texture createTexture();
 }

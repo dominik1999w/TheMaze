@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 
 import input.IPlayerInput;
+import map.config.MapConfig;
 
 public class Player implements Renderable{
     private final Sprite sprite;
@@ -15,12 +16,12 @@ public class Player implements Renderable{
 
     public Player(Vector2 position) {
         sprite = new Sprite(new Texture("player.png"));
-        sprite.setSize(Tile.width, Tile.height);
+        sprite.setSize(MapConfig.BOX_SIZE, MapConfig.BOX_SIZE);
         sprite.setOriginCenter();
 
         this.position = position;
-        this.position.x *= Tile.width;
-        this.position.y *= Tile.height;
+        this.position.x *= MapConfig.BOX_SIZE;
+        this.position.y *= MapConfig.BOX_SIZE;
 
         rotation = 0;
         speed = 3;
@@ -31,8 +32,8 @@ public class Player implements Renderable{
     }
 
     public void updatePosition(IPlayerInput playerInput, float deltaTime) {
-        position.x += playerInput.getX() * Tile.width * speed * deltaTime;
-        position.y += playerInput.getY() * Tile.height * speed * deltaTime;
+        position.x += playerInput.getX() * MapConfig.BOX_SIZE * speed * deltaTime;
+        position.y += playerInput.getY() *MapConfig.BOX_SIZE * speed * deltaTime;
         if(playerInput.getX() != 0 || playerInput.getY() != 0) {
             rotation = (float) (Math.atan2(playerInput.getY(), playerInput.getX()) * (180 / Math.PI));
         }

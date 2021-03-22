@@ -2,32 +2,61 @@ package filereader;
 
 import com.badlogic.gdx.Gdx;
 
-import java.io.BufferedReader;
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import db.DatabaseEngine;
+import map.generator.Node;
+import types.WallTypes;
 
 public class FileEngine implements DatabaseEngine {
-    private final String FILEPATH = "mapexample.txt";
+    private final String PreferenceName = "TheMazePreference";
+    private final String MapKey = "map";
 
     @Override
     public void readMap(CellListBuilder builder) {
-        try {
-            BufferedReader reader = new BufferedReader(Gdx.files.internal(FILEPATH).reader());
-            String line = reader.readLine();
-            int y = 0;
-            while (line != null) {
-                String[] types = line.split(" ");
-                for (int x = 0; x < types.length; x++) {
-                    builder.buildCell(Integer.parseInt(types[x]), x, y);
+        String[] rows = Gdx.app.getPreferences(
+                PreferenceName).getString(MapKey).split("\n");
+        int x = 0, y;
+        for (String row : rows) {
+            String[] entries = row.split("#");
+            y = 0;
+
+            for (String entry : entries) {
+                String coordinates = entry.substring(1, entry.length() - 1);
+                String[] dirs = coordinates.split(",");
+
+                List<WallTypes> boarders = new ArrayList<>();
+                for (String dir : dirs) {
+                    if (dir.isEmpty()) {
+                        continue;
+                    }
+                    boarders.add(WallTypes.valueOf(dir));
                 }
-                line = reader.readLine();
-                y += 1;
+
+                builder.buildCell(x, y, boarders);
+                y++;
             }
-            reader.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new RuntimeException("error reading map file");
+            x++;
         }
     }
+
+    @Override
+    public void saveMap(Node[][] map) {
+        int n = map.length;
+        int m = map[0].length;
+        StringBuilder mapBuilder = new StringBuilder();
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < m; j++) {
+                mapBuilder.append(map[i][j].toString()).append("#");
+            }
+            mapBuilder.append("\n");
+        }
+
+        Gdx.app.getPreferences(
+                PreferenceName
+        ).putString(MapKey, mapBuilder.toString()).flush();
+
+    }
+
 }

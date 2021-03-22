@@ -9,15 +9,15 @@ import com.badlogic.gdx.math.Vector2;
 
 import input.IPlayerInput;
 import loader.GameLoader;
+import map.config.MapConfig;
 import renderable.Player;
-import renderable.Tile;
-import renderable.TileMap;
+import renderable.Map;
 import ui.GameUI;
 
 public class GameScreen extends ScreenAdapter {
     private final OrthographicCamera camera;
     private final SpriteBatch batch;
-    private final TileMap tileMap;
+    private final Map tileMap;
     private final Player player;
     private final GameUI gameUI;
 
@@ -26,10 +26,10 @@ public class GameScreen extends ScreenAdapter {
         camera.translate((float) Gdx.graphics.getWidth() / 2,
                 (float) Gdx.graphics.getHeight() / 2);
 
-        int mapWidth = 20; // temporary: number of boxes horizontal-wise
-        float c = mapWidth * Tile.width / (float) Gdx.graphics.getWidth(); // temporary
+        int mapWidth = 10; // temporary: number of boxes horizontal-wise
+        float c = mapWidth * MapConfig.BOX_SIZE / (float) Gdx.graphics.getWidth(); // temporary
 
-        camera.zoom = c;
+        camera.zoom =3;
         camera.update();
 
         this.batch = batch;
