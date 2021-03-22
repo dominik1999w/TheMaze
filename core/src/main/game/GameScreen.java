@@ -29,13 +29,13 @@ public class GameScreen extends ScreenAdapter {
         int mapWidth = 10; // temporary: number of boxes horizontal-wise
         float c = mapWidth * MapConfig.BOX_SIZE / (float) Gdx.graphics.getWidth(); // temporary
 
-        camera.zoom =3;
+        camera.zoom = c;
         camera.update();
 
         this.batch = batch;
         this.tileMap = loader.getTileMap();
 
-        player = new Player(new Vector2(3,2));
+        player = new Player(new Vector2(3, 2));
 
         this.gameUI = new GameUI();
         this.gameUI.build();
