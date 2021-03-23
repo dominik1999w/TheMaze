@@ -5,39 +5,59 @@ import com.badlogic.gdx.math.Vector2;
 import map.containers.MapWall;
 
 public enum WallTypes {
-    UP_WALL(new Vector2(-1, 0)) {
+    UP_WALL(new Vector2(0, 1)) {
         @Override
         public MapWall createWall(int tileSize, float x, float y, int thickness) {
             Vector2 position = new Vector2(x, y + 1);
-            Vector2 size = new Vector2(tileSize, thickness);
+            Vector2 size = new Vector2(tileSize+thickness, thickness);
             return new MapWall(position, size);
+        }
+
+        @Override
+        public WallTypes getOppositeWall() {
+            return DOWN_WALL;
         }
     },
 
-    DOWN_WALL(new Vector2(1, 0)) {
+    DOWN_WALL(new Vector2(0, -1)) {
         @Override
         public MapWall createWall(int tileSize, float x, float y, int thickness) {
             Vector2 position = new Vector2(x, y);
-            Vector2 size = new Vector2(tileSize, thickness);
+            Vector2 size = new Vector2(tileSize+thickness, thickness);
             return new MapWall(position, size);
+        }
+
+        @Override
+        public WallTypes getOppositeWall() {
+            return UP_WALL;
         }
     },
 
-    RIGHT_WALL(new Vector2(0, 1)) {
+    RIGHT_WALL(new Vector2(1, 0)) {
         @Override
         public MapWall createWall(int tileSize, float x, float y, int thickness) {
             Vector2 position = new Vector2(x + 1, y);
             Vector2 size = new Vector2(thickness, tileSize);
             return new MapWall(position, size);
         }
+
+        @Override
+        public WallTypes getOppositeWall() {
+            return LEFT_WALL;
+        }
     },
 
-    LEFT_WALL(new Vector2(0, -1)) {
+    LEFT_WALL(new Vector2(-1, 0)) {
         @Override
         public MapWall createWall(int tileSize, float x, float y, int thickness) {
             Vector2 position = new Vector2(x, y);
             Vector2 size = new Vector2(thickness, tileSize);
             return new MapWall(position, size);
+        }
+
+        @Override
+        public WallTypes getOppositeWall() {
+            return RIGHT_WALL;
         }
     };
 
@@ -56,5 +76,11 @@ public enum WallTypes {
         return null;
     }
 
+    public Vector2 getRelativePosition() {
+        return relativePosition;
+    }
+
     public abstract MapWall createWall(int tileSize, float x, float y, int thickness);
+
+    public abstract WallTypes getOppositeWall();
 }
