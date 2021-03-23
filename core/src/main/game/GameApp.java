@@ -19,7 +19,7 @@ public class GameApp extends Game {
         db.saveMap(mapGenerator.generateMap());
         GameLoader loader = new GameLoader(db);
         batch = new SpriteBatch();
-        gameScreen = new GameScreen(batch, loader);
+        gameScreen = new GameScreen(batch, loader, mapGenerator);
         setScreen(gameScreen);
     }
 

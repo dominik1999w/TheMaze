@@ -10,6 +10,7 @@ import com.badlogic.gdx.math.Vector2;
 import input.IPlayerInput;
 import loader.GameLoader;
 import map.config.MapConfig;
+import map.generator.MapGenerator;
 import renderable.Player;
 import renderable.Map;
 import ui.GameUI;
@@ -21,7 +22,7 @@ public class GameScreen extends ScreenAdapter {
     private final Player player;
     private final GameUI gameUI;
 
-    public GameScreen(SpriteBatch batch, GameLoader loader) {
+    public GameScreen(SpriteBatch batch, GameLoader loader, MapGenerator mapGenerator) {
         camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         camera.translate((float) Gdx.graphics.getWidth() / 2,
                 (float) Gdx.graphics.getHeight() / 2);
@@ -35,7 +36,7 @@ public class GameScreen extends ScreenAdapter {
         this.batch = batch;
         this.tileMap = loader.getTileMap();
 
-        player = new Player(new Vector2(3, 2));
+        player = new Player(new Vector2(3, 2), mapGenerator);
 
         this.gameUI = new GameUI();
         this.gameUI.build();

@@ -45,6 +45,13 @@ public class MapGenerator {
         return graph;
     }
 
+    public boolean hasWall(WallTypes wall, int x, int y) {
+        if (x < 0 || y < 0 || x >= graph.length || y >= graph[0].length) {
+            return true;
+        }
+        return graph[x][y].wallRelativePositions.contains(wall);
+    }
+
     private void dfs(Node[][] graph, boolean[][] visited, int i, int j) {
         visited[i][j] = true;
         List<WallTypes> wallList = Arrays.asList(WallTypes.values());
