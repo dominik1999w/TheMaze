@@ -34,16 +34,16 @@ public class Map implements Renderable {
         for (MapTile tile : map) {
             TiledMapTileLayer.Cell tileCell = new TiledMapTileLayer.Cell();
             tileCell.setTile(new StaticTiledMapTile(tile.getTextureRegion()));
-            tileLayer.setCell((int) tile.getPosition().x, (int) tile.getPosition().y, tileCell);
+            tileLayer.setCell(tile.getPositionX(), tile.getPositionY(), tileCell);
 
             for (MapWall wall : tile.getWalls()) {
                 TiledMapTileLayer.Cell wallCell = new TiledMapTileLayer.Cell();
                 wallCell.setTile(new StaticTiledMapTile(wall.getTextureRegion()));
 
                 if (wall.getTextureRegion().getRegionHeight() < wall.getTextureRegion().getRegionWidth()) {
-                    horizontalWallLayer.setCell((int) wall.getPosition().x, (int) wall.getPosition().y, wallCell);
+                    horizontalWallLayer.setCell(wall.getPositionX(), wall.getPositionY(), wallCell);
                 } else {
-                    verticalWallLayer.setCell((int) wall.getPosition().x, (int) wall.getPosition().y, wallCell);
+                    verticalWallLayer.setCell(wall.getPositionX(), wall.getPositionY(), wallCell);
                 }
             }
         }

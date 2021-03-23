@@ -1,8 +1,6 @@
 package map.generator;
 
 
-import com.badlogic.gdx.math.Vector2;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -56,9 +54,8 @@ public class MapGenerator {
             if (!graph[i][j].hasWall(wall)) {
                 continue;
             }
-            Vector2 dir = wall.getRelativePosition();
-            int newI = (int) (i + dir.x);
-            int newJ = (int) (j + dir.y);
+            int newI = i + wall.getRelativePositionX();
+            int newJ = j + wall.getRelativePositionY();
             if (newI < 0 || newI >= MapConfig.MAP_LENGTH || newJ < 0 || newJ >= MapConfig.MAP_LENGTH || visited[newI][newJ]) {
                 continue;
             }
@@ -94,8 +91,10 @@ public class MapGenerator {
         public String toString() {
             StringBuilder res = new StringBuilder("[");
             for (int i = 0; i < wallRelativePositions.size(); i++) {
-                Vector2 relativePos = wallRelativePositions.get(i).getRelativePosition();
-                res.append(WallTypes.valueOfRelativePos(relativePos));
+                int relativePosX = wallRelativePositions.get(i).getRelativePositionX();
+                int relativePosY = wallRelativePositions.get(i).getRelativePositionY();
+
+                res.append(WallTypes.valueOfRelativePos(relativePosX, relativePosY));
                 if (i != wallRelativePositions.size() - 1) {
                     res.append(",");
                 }

@@ -1,7 +1,5 @@
 package db;
 
-import com.badlogic.gdx.math.Vector2;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,7 +17,7 @@ public class Database implements DatabaseGateway {
     @Override
     public Map loadMap() {
         List<MapTile> tiles = new ArrayList<>();
-        databaseEngine.readMap((x, y, boarders) -> tiles.add(new MapTile(new Vector2(x, y), boarders)));
+        databaseEngine.readMap((x, y, walls) -> tiles.add(new MapTile(x, y, walls)));
         return new Map(tiles);
     }
 

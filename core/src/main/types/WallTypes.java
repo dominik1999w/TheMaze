@@ -1,16 +1,12 @@
 package types;
 
-import com.badlogic.gdx.math.Vector2;
-
 import map.containers.MapWall;
 
 public enum WallTypes {
-    UP_WALL(new Vector2(0, 1)) {
+    UP_WALL(0, 1) {
         @Override
-        public MapWall createWall(int tileSize, float x, float y, int thickness) {
-            Vector2 position = new Vector2(x, y + 1);
-            Vector2 size = new Vector2(tileSize+thickness, thickness);
-            return new MapWall(position, size);
+        public MapWall createWall(int tileSize, int positionX, int positionY, int thickness) {
+            return new MapWall(positionX, positionY + 1, tileSize + thickness, thickness);
         }
 
         @Override
@@ -19,12 +15,10 @@ public enum WallTypes {
         }
     },
 
-    DOWN_WALL(new Vector2(0, -1)) {
+    DOWN_WALL(0, -1) {
         @Override
-        public MapWall createWall(int tileSize, float x, float y, int thickness) {
-            Vector2 position = new Vector2(x, y);
-            Vector2 size = new Vector2(tileSize+thickness, thickness);
-            return new MapWall(position, size);
+        public MapWall createWall(int tileSize, int positionX, int positionY, int thickness) {
+            return new MapWall(positionX, positionY, tileSize + thickness, thickness);
         }
 
         @Override
@@ -33,12 +27,10 @@ public enum WallTypes {
         }
     },
 
-    RIGHT_WALL(new Vector2(1, 0)) {
+    RIGHT_WALL(1, 0) {
         @Override
-        public MapWall createWall(int tileSize, float x, float y, int thickness) {
-            Vector2 position = new Vector2(x + 1, y);
-            Vector2 size = new Vector2(thickness, tileSize);
-            return new MapWall(position, size);
+        public MapWall createWall(int tileSize, int positionX, int positionY, int thickness) {
+            return new MapWall(positionX + 1, positionY, thickness, tileSize);
         }
 
         @Override
@@ -47,12 +39,10 @@ public enum WallTypes {
         }
     },
 
-    LEFT_WALL(new Vector2(-1, 0)) {
+    LEFT_WALL(-1, 0) {
         @Override
-        public MapWall createWall(int tileSize, float x, float y, int thickness) {
-            Vector2 position = new Vector2(x, y);
-            Vector2 size = new Vector2(thickness, tileSize);
-            return new MapWall(position, size);
+        public MapWall createWall(int tileSize, int positionX, int positionY, int thickness) {
+            return new MapWall(positionX, positionY, thickness, tileSize);
         }
 
         @Override
@@ -61,26 +51,32 @@ public enum WallTypes {
         }
     };
 
-    private final Vector2 relativePosition;
+    private final int relativePositionX;
+    private final int relativePositionY;
 
-    WallTypes(Vector2 relativePosition) {
-        this.relativePosition = relativePosition;
+    WallTypes(int relativePositionX, int relativePositionY) {
+        this.relativePositionX = relativePositionX;
+        this.relativePositionY = relativePositionY;
     }
 
-    public static WallTypes valueOfRelativePos(Vector2 relativePos) {
+    public static WallTypes valueOfRelativePos(int relativePosX, int relativePosY) {
         for (WallTypes w : values()) {
-            if (w.relativePosition.equals(relativePos)) {
+            if (w.relativePositionX == relativePosX && w.relativePositionY == relativePosY) {
                 return w;
             }
         }
         return null;
     }
 
-    public Vector2 getRelativePosition() {
-        return relativePosition;
+    public int getRelativePositionX() {
+        return relativePositionX;
     }
 
-    public abstract MapWall createWall(int tileSize, float x, float y, int thickness);
+    public int getRelativePositionY() {
+        return relativePositionY;
+    }
+
+    public abstract MapWall createWall(int tileSize, int positionX, int positionY, int thickness);
 
     public abstract WallTypes getOppositeWall();
 }
