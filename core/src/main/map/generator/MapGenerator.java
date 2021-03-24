@@ -16,6 +16,8 @@ import static types.WallTypes.UP_WALL;
 
 public class MapGenerator {
     private final Node[][] graph;
+    private final float  walls_to_remove = 0.5f;
+
 
     public MapGenerator() {
         graph = new Node[MapConfig.MAP_LENGTH][MapConfig.MAP_LENGTH];
@@ -37,7 +39,20 @@ public class MapGenerator {
                 if (!visited[i][j]) {
                     System.out.println(i + " " + j);
                     dfs(graph, visited, i, j);
-                    return graph;
+                    //return graph;
+                }
+            }
+        }
+
+        for (int i = 1; i < MapConfig.MAP_LENGTH; i++) {
+            for (int j = 1; j < MapConfig.MAP_LENGTH; j++) {
+                if (Math.random() < walls_to_remove) {
+                    graph[i][j].wallRelativePositions.remove(DOWN_WALL);
+                    graph[i][j - 1].wallRelativePositions.remove(UP_WALL);
+                }
+                if (Math.random() < walls_to_remove) {
+                    graph[i][j].wallRelativePositions.remove(LEFT_WALL);
+                    graph[i - 1][j].wallRelativePositions.remove(RIGHT_WALL);
                 }
             }
         }
