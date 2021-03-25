@@ -11,7 +11,7 @@ import input.IPlayerInput;
 import loader.GameLoader;
 import map.config.MapConfig;
 import map.generator.MapGenerator;
-import renderable.Player;
+import mapobjects.Player;
 import renderable.Map;
 import ui.GameUI;
 
@@ -36,7 +36,7 @@ public class GameScreen extends ScreenAdapter {
         this.batch = batch;
         this.tileMap = loader.getTileMap();
 
-        player = new Player(new Vector2(3, 2), mapGenerator);
+        this.player = new Player(new Vector2(3, 2), mapGenerator);
 
         this.gameUI = new GameUI();
         this.gameUI.build();

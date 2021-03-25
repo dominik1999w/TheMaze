@@ -1,40 +1,20 @@
-package renderable;
+package mapobjects;
 
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Sprite;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 
-import input.IPlayerInput;
 import map.config.MapConfig;
 import map.generator.MapGenerator;
 import types.WallTypes;
 
-public class Player implements Renderable{
-    private final Sprite sprite;
-    private final Vector2 position;
-    private float rotation;
-    private float speed;
-    private final float hitbox_radius = 0.45f; // normalized to 1x1 tile size
+public class CollisionFinder {
+    private static final int FREQUENCY = 3;
+
     private MapGenerator mapGenerator;
-    private int physics_speed = 3;
+    private float hitbox_radius;
 
-    public Player(Vector2 position, MapGenerator mapGenerator) {
-        sprite = new Sprite(new Texture("player.png"));
-        sprite.setSize(MapConfig.BOX_SIZE, MapConfig.BOX_SIZE);
-        sprite.setOriginCenter();
-
-        this.position = position;
-        this.position.x *= MapConfig.BOX_SIZE;
-        this.position.y *= MapConfig.BOX_SIZE;
+    public CollisionFinder(MapGenerator mapGenerator, float hitbox_radius) {
         this.mapGenerator = mapGenerator;
-
-        rotation = 0;
-        speed = 3;
-    }
-
-    public Vector2 getPosition() {
-        return position;
+        this.hitbox_radius = hitbox_radius;
     }
 
     private boolean verticalWallCollision(Vector2 position) {
@@ -63,12 +43,13 @@ public class Player implements Renderable{
         return mapGenerator.hasWall(WallTypes.DOWN_WALL, hl_x_min, hl_y) || mapGenerator.hasWall(WallTypes.DOWN_WALL, hl_x_max, hl_y);
     }
 
-    public void updatePosition(IPlayerInput playerInput, float deltaTime) {
-        Vector2 projected_pos = new Vector2(position);
+    public Vector2 getNewPosition(Vector2 initial_position, Vector2 delta_position) {
+        Vector2 position = new Vector2(initial_position);
+        Vector2 projected_pos = new Vector2(initial_position);
 
-        for(int i = 0; i < physics_speed; i++) {
-            projected_pos.x += playerInput.getX() * MapConfig.BOX_SIZE * speed * deltaTime / (float) physics_speed;
-            projected_pos.y += playerInput.getY() * MapConfig.BOX_SIZE * speed * deltaTime / (float) physics_speed;
+        for(int i = 0; i < FREQUENCY; i++) {
+            projected_pos.x += delta_position.x / FREQUENCY;
+            projected_pos.y += delta_position.y / FREQUENCY;
 
             if (!verticalWallCollision(projected_pos) && !horizontalWallCollision(projected_pos)) {
                 position.x = projected_pos.x;
@@ -77,7 +58,7 @@ public class Player implements Renderable{
                 boolean only_x = !verticalWallCollision(new Vector2(projected_pos.x, position.y)) && !horizontalWallCollision(new Vector2(projected_pos.x, position.y));
                 boolean only_y = !verticalWallCollision(new Vector2(position.x, projected_pos.y)) && !horizontalWallCollision(new Vector2(position.x, projected_pos.y));
 
-                if (Math.abs(playerInput.getX()) >= Math.abs(playerInput.getY())) {
+                if (Math.abs(delta_position.x) >= Math.abs(delta_position.y)) {
                     if (only_x) {
                         position.x = projected_pos.x;
                     } else if (only_y) {
@@ -96,21 +77,6 @@ public class Player implements Renderable{
                 }
             }
         }
-
-        if (playerInput.getX() != 0 || playerInput.getY() != 0) {
-            rotation = (float) (Math.atan2(playerInput.getY(), playerInput.getX()) * (180 / Math.PI));
-        }
-
-        sprite.setPosition(position.x, position.y);
-        sprite.setRotation(rotation);
-    }
-
-    public void shoot() {
-        System.out.println("SHOOT!");
-    }
-
-    @Override
-    public void render(SpriteBatch spriteBatch) {
-        sprite.draw(spriteBatch);
+        return position;
     }
 }
