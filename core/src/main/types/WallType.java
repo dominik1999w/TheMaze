@@ -2,7 +2,7 @@ package types;
 
 import map.containers.MapWall;
 
-public enum WallTypes {
+public enum WallType {
     UP_WALL(0, 1) {
         @Override
         public MapWall createWall(int tileSize, int positionX, int positionY, int thickness) {
@@ -10,7 +10,7 @@ public enum WallTypes {
         }
 
         @Override
-        public WallTypes getOppositeWall() {
+        public WallType getOppositeWall() {
             return DOWN_WALL;
         }
     },
@@ -22,7 +22,7 @@ public enum WallTypes {
         }
 
         @Override
-        public WallTypes getOppositeWall() {
+        public WallType getOppositeWall() {
             return UP_WALL;
         }
     },
@@ -34,7 +34,7 @@ public enum WallTypes {
         }
 
         @Override
-        public WallTypes getOppositeWall() {
+        public WallType getOppositeWall() {
             return LEFT_WALL;
         }
     },
@@ -46,7 +46,7 @@ public enum WallTypes {
         }
 
         @Override
-        public WallTypes getOppositeWall() {
+        public WallType getOppositeWall() {
             return RIGHT_WALL;
         }
     };
@@ -54,13 +54,13 @@ public enum WallTypes {
     private final int relativePositionX;
     private final int relativePositionY;
 
-    WallTypes(int relativePositionX, int relativePositionY) {
+    WallType(int relativePositionX, int relativePositionY) {
         this.relativePositionX = relativePositionX;
         this.relativePositionY = relativePositionY;
     }
 
-    public static WallTypes valueOfRelativePos(int relativePosX, int relativePosY) {
-        for (WallTypes w : values()) {
+    public static WallType valueOfRelativePos(int relativePosX, int relativePosY) {
+        for (WallType w : values()) {
             if (w.relativePositionX == relativePosX && w.relativePositionY == relativePosY) {
                 return w;
             }
@@ -78,5 +78,5 @@ public enum WallTypes {
 
     public abstract MapWall createWall(int tileSize, int positionX, int positionY, int thickness);
 
-    public abstract WallTypes getOppositeWall();
+    public abstract WallType getOppositeWall();
 }

@@ -3,12 +3,12 @@ package db;
 import java.util.List;
 
 import map.generator.MapGenerator;
-import types.WallTypes;
+import types.WallType;
 
 public interface DatabaseEngine {
 
     interface CellListBuilder {
-        void buildCell(int x, int y, List<WallTypes> walls);
+        void buildCell(int x, int y, List<WallType> walls);
     }
 
     void readMap(CellListBuilder builder);

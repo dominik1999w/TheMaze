@@ -7,19 +7,17 @@ import java.util.List;
 
 import map.config.MapConfig;
 import types.TextureType;
-import types.WallTypes;
+import types.WallType;
 
 public class MapTile extends MapElement {
 
     private final List<MapWall> walls;
 
-    public MapTile(int positionX, int positionY, List<WallTypes> walls) {
-        this.textureRegion = TextureRegion.split(TextureType.Ground.createTexture(), MapConfig.BOX_SIZE, MapConfig.BOX_SIZE)[0][0];
-        this.positionX = positionX;
-        this.positionY = positionY;
+    public MapTile(int positionX, int positionY, List<WallType> walls) {
+        super(TextureRegion.split(TextureType.Ground.createTexture(), MapConfig.BOX_SIZE, MapConfig.BOX_SIZE)[0][0], positionX, positionY);
 
         this.walls = new ArrayList<>();
-        for (WallTypes type : walls) {
+        for (WallType type : walls) {
             this.walls.add(type.createWall(MapConfig.BOX_SIZE, positionX, positionY, MapConfig.WALL_THICKNESS));
         }
     }

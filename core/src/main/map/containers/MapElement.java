@@ -7,6 +7,12 @@ public class MapElement {
     protected int positionX;
     protected int positionY;
 
+    protected MapElement(TextureRegion textureRegion, int positionX, int positionY) {
+        this.textureRegion = textureRegion;
+        this.positionX = positionX;
+        this.positionY = positionY;
+    }
+
     public TextureRegion getTextureRegion() {
         return textureRegion;
     }

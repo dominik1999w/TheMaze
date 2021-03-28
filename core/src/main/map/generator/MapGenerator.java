@@ -7,16 +7,16 @@ import java.util.Collections;
 import java.util.List;
 
 import map.config.MapConfig;
-import types.WallTypes;
+import types.WallType;
 
-import static types.WallTypes.DOWN_WALL;
-import static types.WallTypes.LEFT_WALL;
-import static types.WallTypes.RIGHT_WALL;
-import static types.WallTypes.UP_WALL;
+import static types.WallType.DOWN_WALL;
+import static types.WallType.LEFT_WALL;
+import static types.WallType.RIGHT_WALL;
+import static types.WallType.UP_WALL;
 
 public class MapGenerator {
     private final Node[][] graph;
-    private final float  walls_to_remove = 0.5f;
+    private final float walls_to_remove = 0.5f;
 
 
     public MapGenerator() {
@@ -26,7 +26,7 @@ public class MapGenerator {
     public Node[][] generateMap() {
         for (int i = 0; i < MapConfig.MAP_LENGTH; i++) {
             for (int j = 0; j < MapConfig.MAP_LENGTH; j++) {
-                graph[i][j] = new Node(i, j);
+                graph[i][j] = new Node();
                 graph[i][j].addWall(UP_WALL);
                 graph[i][j].addWall(DOWN_WALL);
                 graph[i][j].addWall(LEFT_WALL);
@@ -34,15 +34,7 @@ public class MapGenerator {
             }
         }
         boolean[][] visited = new boolean[MapConfig.MAP_LENGTH][MapConfig.MAP_LENGTH];
-        for (int i = 0; i < MapConfig.MAP_LENGTH; i++) {
-            for (int j = 0; j < MapConfig.MAP_LENGTH; j++) {
-                if (!visited[i][j]) {
-                    System.out.println(i + " " + j);
-                    dfs(graph, visited, i, j);
-                    //return graph;
-                }
-            }
-        }
+        dfs(graph, visited, 0, 0);
 
         for (int i = 1; i < MapConfig.MAP_LENGTH; i++) {
             for (int j = 1; j < MapConfig.MAP_LENGTH; j++) {
@@ -60,19 +52,19 @@ public class MapGenerator {
         return graph;
     }
 
-    public boolean hasWall(WallTypes wall, int x, int y) {
+    public boolean hasWall(WallType wall, int x, int y) {
         if (x < 0 || y < 0 || x >= graph.length || y >= graph[0].length) {
             return true;
         }
-        return graph[x][y].wallRelativePositions.contains(wall);
+        return graph[x][y].hasWall(wall);
     }
 
     private void dfs(Node[][] graph, boolean[][] visited, int i, int j) {
         visited[i][j] = true;
-        List<WallTypes> wallList = Arrays.asList(WallTypes.values());
+        List<WallType> wallList = Arrays.asList(WallType.values());
         Collections.shuffle(wallList);
 
-        for (WallTypes wall : wallList) {
+        for (WallType wall : wallList) {
             if (!graph[i][j].hasWall(wall)) {
                 continue;
             }
@@ -87,25 +79,22 @@ public class MapGenerator {
         }
     }
 
-    public class Node {
-        private final int x, y;
-        private final List<WallTypes> wallRelativePositions;
+    public static class Node {
+        private final List<WallType> wallRelativePositions;
 
-        Node(int x, int y) {
-            this.x = x;
-            this.y = y;
+        Node() {
             wallRelativePositions = new ArrayList<>();
         }
 
-        void addWall(WallTypes wall) {
+        void addWall(WallType wall) {
             wallRelativePositions.add(wall);
         }
 
-        void removeWall(WallTypes wall) {
+        void removeWall(WallType wall) {
             wallRelativePositions.remove(wall);
         }
 
-        public boolean hasWall(WallTypes wall) {
+        public boolean hasWall(WallType wall) {
             return wallRelativePositions.contains(wall);
         }
 
@@ -116,7 +105,7 @@ public class MapGenerator {
                 int relativePosX = wallRelativePositions.get(i).getRelativePositionX();
                 int relativePosY = wallRelativePositions.get(i).getRelativePositionY();
 
-                res.append(WallTypes.valueOfRelativePos(relativePosX, relativePosY));
+                res.append(WallType.valueOfRelativePos(relativePosX, relativePosY));
                 if (i != wallRelativePositions.size() - 1) {
                     res.append(",");
                 }

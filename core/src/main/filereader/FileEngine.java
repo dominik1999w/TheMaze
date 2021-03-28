@@ -7,7 +7,7 @@ import java.util.List;
 
 import db.DatabaseEngine;
 import map.generator.MapGenerator;
-import types.WallTypes;
+import types.WallType;
 
 public class FileEngine implements DatabaseEngine {
     private final String PreferenceName = "TheMazePreference";
@@ -26,12 +26,12 @@ public class FileEngine implements DatabaseEngine {
                 String coordinates = entry.substring(1, entry.length() - 1);
                 String[] dirs = coordinates.split(",");
 
-                List<WallTypes> walls = new ArrayList<>();
+                List<WallType> walls = new ArrayList<>();
                 for (String dir : dirs) {
                     if (dir.isEmpty()) {
                         continue;
                     }
-                    walls.add(WallTypes.valueOf(dir));
+                    walls.add(WallType.valueOf(dir));
                 }
 
                 builder.buildCell(x, y, walls);
