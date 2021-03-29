@@ -7,6 +7,8 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 
+import connection.GameClient;
+import connection.GrpcClient;
 import input.IPlayerInput;
 import loader.GameLoader;
 import map.config.MapConfig;
@@ -20,7 +22,18 @@ public class GameScreen extends ScreenAdapter {
     private final SpriteBatch batch;
     private final Map tileMap;
     private final Player player;
+    private final GameClient client;
     private final GameUI gameUI;
+
+    private static final String HOST =
+            //"10.0.2.2"
+            "localhost"
+    ;
+
+    private static final int PORT =
+            //50051
+            8080
+    ;
 
     public GameScreen(SpriteBatch batch, GameLoader loader, MapGenerator mapGenerator) {
         camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -40,6 +53,13 @@ public class GameScreen extends ScreenAdapter {
 
         this.gameUI = new GameUI();
         this.gameUI.build();
+
+        this.client = new GrpcClient(this.player, HOST, PORT);
+    }
+
+    @Override
+    public void show() {
+        this.gameUI.setDebugText(""+client.connect());
     }
 
     @Override

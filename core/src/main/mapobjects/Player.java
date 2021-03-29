@@ -3,6 +3,8 @@ package mapobjects;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 
+import java.util.UUID;
+
 import input.IPlayerInput;
 import map.config.MapConfig;
 import map.generator.MapGenerator;

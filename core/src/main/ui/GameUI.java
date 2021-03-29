@@ -3,6 +3,7 @@ package ui;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageTextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
@@ -17,6 +18,7 @@ public class GameUI {
     private final Skin skin;
     private Touchpad movementTouchpad;
     private ImageTextButton shootButton;
+    private Label label;
 
     private final PlayerInput playerInput = new PlayerInput();
 
@@ -30,7 +32,14 @@ public class GameUI {
         skin = new Skin(Gdx.files.internal("skins/biological-attack/skin/biological-attack-ui.json"));
     }
 
+    public void setDebugText(String text) {
+        label.setText(text);
+    }
+
     public void build() {
+        label = new Label("", skin);
+        table.add(label).width(400).height(200).expand().top().padTop(50).row();
+
         movementTouchpad = new Touchpad(20, skin);
         table.add(movementTouchpad).width(400).height(400).expand().left().bottom().padLeft(50).padBottom(50);
 
