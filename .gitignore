@@ -40,6 +40,7 @@ com_crashlytics_export_strings.xml
 /core/bin/
 /desktop/bin/
 /server/bin/
+/lib-common/bin/
 /html/bin/
 /ios/bin/
 *.tmp
@@ -58,6 +59,7 @@ com_crashlytics_export_strings.xml
 /core/nbproject/private/
 /desktop/nbproject/private/
 /server/nbproject/private/
+/lib-common/nbproject/private/
 /html/nbproject/private/
 /ios/nbproject/private/
 
@@ -66,6 +68,7 @@ com_crashlytics_export_strings.xml
 /core/build/
 /desktop/build/
 /server/build/
+/lib-common/build/
 /html/build/
 /ios/build/
 
@@ -74,6 +77,7 @@ com_crashlytics_export_strings.xml
 /core/nbbuild/
 /desktop/nbbuild/
 /server/nbbuild/
+/lib-common/nbbuild/
 /html/nbbuild/
 /ios/nbbuild/
 
@@ -82,6 +86,7 @@ com_crashlytics_export_strings.xml
 /core/dist/
 /desktop/dist/
 /server/dist/
+/lib-common/dist/
 /html/dist/
 /ios/dist/
 
@@ -90,6 +95,7 @@ com_crashlytics_export_strings.xml
 /core/nbdist/
 /desktop/nbdist/
 /server/nbdist/
+/lib-common/nbdist/
 /html/nbdist/
 /ios/nbdist/
 
@@ -106,6 +112,7 @@ gradle-app.setting
 /core/build/
 /desktop/build/
 /server/build/
+/lib-common/build/
 /html/build/
 /ios/build/
 
