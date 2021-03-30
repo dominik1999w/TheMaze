@@ -17,28 +17,15 @@ import mapobjects.Player;
 import renderable.Map;
 import ui.GameUI;
 
-public class GameScreen extends ScreenAdapter {
+public class OfflineGameScreen extends ScreenAdapter {
+
     private final OrthographicCamera camera;
     private final SpriteBatch batch;
     private final Map tileMap;
-    private final Player player;
-    private final GameClient client;
-    private final GameUI gameUI;
+    final Player player;
+    final GameUI gameUI;
 
-    private int frameCounter = 0;
-
-    private static final String HOST =
-            //"10.0.2.2"
-            //"localhost"
-            "10.232.0.13"
-    ;
-
-    private static final int PORT =
-            50051
-            //8080
-    ;
-
-    public GameScreen(SpriteBatch batch, GameLoader loader, MapGenerator mapGenerator) {
+    public OfflineGameScreen(SpriteBatch batch, GameLoader loader, MapGenerator mapGenerator) {
         camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         camera.translate((float) Gdx.graphics.getWidth() / 2,
                 (float) Gdx.graphics.getHeight() / 2);
@@ -56,13 +43,6 @@ public class GameScreen extends ScreenAdapter {
 
         this.gameUI = new GameUI();
         this.gameUI.build();
-
-        this.client = new GrpcClient(this.player, HOST, PORT);
-    }
-
-    @Override
-    public void show() {
-        this.gameUI.setDebugText(""+client.connect());
     }
 
     @Override
@@ -96,10 +76,6 @@ public class GameScreen extends ScreenAdapter {
         batch.begin();
         player.render(batch);
         batch.end();
-
-        if (frameCounter % 5 == 0) client.syncGameState();
-
-        frameCounter++;
     }
 
     @Override
@@ -111,4 +87,5 @@ public class GameScreen extends ScreenAdapter {
     public void dispose() {
         gameUI.dispose();
     }
+
 }

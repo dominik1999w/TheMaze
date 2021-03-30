@@ -1,6 +1,7 @@
 package game;
 
 import com.badlogic.gdx.Game;
+import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import db.Database;
@@ -12,7 +13,7 @@ import map.generator.MapGenerator;
 
 public class GameApp extends Game {
     private SpriteBatch batch;
-    private GameScreen gameScreen;
+    private ScreenAdapter gameScreen;
 
     @Override
     public void create() {
@@ -22,11 +23,13 @@ public class GameApp extends Game {
         db.saveMap(mapGenerator.generateMap());
         GameLoader loader = new GameLoader(db);
         batch = new SpriteBatch();
-        gameScreen = new GameScreen(batch, loader, mapGenerator);
+        gameScreen = new OfflineGameScreen(batch, loader, mapGenerator);
         setScreen(gameScreen);
     }
 
     @Override
     public void dispose() {
+        batch.dispose();
+        gameScreen.dispose();
     }
 }
