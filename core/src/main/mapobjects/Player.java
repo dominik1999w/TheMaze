@@ -16,6 +16,8 @@ public class Player {
     private final MapGenerator mapGenerator;
     private final CollisionFinder collisionFinder;
 
+    private Bullet bullet;
+
     public Player(Vector2 position, MapGenerator mapGenerator) {
         playerView = new PlayerView();
         this.mapGenerator = mapGenerator;
@@ -45,14 +47,26 @@ public class Player {
 
         playerView.setPosition(position);
         playerView.setRotation(rotation);
+        if(bullet != null) {
+            bullet.updatePosition(delta);
+        }
     }
 
     public void shoot() {
-        System.out.println("SHOOT!");
-        // new Bullet(...);
+        if (bullet == null) {
+            System.out.println("SHOOT!");
+            bullet = new Bullet(this,position,rotation,mapGenerator);
+        }
+    }
+
+    public void bulletImpact() {
+        bullet = null;
     }
 
     public void render(SpriteBatch spriteBatch) {
         playerView.render(spriteBatch);
+        if(bullet != null) {
+            bullet.render(spriteBatch);
+        }
     }
 }
