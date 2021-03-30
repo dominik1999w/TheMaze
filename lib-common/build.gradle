@@ -1,0 +1,28 @@
+sourceCompatibility = 1.8
+[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+
+sourceSets.main.java.srcDirs = [ "src/main/" ]
+sourceSets.test.java.srcDirs = ["src/test/"]
+
+eclipse.project.name = appName + "-lib-common"
+
+protobuf {
+    protoc {
+        artifact = 'com.google.protobuf:protoc:3.12.0'
+    }
+    plugins {
+        grpc {
+            artifact = 'io.grpc:protoc-gen-grpc-java:1.36.0'
+        }
+    }
+    generateProtoTasks {
+        all()*.plugins {
+            grpc {}
+        }
+    }
+    generatedFilesBaseDir = "${projectDir}/gen"
+}
+
+clean {
+    delete protobuf.generatedFilesBaseDir
+}

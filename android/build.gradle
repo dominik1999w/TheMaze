@@ -15,6 +15,9 @@ android {
     }
     packagingOptions {
         exclude 'META-INF/robovm/ios/robovm.xml'
+        exclude 'META-INF/INDEX.LIST'
+        exclude 'META-INF/io.netty.versions.properties'
+        exclude 'META-INF/native-image/io.netty/**'
     }
     defaultConfig {
         applicationId "com.pz.themaze"
