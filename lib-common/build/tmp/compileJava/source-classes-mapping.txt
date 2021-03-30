@@ -19,23 +19,27 @@ lib/connection/TheMazeGrpc.java
  lib.connection.TheMazeGrpc$TheMazeImplBase
  lib.connection.TheMazeGrpc$TheMazeMethodDescriptorSupplier
  lib.connection.TheMazeGrpc$TheMazeStub
-test/proto/HelloReply.java
- test.proto.HelloReply
- test.proto.HelloReply$1
- test.proto.HelloReply$Builder
-test/proto/HelloReplyOrBuilder.java
- test.proto.HelloReplyOrBuilder
 lib/connection/TheMazeGrpcGdx.java
  lib.connection.TheMazeGrpcGdx
-test/proto/HelloRequestOrBuilder.java
- test.proto.HelloRequestOrBuilder
 lib/connection/ConnectReply.java
  lib.connection.ConnectReply
  lib.connection.ConnectReply$1
  lib.connection.ConnectReply$Builder
-test/proto/HelloRequest.java
- test.proto.HelloRequest
- test.proto.HelloRequest$1
- test.proto.HelloRequest$Builder
-test/proto/TestProto.java
- test.proto.TestProto
+lib/connection/GameStateResponseOrBuilder.java
+ lib.connection.GameStateResponseOrBuilder
+lib/connection/GameStateRequest.java
+ lib.connection.GameStateRequest
+ lib.connection.GameStateRequest$1
+ lib.connection.GameStateRequest$Builder
+lib/connection/GameStateRequestOrBuilder.java
+ lib.connection.GameStateRequestOrBuilder
+lib/connection/PlayerState.java
+ lib.connection.PlayerState
+ lib.connection.PlayerState$1
+ lib.connection.PlayerState$Builder
+lib/connection/GameStateResponse.java
+ lib.connection.GameStateResponse
+ lib.connection.GameStateResponse$1
+ lib.connection.GameStateResponse$Builder
+lib/connection/PlayerStateOrBuilder.java
+ lib.connection.PlayerStateOrBuilder

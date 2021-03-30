@@ -8,6 +8,7 @@ package the_maze;
 
 service TheMaze {
   rpc Connect (ConnectRequest) returns (ConnectReply) {}
+  rpc SyncGameState (stream GameStateRequest) returns (stream GameStateResponse) {}
 }
 
 message ConnectRequest {
@@ -16,4 +17,18 @@ message ConnectRequest {
 
 message ConnectReply {
   int32 count = 1;
+}
+
+message PlayerState {
+  string id = 1;
+  float x = 2;
+  float y = 3;
+}
+
+message GameStateRequest {
+  PlayerState player = 1;
+}
+
+message GameStateResponse {
+  repeated PlayerState players = 1;
 }

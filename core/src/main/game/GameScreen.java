@@ -25,6 +25,8 @@ public class GameScreen extends ScreenAdapter {
     private final GameClient client;
     private final GameUI gameUI;
 
+    private int frameCounter = 0;
+
     private static final String HOST =
             //"10.0.2.2"
             "localhost"
@@ -93,6 +95,10 @@ public class GameScreen extends ScreenAdapter {
         batch.begin();
         player.render(batch);
         batch.end();
+
+        if (frameCounter % 5 == 0) client.syncGameState();
+
+        frameCounter++;
     }
 
     @Override

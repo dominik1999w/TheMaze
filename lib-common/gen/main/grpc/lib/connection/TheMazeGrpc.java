@@ -45,6 +45,37 @@ public final class TheMazeGrpc {
     return getConnectMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<lib.connection.GameStateRequest,
+      lib.connection.GameStateResponse> getSyncGameStateMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "SyncGameState",
+      requestType = lib.connection.GameStateRequest.class,
+      responseType = lib.connection.GameStateResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.BIDI_STREAMING)
+  public static io.grpc.MethodDescriptor<lib.connection.GameStateRequest,
+      lib.connection.GameStateResponse> getSyncGameStateMethod() {
+    io.grpc.MethodDescriptor<lib.connection.GameStateRequest, lib.connection.GameStateResponse> getSyncGameStateMethod;
+    if ((getSyncGameStateMethod = TheMazeGrpc.getSyncGameStateMethod) == null) {
+      synchronized (TheMazeGrpc.class) {
+        if ((getSyncGameStateMethod = TheMazeGrpc.getSyncGameStateMethod) == null) {
+          TheMazeGrpc.getSyncGameStateMethod = getSyncGameStateMethod =
+              io.grpc.MethodDescriptor.<lib.connection.GameStateRequest, lib.connection.GameStateResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.BIDI_STREAMING)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "SyncGameState"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  lib.connection.GameStateRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  lib.connection.GameStateResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new TheMazeMethodDescriptorSupplier("SyncGameState"))
+              .build();
+        }
+      }
+    }
+    return getSyncGameStateMethod;
+  }
+
   /**
    * Creates a new async stub that supports all call types for the service
    */
@@ -100,6 +131,13 @@ public final class TheMazeGrpc {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getConnectMethod(), responseObserver);
     }
 
+    /**
+     */
+    public io.grpc.stub.StreamObserver<lib.connection.GameStateRequest> syncGameState(
+        io.grpc.stub.StreamObserver<lib.connection.GameStateResponse> responseObserver) {
+      return io.grpc.stub.ServerCalls.asyncUnimplementedStreamingCall(getSyncGameStateMethod(), responseObserver);
+    }
+
     @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
       return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
           .addMethod(
@@ -109,6 +147,13 @@ public final class TheMazeGrpc {
                 lib.connection.ConnectRequest,
                 lib.connection.ConnectReply>(
                   this, METHODID_CONNECT)))
+          .addMethod(
+            getSyncGameStateMethod(),
+            io.grpc.stub.ServerCalls.asyncBidiStreamingCall(
+              new MethodHandlers<
+                lib.connection.GameStateRequest,
+                lib.connection.GameStateResponse>(
+                  this, METHODID_SYNC_GAME_STATE)))
           .build();
     }
   }
@@ -133,6 +178,14 @@ public final class TheMazeGrpc {
         io.grpc.stub.StreamObserver<lib.connection.ConnectReply> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
           getChannel().newCall(getConnectMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     */
+    public io.grpc.stub.StreamObserver<lib.connection.GameStateRequest> syncGameState(
+        io.grpc.stub.StreamObserver<lib.connection.GameStateResponse> responseObserver) {
+      return io.grpc.stub.ClientCalls.asyncBidiStreamingCall(
+          getChannel().newCall(getSyncGameStateMethod(), getCallOptions()), responseObserver);
     }
   }
 
@@ -182,6 +235,7 @@ public final class TheMazeGrpc {
   }
 
   private static final int METHODID_CONNECT = 0;
+  private static final int METHODID_SYNC_GAME_STATE = 1;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -214,6 +268,9 @@ public final class TheMazeGrpc {
     public io.grpc.stub.StreamObserver<Req> invoke(
         io.grpc.stub.StreamObserver<Resp> responseObserver) {
       switch (methodId) {
+        case METHODID_SYNC_GAME_STATE:
+          return (io.grpc.stub.StreamObserver<Req>) serviceImpl.syncGameState(
+              (io.grpc.stub.StreamObserver<lib.connection.GameStateResponse>) responseObserver);
         default:
           throw new AssertionError();
       }
@@ -266,6 +323,7 @@ public final class TheMazeGrpc {
           serviceDescriptor = result = io.grpc.ServiceDescriptor.newBuilder(SERVICE_NAME)
               .setSchemaDescriptor(new TheMazeFileDescriptorSupplier())
               .addMethod(getConnectMethod())
+              .addMethod(getSyncGameStateMethod())
               .build();
         }
       }
