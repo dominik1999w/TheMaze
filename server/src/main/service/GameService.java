@@ -47,9 +47,8 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
                 player.setPosition(source.getX(), source.getY());
 
                 GameStateResponse.Builder response = GameStateResponse.newBuilder();
-                int i = 0;
                 for (Map.Entry<String, RemotePlayer> connectedPlayer : connectedPlayers.entrySet()) {
-                    response.setPlayers(i++, PlayerState.newBuilder()
+                    response.addPlayers(PlayerState.newBuilder()
                             .setId(connectedPlayer.getKey())
                             .setX(connectedPlayer.getValue().getX())
                             .setY(connectedPlayer.getValue().getY())

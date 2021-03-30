@@ -29,12 +29,13 @@ public class GameScreen extends ScreenAdapter {
 
     private static final String HOST =
             //"10.0.2.2"
-            "localhost"
+            //"localhost"
+            "10.232.0.13"
     ;
 
     private static final int PORT =
-            //50051
-            8080
+            50051
+            //8080
     ;
 
     public GameScreen(SpriteBatch batch, GameLoader loader, MapGenerator mapGenerator) {
