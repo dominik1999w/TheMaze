@@ -4,7 +4,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import connection.GrpcClient;
 import loader.GameLoader;
-import map.generator.MapGenerator;
+import map.Map;
 
 public class OnlineGameScreen extends OfflineGameScreen {
 
@@ -22,8 +22,8 @@ public class OnlineGameScreen extends OfflineGameScreen {
             //8080
     ;
 
-    public OnlineGameScreen(SpriteBatch batch, GameLoader loader, MapGenerator mapGenerator) {
-        super(batch, loader, mapGenerator);
+    public OnlineGameScreen(SpriteBatch batch, GameLoader loader, Map map) {
+        super(batch, loader, map);
         this.client = new GrpcClient(this.player, HOST, PORT);
     }
 

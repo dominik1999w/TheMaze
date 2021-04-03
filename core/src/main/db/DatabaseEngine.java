@@ -2,7 +2,7 @@ package db;
 
 import java.util.List;
 
-import map.generator.MapGenerator;
+import map.Map;
 import types.WallType;
 
 public interface DatabaseEngine {
@@ -13,5 +13,5 @@ public interface DatabaseEngine {
 
     void readMap(CellListBuilder builder);
 
-    void saveMap(MapGenerator.Node[][] map);
+    void saveMap(Map map);
 }

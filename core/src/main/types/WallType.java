@@ -1,6 +1,6 @@
 package types;
 
-import map.containers.MapWall;
+import map.rendercontainers.MapWall;
 
 public enum WallType {
     UP_WALL(0, 1) {

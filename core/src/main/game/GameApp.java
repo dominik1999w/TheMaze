@@ -9,6 +9,7 @@ import filereader.FileEngine;
 import io.grpc.netty.shaded.io.netty.util.internal.logging.InternalLoggerFactory;
 import io.grpc.netty.shaded.io.netty.util.internal.logging.JdkLoggerFactory;
 import loader.GameLoader;
+import map.Map;
 import map.generator.MapGenerator;
 
 public class GameApp extends Game {
@@ -20,10 +21,11 @@ public class GameApp extends Game {
         InternalLoggerFactory.setDefaultFactory(JdkLoggerFactory.INSTANCE);
         Database db = new Database(new FileEngine());
         MapGenerator mapGenerator = new MapGenerator();
-        db.saveMap(mapGenerator.generateMap());
+        Map map = new Map(mapGenerator.generateMap());
+        db.saveMap(map);
         GameLoader loader = new GameLoader(db);
         batch = new SpriteBatch();
-        gameScreen = new OfflineGameScreen(batch, loader, mapGenerator);
+        gameScreen = new OfflineGameScreen(batch, loader, map);
         setScreen(gameScreen);
     }
 

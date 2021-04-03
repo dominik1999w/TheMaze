@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import db.DatabaseEngine;
-import map.generator.MapGenerator;
+import map.Map;
 import types.WallType;
 
 public class FileEngine implements DatabaseEngine {
@@ -42,13 +42,14 @@ public class FileEngine implements DatabaseEngine {
     }
 
     @Override
-    public void saveMap(MapGenerator.Node[][] map) {
-        int n = map.length;
-        int m = map[0].length;
+    public void saveMap(Map map) {
+        Map.Node[][] mapArray = map.getMapArray();
+        int n = mapArray.length;
+        int m = mapArray[0].length;
         StringBuilder mapBuilder = new StringBuilder();
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < m; j++) {
-                mapBuilder.append(map[i][j].toString()).append("#");
+                mapBuilder.append(mapArray[i][j].toString()).append("#");
             }
             mapBuilder.append("\n");
         }

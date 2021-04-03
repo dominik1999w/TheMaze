@@ -1,7 +1,7 @@
 package loader;
 
 import db.Database;
-import renderable.Map;
+import renderable.MapView;
 
 public class GameLoader {
 
@@ -11,7 +11,7 @@ public class GameLoader {
         this.database = database;
     }
 
-    public Map getTileMap() {
+    public MapView getTileMap() {
         return database.loadMap();
     }
 }

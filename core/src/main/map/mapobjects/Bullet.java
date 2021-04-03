@@ -1,26 +1,26 @@
-package mapobjects;
+package map.mapobjects;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 
+import map.Map;
 import map.config.MapConfig;
-import map.generator.MapGenerator;
 import renderable.BulletView;
 
 public class Bullet {
     private final BulletView bulletView;
-    private final Player player;
+    private final map.mapobjects.Player player;
     private Vector2 position;
     private float rotation;
     private float speed;
-    private final MapGenerator mapGenerator;
-    private CollisionFinder collisionFinder;
+    private final Map map;
+    private map.mapobjects.CollisionFinder collisionFinder;
 
-    Bullet(Player player, Vector2 position, float angle, MapGenerator mapGenerator) {
+    Bullet(Player player, Vector2 position, float angle, Map map) {
         bulletView = new BulletView();
         this.player = player;
-        this.mapGenerator = mapGenerator;
-        collisionFinder = new CollisionFinder(mapGenerator, 0.075f);
+        this.map = map;
+        collisionFinder = new CollisionFinder(map, 0.075f);
 
         this.position = new Vector2(position);
         // shift position to fire out of the gun

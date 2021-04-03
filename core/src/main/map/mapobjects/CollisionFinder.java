@@ -1,20 +1,20 @@
-package mapobjects;
+package map.mapobjects;
 
 import com.badlogic.gdx.math.Vector2;
 
+import map.Map;
 import map.config.MapConfig;
-import map.generator.MapGenerator;
 import types.WallType;
 
 public class CollisionFinder {
     private final int FREQUENCY = 10;
 
-    private final MapGenerator mapGenerator;
+    private final Map map;
     private final float hitboxRadius;
     private boolean foundCollision;
 
-    public CollisionFinder(MapGenerator mapGenerator, float hitboxRadius) {
-        this.mapGenerator = mapGenerator;
+    public CollisionFinder(Map map, float hitboxRadius) {
+        this.map = map;
         this.hitboxRadius = hitboxRadius;
         this.foundCollision = false;
     }
@@ -29,7 +29,7 @@ public class CollisionFinder {
         float vl_half = (float) Math.sqrt(vl_half2);
         int vl_y_min = Math.round(pos.y - vl_half);
         int vl_y_max = Math.round(pos.y + vl_half);
-        return mapGenerator.hasWall(WallType.LEFT_WALL, vl_x, vl_y_min) || mapGenerator.hasWall(WallType.LEFT_WALL, vl_x, vl_y_max);
+        return map.hasWall(WallType.LEFT_WALL, vl_x, vl_y_min) || map.hasWall(WallType.LEFT_WALL, vl_x, vl_y_max);
     }
 
     private boolean horizontalWallCollision(Vector2 position) {
@@ -42,7 +42,7 @@ public class CollisionFinder {
         float hl_half = (float) Math.sqrt(hl_half2);
         int hl_x_min = Math.round(pos.x - hl_half);
         int hl_x_max = Math.round(pos.x + hl_half);
-        return mapGenerator.hasWall(WallType.DOWN_WALL, hl_x_min, hl_y) || mapGenerator.hasWall(WallType.DOWN_WALL, hl_x_max, hl_y);
+        return map.hasWall(WallType.DOWN_WALL, hl_x_min, hl_y) || map.hasWall(WallType.DOWN_WALL, hl_x_max, hl_y);
     }
 
     public Vector2 getNewPosition(Vector2 initial_position, Vector2 delta_position) {

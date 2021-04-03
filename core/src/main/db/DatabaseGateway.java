@@ -1,10 +1,10 @@
 package db;
 
-import map.generator.MapGenerator;
-import renderable.Map;
+import map.Map;
+import renderable.MapView;
 
 public interface DatabaseGateway {
-    Map loadMap();
+    MapView loadMap();
 
-    void saveMap(MapGenerator.Node[][] map);
+    void saveMap(Map map);
 }

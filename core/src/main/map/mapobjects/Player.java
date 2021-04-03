@@ -1,11 +1,11 @@
-package mapobjects;
+package map.mapobjects;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 
 import input.IPlayerInput;
+import map.Map;
 import map.config.MapConfig;
-import map.generator.MapGenerator;
 import renderable.PlayerView;
 
 public class Player {
@@ -13,15 +13,15 @@ public class Player {
     private Vector2 position;
     private float rotation;
     private float speed;
-    private final MapGenerator mapGenerator;
-    private final CollisionFinder collisionFinder;
+    private final Map map;
+    private final map.mapobjects.CollisionFinder collisionFinder;
 
     private Bullet bullet;
 
-    public Player(Vector2 position, MapGenerator mapGenerator) {
+    public Player(Vector2 position, Map map) {
         playerView = new PlayerView();
-        this.mapGenerator = mapGenerator;
-        collisionFinder = new CollisionFinder(mapGenerator, PlayerConfig.HITBOX_RADIUS);
+        this.map = map;
+        collisionFinder = new CollisionFinder(map, PlayerConfig.HITBOX_RADIUS);
 
         this.position = position;
         this.position.x *= MapConfig.BOX_SIZE;
@@ -55,7 +55,7 @@ public class Player {
     public void shoot() {
         if (bullet == null) {
             System.out.println("SHOOT!");
-            bullet = new Bullet(this,position,rotation,mapGenerator);
+            bullet = new Bullet(this,position,rotation,map);
         }
     }
 

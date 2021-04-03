@@ -10,14 +10,14 @@ import com.badlogic.gdx.maps.tiled.tiles.StaticTiledMapTile;
 import java.util.List;
 
 import map.config.MapConfig;
-import map.containers.MapTile;
-import map.containers.MapWall;
+import map.rendercontainers.MapTile;
+import map.rendercontainers.MapWall;
 
-public class Map implements Renderable {
+public class MapView implements Renderable {
 
     private final OrthogonalTiledMapRenderer render;
 
-    public Map(List<MapTile> map) {
+    public MapView(List<MapTile> map) {
         render = new OrthogonalTiledMapRenderer(convertTileMapGdxMap(map));
     }
 

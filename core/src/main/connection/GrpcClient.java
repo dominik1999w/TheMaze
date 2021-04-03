@@ -10,7 +10,7 @@ import lib.connection.GameStateRequest;
 import lib.connection.GameStateResponse;
 import lib.connection.PlayerState;
 import lib.connection.TheMazeGrpc;
-import mapobjects.Player;
+import map.mapobjects.Player;
 
 public class GrpcClient implements GameClient {
 

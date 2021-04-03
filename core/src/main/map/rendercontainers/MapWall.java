@@ -1,4 +1,4 @@
-package map.containers;
+package map.rendercontainers;
 
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
