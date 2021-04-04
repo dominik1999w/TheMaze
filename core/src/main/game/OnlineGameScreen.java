@@ -24,7 +24,7 @@ public class OnlineGameScreen extends OfflineGameScreen {
 
     public OnlineGameScreen(SpriteBatch batch, GameLoader loader, Map map) {
         super(batch, loader, map);
-        this.client = new GrpcClient(this.player, HOST, PORT);
+        this.client = new GrpcClient(this.playerView, HOST, PORT);
     }
 
     @Override

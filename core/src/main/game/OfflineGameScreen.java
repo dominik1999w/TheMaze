@@ -7,12 +7,12 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 
-import input.IPlayerInput;
 import loader.GameLoader;
 import map.Map;
 import map.config.MapConfig;
 import map.mapobjects.Player;
 import renderable.MapView;
+import renderable.PlayerView;
 import ui.GameUI;
 
 public class OfflineGameScreen extends ScreenAdapter {
@@ -20,7 +20,7 @@ public class OfflineGameScreen extends ScreenAdapter {
     private final OrthographicCamera camera;
     private final SpriteBatch batch;
     private final MapView tileMap;
-    final Player player;
+    final PlayerView playerView;
     final GameUI gameUI;
 
     public OfflineGameScreen(SpriteBatch batch, GameLoader loader, Map map) {
@@ -37,7 +37,7 @@ public class OfflineGameScreen extends ScreenAdapter {
         this.batch = batch;
         this.tileMap = loader.getTileMap();
 
-        this.player = new Player(new Vector2(3, 2), map);
+        this.playerView = new PlayerView(new Player(new Vector2(3, 2), map));
 
         this.gameUI = new GameUI();
         this.gameUI.build();
@@ -49,11 +49,9 @@ public class OfflineGameScreen extends ScreenAdapter {
         gameUI.readInput();
 
         // update the world according to player input
-        IPlayerInput playerInput = gameUI.getPlayerInput();
-        if (playerInput.isShootPressed()) player.shoot();
-        player.updatePosition(playerInput, delta);
+        playerView.updateFromInput(gameUI.getPlayerInput(), delta);
 
-        camera.position.set(player.getPosition(), 0);
+        camera.position.set(playerView.getPosition(), 0);
         camera.update();
 
         // render the world
@@ -72,7 +70,7 @@ public class OfflineGameScreen extends ScreenAdapter {
 
         //TODO: why do i have to do it separately?
         batch.begin();
-        player.render(batch);
+        playerView.render(batch);
         batch.end();
     }
 

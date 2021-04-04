@@ -1,23 +1,19 @@
 package map.mapobjects;
 
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 
 import map.Map;
 import map.config.MapConfig;
-import renderable.BulletView;
 
 public class Bullet {
-    private final BulletView bulletView;
-    private final map.mapobjects.Player player;
+    private final Player player;
     private Vector2 position;
     private float rotation;
     private float speed;
     private final Map map;
-    private map.mapobjects.CollisionFinder collisionFinder;
+    private CollisionFinder collisionFinder;
 
     Bullet(Player player, Vector2 position, float angle, Map map) {
-        bulletView = new BulletView();
         this.player = player;
         this.map = map;
         collisionFinder = new CollisionFinder(map, 0.075f);
@@ -31,6 +27,14 @@ public class Bullet {
         this.speed = PlayerConfig.INITIAL_SPEED * 2.5f;
     }
 
+    public Vector2 getPosition() {
+        return position;
+    }
+
+    public float getRotation() {
+        return rotation;
+    }
+
     public void updatePosition(float delta) {
         Vector2 deltaPosition = new Vector2();
         deltaPosition.x = (float)Math.cos(rotation/180*Math.PI) * MapConfig.BOX_SIZE * speed * delta;
@@ -42,13 +46,6 @@ public class Bullet {
         } else {
             position = newPosition;
         }
-
-        bulletView.setPosition(position);
-        bulletView.setRotation(rotation);
-    }
-
-    public void render(SpriteBatch spriteBatch) {
-        bulletView.render(spriteBatch);
     }
 
 }

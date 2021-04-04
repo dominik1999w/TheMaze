@@ -10,7 +10,7 @@ import lib.connection.GameStateRequest;
 import lib.connection.GameStateResponse;
 import lib.connection.PlayerState;
 import lib.connection.TheMazeGrpc;
-import map.mapobjects.Player;
+import renderable.PlayerView;
 
 public class GrpcClient implements GameClient {
 
@@ -18,14 +18,14 @@ public class GrpcClient implements GameClient {
     private final TheMazeGrpc.TheMazeBlockingStub blockingStub;
     private final TheMazeGrpc.TheMazeStub asyncStub;
 
-    private final Player player;
+    private final PlayerView playerView;
 
     private final UUID id;
 
     private StreamObserver<GameStateRequest> gameStateRequestStream;
 
-    public GrpcClient(Player player, String host, int port) {
-        this.player = player;
+    public GrpcClient(PlayerView playerView, String host, int port) {
+        this.playerView = playerView;
         this.id = UUID.randomUUID();
 
         this.channel = ManagedChannelBuilder.forTarget("dns:///" + host + ":" + port).usePlaintext().build();
@@ -64,8 +64,8 @@ public class GrpcClient implements GameClient {
         GameStateRequest request = GameStateRequest.newBuilder()
                 .setPlayer(PlayerState.newBuilder()
                         .setId(id.toString())
-                        .setX(player.getPosition().x)
-                        .setY(player.getPosition().y)
+                        .setX(playerView.getPosition().x)
+                        .setY(playerView.getPosition().y)
                         .build())
                 .build();
         gameStateRequestStream.onNext(request);
