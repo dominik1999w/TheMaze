@@ -3,6 +3,8 @@ package game;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import connection.GrpcClient;
+import experimental.World;
+import experimental.WorldView;
 import loader.GameLoader;
 import map.Map;
 
@@ -22,9 +24,13 @@ public class OnlineGameScreen extends OfflineGameScreen {
             //8080
     ;
 
+    private final WorldView worldView;
+
     public OnlineGameScreen(SpriteBatch batch, GameLoader loader, Map map) {
         super(batch, loader, map);
-        this.client = new GrpcClient(this.playerView, HOST, PORT);
+        World world = new World();
+        this.worldView = new WorldView(world);
+        this.client = new GrpcClient(this.playerView, world, HOST, PORT);
     }
 
     @Override
@@ -35,7 +41,13 @@ public class OnlineGameScreen extends OfflineGameScreen {
     @Override
     public void render(float delta) {
         super.render(delta);
+
         if (frameCounter % 5 == 0) client.syncGameState();
         frameCounter++;
+    }
+
+    @Override
+    protected void extraRender(SpriteBatch batch) {
+        worldView.render(batch);
     }
 }

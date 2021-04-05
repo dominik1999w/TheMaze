@@ -2,6 +2,7 @@ package service;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -19,7 +20,7 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
 
     private final Logger logger;
 
-    private final Map<String, RemotePlayer> connectedPlayers = new HashMap<>();
+    private final Map<String, RemotePlayer> connectedPlayers = new ConcurrentHashMap<>();
 
     public GameService(Logger logger) {
         this.logger = logger;
