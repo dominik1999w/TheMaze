@@ -25,7 +25,7 @@ public class GameApp extends Game {
         db.saveMap(map);
         GameLoader loader = new GameLoader(db);
         batch = new SpriteBatch();
-        gameScreen = new OfflineGameScreen(batch, loader, map);
+        gameScreen = new OnlineGameScreen(batch, loader, map);
         setScreen(gameScreen);
     }
 

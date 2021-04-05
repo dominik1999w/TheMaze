@@ -63,15 +63,18 @@ public class OfflineGameScreen extends ScreenAdapter {
 
         tileMap.setView(camera);
         tileMap.render(batch);
+        playerView.render(batch);
+
+        extraRender(batch);
+
+        batch.end();
 
         gameUI.render(delta);
+    }
 
-        batch.end();
+    // TODO: TEMP
+    protected void extraRender(SpriteBatch batch) {
 
-        //TODO: why do i have to do it separately?
-        batch.begin();
-        playerView.render(batch);
-        batch.end();
     }
 
     @Override

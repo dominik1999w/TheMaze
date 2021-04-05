@@ -11,13 +11,17 @@ import service.GameService;
 public class GrpcServer implements GameServer {
     private static final Logger logger = Logger.getLogger(GrpcServer.class.getName());
 
-    private Server server;
+    private final Server server;
 
-    public void start(int port) throws IOException {
+    public GrpcServer(int port) {
         server = ServerBuilder.forPort(port)
                 .addService(new GameService(logger))
-                .build().start();
-        logger.info("Server started, listening on " + port);
+                .build();
+    }
+
+    public void start() throws IOException {
+        server.start();
+        logger.info("Server started, listening on " + server.getPort());
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             System.err.println("*** shutting down");
             try {

@@ -11,6 +11,7 @@ import lib.connection.GameStateResponse;
 import lib.connection.PlayerState;
 import lib.connection.TheMazeGrpc;
 import renderable.PlayerView;
+import experimental.World;
 
 public class GrpcClient implements GameClient {
 
@@ -19,13 +20,15 @@ public class GrpcClient implements GameClient {
     private final TheMazeGrpc.TheMazeStub asyncStub;
 
     private final PlayerView playerView;
+    private final World world;
 
     private final UUID id;
 
     private StreamObserver<GameStateRequest> gameStateRequestStream;
 
-    public GrpcClient(PlayerView playerView, String host, int port) {
+    public GrpcClient(PlayerView playerView, World world, String host, int port) {
         this.playerView = playerView;
+        this.world = world;
         this.id = UUID.randomUUID();
 
         this.channel = ManagedChannelBuilder.forTarget("dns:///" + host + ":" + port).usePlaintext().build();
@@ -40,9 +43,15 @@ public class GrpcClient implements GameClient {
         gameStateRequestStream = asyncStub.syncGameState(new StreamObserver<GameStateResponse>() {
             @Override
             public void onNext(GameStateResponse value) {
-                for (PlayerState playerState : value.getPlayersList()) {
-                    System.out.format("Player %s has position (%f,%f)\n", playerState.getId(), playerState.getX(), playerState.getY());
-                }
+                //for (PlayerState playerState : value.getPlayersList()) {
+                    //System.out.format("Player %s has position (%f,%f)\n", playerState.getId(), playerState.getX(), playerState.getY());
+                //    if (!playerState.getId().equals(id.toString())) world.getPlayer(playerState.getId())
+                //            .setPosition(playerState.getX(), playerState.getY());
+                //}
+                value.getPlayersList().stream()
+                        .filter(playerState -> !playerState.getId().equals(id.toString()))
+                        .forEach(playerState -> world.getPlayer(playerState.getId())
+                                .setPosition(playerState.getX(), playerState.getY()));
             }
 
             @Override
