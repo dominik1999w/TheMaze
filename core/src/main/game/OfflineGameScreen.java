@@ -2,8 +2,10 @@ package game;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
+import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 
@@ -22,9 +24,19 @@ public class OfflineGameScreen extends ScreenAdapter {
     private final MapView tileMap;
     final PlayerView playerView;
     final GameUI gameUI;
+    final AssetManager assetManager;
 
     public OfflineGameScreen(SpriteBatch batch, GameLoader loader, Map map) {
-        camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        this.camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        this.batch = batch;
+        this.assetManager = new AssetManager();
+        assetManager.load("player.png", Texture.class);
+        assetManager.finishLoading();
+        this.tileMap = loader.getTileMap();
+        this.playerView = new PlayerView(new Player(new Vector2(3, 2), map),
+                assetManager.get("player.png"));
+        this.gameUI = new GameUI();
+
         camera.translate((float) Gdx.graphics.getWidth() / 2,
                 (float) Gdx.graphics.getHeight() / 2);
 
@@ -34,13 +46,7 @@ public class OfflineGameScreen extends ScreenAdapter {
         camera.zoom = c;
         camera.update();
 
-        this.batch = batch;
-        this.tileMap = loader.getTileMap();
-
-        this.playerView = new PlayerView(new Player(new Vector2(3, 2), map));
-
-        this.gameUI = new GameUI();
-        this.gameUI.build();
+        gameUI.build();
     }
 
     @Override
@@ -84,6 +90,7 @@ public class OfflineGameScreen extends ScreenAdapter {
 
     @Override
     public void dispose() {
+        assetManager.dispose();
         gameUI.dispose();
     }
 

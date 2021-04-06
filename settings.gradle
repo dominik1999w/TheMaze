@@ -1,1 +1,1 @@
-include 'android', 'core', 'server', 'lib-common'
+include 'android', 'desktop', 'core', 'server', 'lib-common'
