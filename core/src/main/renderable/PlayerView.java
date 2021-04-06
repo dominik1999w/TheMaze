@@ -15,9 +15,9 @@ public class PlayerView implements Renderable {
     private final Sprite sprite;
     private BulletView bulletView;
 
-    public PlayerView(Player player) {
+    public PlayerView(Player player, Texture spriteTexture) {
         this.player = player;
-        sprite = new Sprite(new Texture("player.png"));
+        sprite = new Sprite(spriteTexture);
         sprite.setSize(MapConfig.BOX_SIZE, MapConfig.BOX_SIZE);
         sprite.setOriginCenter();
     }
