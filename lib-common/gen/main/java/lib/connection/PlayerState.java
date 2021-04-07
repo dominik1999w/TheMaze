@@ -57,12 +57,17 @@ private static final long serialVersionUID = 0L;
           }
           case 21: {
 
-            x_ = input.readFloat();
+            positionX_ = input.readFloat();
             break;
           }
           case 29: {
 
-            y_ = input.readFloat();
+            positionY_ = input.readFloat();
+            break;
+          }
+          case 37: {
+
+            rotation_ = input.readFloat();
             break;
           }
           default: {
@@ -135,26 +140,37 @@ private static final long serialVersionUID = 0L;
     }
   }
 
-  public static final int X_FIELD_NUMBER = 2;
-  private float x_;
+  public static final int POSITIONX_FIELD_NUMBER = 2;
+  private float positionX_;
   /**
-   * <code>float x = 2;</code>
-   * @return The x.
+   * <code>float positionX = 2;</code>
+   * @return The positionX.
    */
   @java.lang.Override
-  public float getX() {
-    return x_;
+  public float getPositionX() {
+    return positionX_;
   }
 
-  public static final int Y_FIELD_NUMBER = 3;
-  private float y_;
+  public static final int POSITIONY_FIELD_NUMBER = 3;
+  private float positionY_;
   /**
-   * <code>float y = 3;</code>
-   * @return The y.
+   * <code>float positionY = 3;</code>
+   * @return The positionY.
    */
   @java.lang.Override
-  public float getY() {
-    return y_;
+  public float getPositionY() {
+    return positionY_;
+  }
+
+  public static final int ROTATION_FIELD_NUMBER = 4;
+  private float rotation_;
+  /**
+   * <code>float rotation = 4;</code>
+   * @return The rotation.
+   */
+  @java.lang.Override
+  public float getRotation() {
+    return rotation_;
   }
 
   private byte memoizedIsInitialized = -1;
@@ -174,11 +190,14 @@ private static final long serialVersionUID = 0L;
     if (!getIdBytes().isEmpty()) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 1, id_);
     }
-    if (x_ != 0F) {
-      output.writeFloat(2, x_);
+    if (positionX_ != 0F) {
+      output.writeFloat(2, positionX_);
     }
-    if (y_ != 0F) {
-      output.writeFloat(3, y_);
+    if (positionY_ != 0F) {
+      output.writeFloat(3, positionY_);
+    }
+    if (rotation_ != 0F) {
+      output.writeFloat(4, rotation_);
     }
     unknownFields.writeTo(output);
   }
@@ -192,13 +211,17 @@ private static final long serialVersionUID = 0L;
     if (!getIdBytes().isEmpty()) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, id_);
     }
-    if (x_ != 0F) {
+    if (positionX_ != 0F) {
       size += com.google.protobuf.CodedOutputStream
-        .computeFloatSize(2, x_);
+        .computeFloatSize(2, positionX_);
     }
-    if (y_ != 0F) {
+    if (positionY_ != 0F) {
       size += com.google.protobuf.CodedOutputStream
-        .computeFloatSize(3, y_);
+        .computeFloatSize(3, positionY_);
+    }
+    if (rotation_ != 0F) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeFloatSize(4, rotation_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -217,12 +240,15 @@ private static final long serialVersionUID = 0L;
 
     if (!getId()
         .equals(other.getId())) return false;
-    if (java.lang.Float.floatToIntBits(getX())
+    if (java.lang.Float.floatToIntBits(getPositionX())
         != java.lang.Float.floatToIntBits(
-            other.getX())) return false;
-    if (java.lang.Float.floatToIntBits(getY())
+            other.getPositionX())) return false;
+    if (java.lang.Float.floatToIntBits(getPositionY())
         != java.lang.Float.floatToIntBits(
-            other.getY())) return false;
+            other.getPositionY())) return false;
+    if (java.lang.Float.floatToIntBits(getRotation())
+        != java.lang.Float.floatToIntBits(
+            other.getRotation())) return false;
     if (!unknownFields.equals(other.unknownFields)) return false;
     return true;
   }
@@ -236,12 +262,15 @@ private static final long serialVersionUID = 0L;
     hash = (19 * hash) + getDescriptor().hashCode();
     hash = (37 * hash) + ID_FIELD_NUMBER;
     hash = (53 * hash) + getId().hashCode();
-    hash = (37 * hash) + X_FIELD_NUMBER;
+    hash = (37 * hash) + POSITIONX_FIELD_NUMBER;
     hash = (53 * hash) + java.lang.Float.floatToIntBits(
-        getX());
-    hash = (37 * hash) + Y_FIELD_NUMBER;
+        getPositionX());
+    hash = (37 * hash) + POSITIONY_FIELD_NUMBER;
     hash = (53 * hash) + java.lang.Float.floatToIntBits(
-        getY());
+        getPositionY());
+    hash = (37 * hash) + ROTATION_FIELD_NUMBER;
+    hash = (53 * hash) + java.lang.Float.floatToIntBits(
+        getRotation());
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
     return hash;
@@ -377,9 +406,11 @@ private static final long serialVersionUID = 0L;
       super.clear();
       id_ = "";
 
-      x_ = 0F;
+      positionX_ = 0F;
 
-      y_ = 0F;
+      positionY_ = 0F;
+
+      rotation_ = 0F;
 
       return this;
     }
@@ -408,8 +439,9 @@ private static final long serialVersionUID = 0L;
     public lib.connection.PlayerState buildPartial() {
       lib.connection.PlayerState result = new lib.connection.PlayerState(this);
       result.id_ = id_;
-      result.x_ = x_;
-      result.y_ = y_;
+      result.positionX_ = positionX_;
+      result.positionY_ = positionY_;
+      result.rotation_ = rotation_;
       onBuilt();
       return result;
     }
@@ -462,11 +494,14 @@ private static final long serialVersionUID = 0L;
         id_ = other.id_;
         onChanged();
       }
-      if (other.getX() != 0F) {
-        setX(other.getX());
+      if (other.getPositionX() != 0F) {
+        setPositionX(other.getPositionX());
       }
-      if (other.getY() != 0F) {
-        setY(other.getY());
+      if (other.getPositionY() != 0F) {
+        setPositionY(other.getPositionY());
+      }
+      if (other.getRotation() != 0F) {
+        setRotation(other.getRotation());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -573,64 +608,95 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private float x_ ;
+    private float positionX_ ;
     /**
-     * <code>float x = 2;</code>
-     * @return The x.
+     * <code>float positionX = 2;</code>
+     * @return The positionX.
      */
     @java.lang.Override
-    public float getX() {
-      return x_;
+    public float getPositionX() {
+      return positionX_;
     }
     /**
-     * <code>float x = 2;</code>
-     * @param value The x to set.
+     * <code>float positionX = 2;</code>
+     * @param value The positionX to set.
      * @return This builder for chaining.
      */
-    public Builder setX(float value) {
+    public Builder setPositionX(float value) {
       
-      x_ = value;
+      positionX_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>float x = 2;</code>
+     * <code>float positionX = 2;</code>
      * @return This builder for chaining.
      */
-    public Builder clearX() {
+    public Builder clearPositionX() {
       
-      x_ = 0F;
+      positionX_ = 0F;
       onChanged();
       return this;
     }
 
-    private float y_ ;
+    private float positionY_ ;
     /**
-     * <code>float y = 3;</code>
-     * @return The y.
+     * <code>float positionY = 3;</code>
+     * @return The positionY.
      */
     @java.lang.Override
-    public float getY() {
-      return y_;
+    public float getPositionY() {
+      return positionY_;
     }
     /**
-     * <code>float y = 3;</code>
-     * @param value The y to set.
+     * <code>float positionY = 3;</code>
+     * @param value The positionY to set.
      * @return This builder for chaining.
      */
-    public Builder setY(float value) {
+    public Builder setPositionY(float value) {
       
-      y_ = value;
+      positionY_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>float y = 3;</code>
+     * <code>float positionY = 3;</code>
      * @return This builder for chaining.
      */
-    public Builder clearY() {
+    public Builder clearPositionY() {
       
-      y_ = 0F;
+      positionY_ = 0F;
+      onChanged();
+      return this;
+    }
+
+    private float rotation_ ;
+    /**
+     * <code>float rotation = 4;</code>
+     * @return The rotation.
+     */
+    @java.lang.Override
+    public float getRotation() {
+      return rotation_;
+    }
+    /**
+     * <code>float rotation = 4;</code>
+     * @param value The rotation to set.
+     * @return This builder for chaining.
+     */
+    public Builder setRotation(float value) {
+      
+      rotation_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>float rotation = 4;</code>
+     * @return This builder for chaining.
+     */
+    public Builder clearRotation() {
+      
+      rotation_ = 0F;
       onChanged();
       return this;
     }

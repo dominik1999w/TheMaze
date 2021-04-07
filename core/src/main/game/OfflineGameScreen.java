@@ -57,7 +57,7 @@ public class OfflineGameScreen extends ScreenAdapter {
         // update the world according to player input
         playerView.updateFromInput(gameUI.getPlayerInput(), delta);
 
-        camera.position.set(playerView.getPosition(), 0);
+        camera.position.set(playerView.getPlayer().getPosition(), 0);
         camera.update();
 
         // render the world

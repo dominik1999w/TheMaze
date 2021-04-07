@@ -43,8 +43,8 @@ public class PlayerView implements Renderable {
         }
     }
 
-    public Vector2 getPosition() {
-        return new Vector2(sprite.getX(), sprite.getY());
+    public Player getPlayer() {
+        return player;
     }
 
     @Override

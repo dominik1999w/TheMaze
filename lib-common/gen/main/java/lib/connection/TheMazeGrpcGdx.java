@@ -50,16 +50,17 @@ public final class TheMazeGrpcGdx {
     java.lang.String[] descriptorData = {
       "\n\016the_maze.proto\022\010the_maze\"\034\n\016ConnectReq" +
       "uest\022\n\n\002id\030\001 \001(\t\"\035\n\014ConnectReply\022\r\n\005coun" +
-      "t\030\001 \001(\005\"/\n\013PlayerState\022\n\n\002id\030\001 \001(\t\022\t\n\001x\030" +
-      "\002 \001(\002\022\t\n\001y\030\003 \001(\002\"9\n\020GameStateRequest\022%\n\006" +
-      "player\030\001 \001(\0132\025.the_maze.PlayerState\";\n\021G" +
-      "ameStateResponse\022&\n\007players\030\001 \003(\0132\025.the_" +
-      "maze.PlayerState2\230\001\n\007TheMaze\022=\n\007Connect\022" +
-      "\030.the_maze.ConnectRequest\032\026.the_maze.Con" +
-      "nectReply\"\000\022N\n\rSyncGameState\022\032.the_maze." +
-      "GameStateRequest\032\033.the_maze.GameStateRes" +
-      "ponse\"\000(\0010\001B\"\n\016lib.connectionB\016TheMazeGr" +
-      "pcGdxP\001b\006proto3"
+      "t\030\001 \001(\005\"Q\n\013PlayerState\022\n\n\002id\030\001 \001(\t\022\021\n\tpo" +
+      "sitionX\030\002 \001(\002\022\021\n\tpositionY\030\003 \001(\002\022\020\n\010rota" +
+      "tion\030\004 \001(\002\"9\n\020GameStateRequest\022%\n\006player" +
+      "\030\001 \001(\0132\025.the_maze.PlayerState\";\n\021GameSta" +
+      "teResponse\022&\n\007players\030\001 \003(\0132\025.the_maze.P" +
+      "layerState2\230\001\n\007TheMaze\022=\n\007Connect\022\030.the_" +
+      "maze.ConnectRequest\032\026.the_maze.ConnectRe" +
+      "ply\"\000\022N\n\rSyncGameState\022\032.the_maze.GameSt" +
+      "ateRequest\032\033.the_maze.GameStateResponse\"" +
+      "\000(\0010\001B\"\n\016lib.connectionB\016TheMazeGrpcGdxP" +
+      "\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -82,7 +83,7 @@ public final class TheMazeGrpcGdx {
     internal_static_the_maze_PlayerState_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_the_maze_PlayerState_descriptor,
-        new java.lang.String[] { "Id", "X", "Y", });
+        new java.lang.String[] { "Id", "PositionX", "PositionY", "Rotation", });
     internal_static_the_maze_GameStateRequest_descriptor =
       getDescriptor().getMessageTypes().get(3);
     internal_static_the_maze_GameStateRequest_fieldAccessorTable = new

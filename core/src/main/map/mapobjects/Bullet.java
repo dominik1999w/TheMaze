@@ -8,14 +8,12 @@ import map.config.MapConfig;
 public class Bullet {
     private final Player player;
     private Vector2 position;
-    private float rotation;
-    private float speed;
-    private final Map map;
-    private CollisionFinder collisionFinder;
+    private final float rotation;
+    private final float speed;
+    private final CollisionFinder collisionFinder;
 
     Bullet(Player player, Vector2 position, float angle, Map map) {
         this.player = player;
-        this.map = map;
         collisionFinder = new CollisionFinder(map, 0.075f);
 
         this.position = new Vector2(position);

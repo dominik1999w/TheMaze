@@ -18,4 +18,12 @@ public class RemotePlayer {
     public float getX() { return this.x; }
 
     public float getY() { return this.y; }
+
+    public void setRotation(float rotation) {
+        this.rotation = rotation;
+    }
+
+    public float getRotation() {
+        return this.rotation;
+    }
 }

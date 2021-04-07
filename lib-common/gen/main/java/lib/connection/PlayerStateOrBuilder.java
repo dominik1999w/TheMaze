@@ -20,14 +20,20 @@ public interface PlayerStateOrBuilder extends
       getIdBytes();
 
   /**
-   * <code>float x = 2;</code>
-   * @return The x.
+   * <code>float positionX = 2;</code>
+   * @return The positionX.
    */
-  float getX();
+  float getPositionX();
 
   /**
-   * <code>float y = 3;</code>
-   * @return The y.
+   * <code>float positionY = 3;</code>
+   * @return The positionY.
    */
-  float getY();
+  float getPositionY();
+
+  /**
+   * <code>float rotation = 4;</code>
+   * @return The rotation.
+   */
+  float getRotation();
 }

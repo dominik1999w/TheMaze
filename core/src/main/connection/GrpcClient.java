@@ -10,7 +10,8 @@ import lib.connection.GameStateRequest;
 import lib.connection.GameStateResponse;
 import lib.connection.PlayerState;
 import lib.connection.TheMazeGrpc;
-import renderable.PlayerView;
+import map.mapobjects.Player;
+import player.RemotePlayer;
 import experimental.World;
 
 public class GrpcClient implements GameClient {
@@ -19,15 +20,15 @@ public class GrpcClient implements GameClient {
     private final TheMazeGrpc.TheMazeBlockingStub blockingStub;
     private final TheMazeGrpc.TheMazeStub asyncStub;
 
-    private final PlayerView playerView;
+    private final Player player;
     private final World world;
 
     private final UUID id;
 
     private StreamObserver<GameStateRequest> gameStateRequestStream;
 
-    public GrpcClient(PlayerView playerView, World world, String host, int port) {
-        this.playerView = playerView;
+    public GrpcClient(Player player, World world, String host, int port) {
+        this.player = player;
         this.world = world;
         this.id = UUID.randomUUID();
 
@@ -50,8 +51,11 @@ public class GrpcClient implements GameClient {
                 //}
                 value.getPlayersList().stream()
                         .filter(playerState -> !playerState.getId().equals(id.toString()))
-                        .forEach(playerState -> world.getPlayer(playerState.getId())
-                                .setPosition(playerState.getX(), playerState.getY()));
+                        .forEach(playerState -> {
+                            RemotePlayer player = world.getPlayer(playerState.getId());
+                            player.setPosition(playerState.getPositionX(), playerState.getPositionY());
+                            player.setRotation(playerState.getRotation());
+                        });
             }
 
             @Override
@@ -73,8 +77,9 @@ public class GrpcClient implements GameClient {
         GameStateRequest request = GameStateRequest.newBuilder()
                 .setPlayer(PlayerState.newBuilder()
                         .setId(id.toString())
-                        .setX(playerView.getPosition().x)
-                        .setY(playerView.getPosition().y)
+                        .setPositionX(player.getPosition().x)
+                        .setPositionY(player.getPosition().y)
+                        .setRotation(player.getRotation())
                         .build())
                 .build();
         gameStateRequestStream.onNext(request);

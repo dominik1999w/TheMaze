@@ -30,7 +30,7 @@ public class OnlineGameScreen extends OfflineGameScreen {
         super(batch, loader, map);
         World world = new World();
         this.worldView = new WorldView(world);
-        this.client = new GrpcClient(this.playerView, world, HOST, PORT);
+        this.client = new GrpcClient(this.playerView.getPlayer(), world, HOST, PORT);
     }
 
     @Override

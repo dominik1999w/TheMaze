@@ -1,6 +1,5 @@
 package service;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
@@ -45,14 +44,16 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
             public void onNext(GameStateRequest value) {
                 PlayerState source = value.getPlayer();
                 RemotePlayer player = connectedPlayers.getOrDefault(source.getId(), new RemotePlayer());
-                player.setPosition(source.getX(), source.getY());
+                player.setPosition(source.getPositionX(), source.getPositionY());
+                player.setRotation(source.getRotation());
 
                 GameStateResponse.Builder response = GameStateResponse.newBuilder();
                 for (Map.Entry<String, RemotePlayer> connectedPlayer : connectedPlayers.entrySet()) {
                     response.addPlayers(PlayerState.newBuilder()
                             .setId(connectedPlayer.getKey())
-                            .setX(connectedPlayer.getValue().getX())
-                            .setY(connectedPlayer.getValue().getY())
+                            .setPositionX(connectedPlayer.getValue().getX())
+                            .setPositionY(connectedPlayer.getValue().getY())
+                            .setRotation(connectedPlayer.getValue().getRotation())
                             .build());
                 }
                 responseObserver.onNext(response.build());
