@@ -15,10 +15,13 @@ public class Bullet {
         this.player = player;
         collisionFinder = new CollisionFinder(map, 0.075f);
 
-        this.position = new Point2D(position);
-        // shift position to fire out of the gun
-        this.position.x += (float)Math.cos((angle-30)/180*Math.PI) * MapConfig.BOX_SIZE * PlayerConfig.HITBOX_RADIUS;
-        this.position.y += (float)Math.sin((angle-30)/180*Math.PI) * MapConfig.BOX_SIZE * PlayerConfig.HITBOX_RADIUS;
+        this.position = new Point2D(position).add(
+                // shift position to fire out of the gun
+                new Point2D(
+                        (float)Math.cos(Math.toRadians(angle-30)),
+                        (float)Math.sin(Math.toRadians(angle-30))
+                ).multiply(MapConfig.BOX_SIZE*PlayerConfig.HITBOX_RADIUS)
+        );
 
         this.rotation = angle;
         this.speed = PlayerConfig.INITIAL_SPEED * 2.5f;
@@ -33,9 +36,10 @@ public class Bullet {
     }
 
     public void updatePosition(float delta) {
-        Point2D deltaPosition = new Point2D();
-        deltaPosition.x = (float)Math.cos(rotation/180*Math.PI) * MapConfig.BOX_SIZE * speed * delta;
-        deltaPosition.y = (float)Math.sin(rotation/180*Math.PI) * MapConfig.BOX_SIZE * speed * delta;
+        Point2D deltaPosition = new Point2D(
+                (float)Math.cos(Math.toRadians(rotation)),
+                (float)Math.sin(Math.toRadians(rotation))
+        ).multiply(MapConfig.BOX_SIZE*speed*delta);
 
         Point2D newPosition = collisionFinder.getNewPosition(position, deltaPosition);
         if(collisionFinder.found()) {

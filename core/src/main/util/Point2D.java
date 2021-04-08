@@ -20,4 +20,16 @@ public class Point2D {
         this.x = x;
         this.y = y;
     }
+
+    public Point2D add(Point2D other) {
+        return new Point2D(x+other.x, y+other.y);
+    }
+
+    public Point2D multiply(float scalar) {
+        return new Point2D(x*scalar, y*scalar);
+    }
+
+    public Point2D divide(float scalar) {
+        return new Point2D(x/scalar, y/scalar);
+    }
 }

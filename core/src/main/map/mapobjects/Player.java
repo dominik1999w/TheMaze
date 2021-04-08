@@ -18,9 +18,7 @@ public class Player {
         this.map = map;
         collisionFinder = new CollisionFinder(map, PlayerConfig.HITBOX_RADIUS);
 
-        this.position = position;
-        this.position.x *= MapConfig.BOX_SIZE;
-        this.position.y *= MapConfig.BOX_SIZE;
+        this.position = position.multiply(MapConfig.BOX_SIZE);
         this.rotation = 0;
         this.speed = PlayerConfig.INITIAL_SPEED;
     }
@@ -38,14 +36,15 @@ public class Player {
     }
 
     public void updatePosition(IPlayerInput playerInput, float delta) {
-        Point2D deltaPosition = new Point2D();
-        deltaPosition.x = playerInput.getX() * MapConfig.BOX_SIZE * speed * delta;
-        deltaPosition.y = playerInput.getY() * MapConfig.BOX_SIZE * speed * delta;
+        Point2D deltaPosition = new Point2D(
+                playerInput.getX(),
+                playerInput.getY()
+        ).multiply(MapConfig.BOX_SIZE*speed*delta);
 
         position = collisionFinder.getNewPosition(position, deltaPosition);
 
         if (playerInput.getX() != 0 || playerInput.getY() != 0) {
-            rotation = (float) (Math.atan2(playerInput.getY(), playerInput.getX()) * (180 / Math.PI));
+            rotation = (float)Math.toDegrees(Math.atan2(playerInput.getY(), playerInput.getX()));
         }
 
         if(bullet != null) {
