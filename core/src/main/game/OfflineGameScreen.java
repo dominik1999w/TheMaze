@@ -16,6 +16,7 @@ import map.mapobjects.Player;
 import renderable.MapView;
 import renderable.PlayerView;
 import ui.GameUI;
+import util.Point2D;
 
 public class OfflineGameScreen extends ScreenAdapter {
 
@@ -33,7 +34,7 @@ public class OfflineGameScreen extends ScreenAdapter {
         assetManager.load("player.png", Texture.class);
         assetManager.finishLoading();
         this.tileMap = loader.getTileMap();
-        this.playerView = new PlayerView(new Player(new Vector2(3, 2), map),
+        this.playerView = new PlayerView(new Player(new Point2D(3, 2), map),
                 assetManager.get("player.png"));
         this.gameUI = new GameUI();
 
@@ -57,7 +58,8 @@ public class OfflineGameScreen extends ScreenAdapter {
         // update the world according to player input
         playerView.updateFromInput(gameUI.getPlayerInput(), delta);
 
-        camera.position.set(playerView.getPlayer().getPosition(), 0);
+        Point2D playerPosition = playerView.getPlayer().getPosition();
+        camera.position.set(new Vector2(playerPosition.x, playerPosition.y), 0);
         camera.update();
 
         // render the world

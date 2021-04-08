@@ -1,13 +1,12 @@
 package map.mapobjects;
 
-import com.badlogic.gdx.math.Vector2;
-
 import input.IPlayerInput;
 import map.Map;
 import map.config.MapConfig;
+import util.Point2D;
 
 public class Player {
-    private Vector2 position;
+    private Point2D position;
     private float rotation;
     private float speed;
     private final Map map;
@@ -15,7 +14,7 @@ public class Player {
 
     private Bullet bullet;
 
-    public Player(Vector2 position, Map map) {
+    public Player(Point2D position, Map map) {
         this.map = map;
         collisionFinder = new CollisionFinder(map, PlayerConfig.HITBOX_RADIUS);
 
@@ -26,7 +25,7 @@ public class Player {
         this.speed = PlayerConfig.INITIAL_SPEED;
     }
 
-    public Vector2 getPosition() {
+    public Point2D getPosition() {
         return position;
     }
 
@@ -39,7 +38,7 @@ public class Player {
     }
 
     public void updatePosition(IPlayerInput playerInput, float delta) {
-        Vector2 deltaPosition = new Vector2();
+        Point2D deltaPosition = new Point2D();
         deltaPosition.x = playerInput.getX() * MapConfig.BOX_SIZE * speed * delta;
         deltaPosition.y = playerInput.getY() * MapConfig.BOX_SIZE * speed * delta;
 

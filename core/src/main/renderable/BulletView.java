@@ -3,10 +3,10 @@ package renderable;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.math.Vector2;
 
 import map.config.MapConfig;
 import map.mapobjects.Bullet;
+import util.Point2D;
 
 public class BulletView implements Renderable {
     private final Bullet bullet;
@@ -20,7 +20,7 @@ public class BulletView implements Renderable {
     }
 
     public void updatePosition() {
-        Vector2 position = bullet.getPosition();
+        Point2D position = bullet.getPosition();
         sprite.setPosition(position.x, position.y);
         sprite.setRotation(bullet.getRotation());
     }

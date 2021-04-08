@@ -3,12 +3,12 @@ package renderable;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.math.Vector2;
 
 import input.IPlayerInput;
 import map.config.MapConfig;
 import map.mapobjects.Bullet;
 import map.mapobjects.Player;
+import util.Point2D;
 
 public class PlayerView implements Renderable {
     private final Player player;
@@ -29,7 +29,7 @@ public class PlayerView implements Renderable {
     }
 
     public void updatePosition() {
-        Vector2 position = player.getPosition();
+        Point2D position = player.getPosition();
         sprite.setPosition(position.x, position.y);
         sprite.setRotation(player.getRotation());
         Bullet bullet = player.getBullet();
