@@ -15,7 +15,7 @@ public class OnlineGameScreen extends OfflineGameScreen {
     private static final String HOST =
             "10.0.2.2"
             //"localhost"
-//            "10.232.0.13"
+            //"10.232.0.13"
     ;
 
     private static final int PORT =
