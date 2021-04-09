@@ -19,7 +19,7 @@ public class CollisionFinder {
     }
 
     private boolean verticalWallCollision(Point2D position) {
-        Point2D pos = position.divide(MapConfig.BOX_SIZE);
+        Point2D pos = new Point2D(position).divide(MapConfig.BOX_SIZE);
         int vl_x = Math.round(pos.x + 0.5f);
         float vl_half2 = hitboxRadius * hitboxRadius - (vl_x - 0.5f - pos.x) * (vl_x - 0.5f - pos.x);
         if (vl_half2 < 0) {
@@ -32,7 +32,7 @@ public class CollisionFinder {
     }
 
     private boolean horizontalWallCollision(Point2D position) {
-        Point2D pos = position.divide(MapConfig.BOX_SIZE);
+        Point2D pos = new Point2D(position).divide(MapConfig.BOX_SIZE);
         int hl_y = Math.round(pos.y + 0.5f);
         float hl_half2 = hitboxRadius * hitboxRadius - (hl_y - 0.5f - pos.y) * (hl_y - 0.5f - pos.y);
         if (hl_half2 < 0) {
@@ -47,9 +47,10 @@ public class CollisionFinder {
     public Point2D getNewPosition(Point2D initial_position, Point2D delta_position) {
         Point2D position = new Point2D(initial_position);
         Point2D projected_pos = new Point2D(initial_position);
+        Point2D delta_position_fragment = new Point2D(delta_position).divide(FREQUENCY);
 
         for(int i = 0; i < FREQUENCY; i++) {
-            projected_pos = projected_pos.add(delta_position.divide(FREQUENCY));
+            projected_pos.add(delta_position_fragment);
 
             if (!verticalWallCollision(projected_pos) && !horizontalWallCollision(projected_pos)) {
                 foundCollision = false;
