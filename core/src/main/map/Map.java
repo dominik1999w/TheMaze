@@ -34,10 +34,6 @@ public class Map {
             wallRelativePositions = walls;
         }
 
-        public void addWall(WallType wall) {
-            wallRelativePositions.add(wall);
-        }
-
         public void removeWall(WallType wall) {
             wallRelativePositions.remove(wall);
         }

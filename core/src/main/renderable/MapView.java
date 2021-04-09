@@ -1,7 +1,9 @@
 package renderable;
 
+import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
@@ -9,17 +11,17 @@ import com.badlogic.gdx.maps.tiled.tiles.StaticTiledMapTile;
 
 import map.Map;
 import map.config.MapConfig;
-import map.rendercontainers.MapTile;
-import map.rendercontainers.MapWall;
-import util.Point2D;
-import util.Shape2D;
+import types.TextureType;
+import types.WallType;
 
 public class MapView implements Renderable {
 
+    private final AssetManager assetManager;
     private final Map map;
     private final OrthogonalTiledMapRenderer render;
 
-    public MapView(Map map) {
+    public MapView(Map map, AssetManager assetManager) {
+        this.assetManager = assetManager;
         this.map = map;
         render = new OrthogonalTiledMapRenderer(convertTileMapGdxMap(map));
     }
@@ -37,22 +39,34 @@ public class MapView implements Renderable {
 
         for (int i = 0; i < MapConfig.MAP_LENGTH; i++) {
             for (int j = 0; j < MapConfig.MAP_LENGTH; j++) {
-                Point2D position = new Point2D(tiles[i][j].getPositionX(), tiles[i][j].getPositionY());
-                Point2D size = new Point2D(MapConfig.BOX_SIZE, MapConfig.BOX_SIZE);
-
-                MapTile tile = new MapTile(new Shape2D(position, size), tiles[i][j].getWallRelativePositions());
                 TiledMapTileLayer.Cell tileCell = new TiledMapTileLayer.Cell();
-                tileCell.setTile(new StaticTiledMapTile(tile.getTextureRegion()));
-                tileLayer.setCell((int) tile.getShape().getPosition().x, (int) tile.getShape().getPosition().y, tileCell);
 
-                for (MapWall wall : tile.getWalls()) {
+                TextureRegion tileTexture = TextureRegion.split(
+                        assetManager.get(TextureType.GROUND.getName()), MapConfig.BOX_SIZE, MapConfig.BOX_SIZE
+                )[0][0];
+
+                tileCell.setTile(new StaticTiledMapTile(tileTexture));
+                tileLayer.setCell(tiles[i][j].getPositionX(), tiles[i][j].getPositionY(), tileCell);
+
+                Map.Node tile = tiles[i][j];
+                for (WallType type : tile.getWallRelativePositions()) {
                     TiledMapTileLayer.Cell wallCell = new TiledMapTileLayer.Cell();
-                    wallCell.setTile(new StaticTiledMapTile(wall.getTextureRegion()));
 
-                    if (wall.getTextureRegion().getRegionHeight() < wall.getTextureRegion().getRegionWidth()) {
-                        horizontalWallLayer.setCell((int) wall.getShape().getPosition().x, (int) wall.getShape().getPosition().y, wallCell);
+                    WallType.WallShape wallShape = type.getWallShape(
+                            tile.getPositionX(), tile.getPositionY(),
+                            MapConfig.BOX_SIZE, MapConfig.WALL_THICKNESS
+                    );
+
+                    TextureRegion wallTexture = TextureRegion.split(
+                            assetManager.get(TextureType.WALL.getName()), wallShape.getSizeX(), wallShape.getSizeY()
+                    )[0][0];
+
+                    wallCell.setTile(new StaticTiledMapTile(wallTexture));
+
+                    if (wallTexture.getRegionHeight() < wallTexture.getRegionWidth()) {
+                        horizontalWallLayer.setCell(wallShape.getPositionX(), wallShape.getPositionY(), wallCell);
                     } else {
-                        verticalWallLayer.setCell((int) wall.getShape().getPosition().x, (int) wall.getShape().getPosition().y, wallCell);
+                        verticalWallLayer.setCell(wallShape.getPositionX(), wallShape.getPositionY(), wallCell);
                     }
                 }
             }

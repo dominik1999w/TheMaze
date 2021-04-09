@@ -14,6 +14,7 @@ import map.config.MapConfig;
 import map.mapobjects.Player;
 import renderable.MapView;
 import renderable.PlayerView;
+import types.TextureType;
 import ui.GameUI;
 import util.Point2D;
 
@@ -30,11 +31,13 @@ public class OfflineGameScreen extends ScreenAdapter {
         this.camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         this.batch = batch;
         this.assetManager = new AssetManager();
-        assetManager.load("player.png", Texture.class);
+        assetManager.load(TextureType.PLAYER.getName(), Texture.class);
+        assetManager.load(TextureType.WALL.getName(), Texture.class);
+        assetManager.load(TextureType.GROUND.getName(), Texture.class);
         assetManager.finishLoading();
-        this.mapView = new MapView(map);
+        this.mapView = new MapView(map, assetManager);
         this.playerView = new PlayerView(new Player(new Point2D(3, 2), map),
-                assetManager.get("player.png"));
+                assetManager.get(TextureType.PLAYER.getName()));
         this.gameUI = new GameUI();
 
         camera.translate((float) Gdx.graphics.getWidth() / 2,

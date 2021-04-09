@@ -1,17 +1,10 @@
 package types;
 
-import util.Point2D;
-import util.Shape2D;
-
 public enum WallType {
     UP_WALL(0, 1) {
         @Override
-        public Shape2D getWallShape(Shape2D shape) {
-            float positionX = shape.getPosition().x;
-            float positionY = shape.getPosition().y + 1;
-            float thickness = shape.getSize().x + shape.getSize().y;
-            float length = shape.getSize().y;
-            return new Shape2D(new Point2D(positionX, positionY), new Point2D(thickness, length));
+        public WallShape getWallShape(int positionX, int positionY, int sizeX, int sizeY) {
+            return new WallShape(positionX, positionY + 1, sizeX + sizeY, sizeY);
         }
 
         @Override
@@ -22,12 +15,8 @@ public enum WallType {
 
     DOWN_WALL(0, -1) {
         @Override
-        public Shape2D getWallShape(Shape2D shape) {
-            float positionX = shape.getPosition().x;
-            float positionY = shape.getPosition().y;
-            float thickness = shape.getSize().x + shape.getSize().y;
-            float length = shape.getSize().y;
-            return new Shape2D(new Point2D(positionX, positionY), new Point2D(thickness, length));
+        public WallShape getWallShape(int positionX, int positionY, int sizeX, int sizeY) {
+            return new WallShape(positionX, positionY, sizeX + sizeY, sizeY);
         }
 
         @Override
@@ -38,12 +27,8 @@ public enum WallType {
 
     RIGHT_WALL(1, 0) {
         @Override
-        public Shape2D getWallShape(Shape2D shape) {
-            float positionX = shape.getPosition().x + 1;
-            float positionY = shape.getPosition().y;
-            float thickness = shape.getSize().y;
-            float length = shape.getSize().x;
-            return new Shape2D(new Point2D(positionX, positionY), new Point2D(thickness, length));
+        public WallShape getWallShape(int positionX, int positionY, int sizeX, int sizeY) {
+            return new WallShape(positionX + 1, positionY, sizeY, sizeX);
         }
 
         @Override
@@ -54,12 +39,8 @@ public enum WallType {
 
     LEFT_WALL(-1, 0) {
         @Override
-        public Shape2D getWallShape(Shape2D shape) {
-            float positionX = shape.getPosition().x;
-            float positionY = shape.getPosition().y;
-            float thickness = shape.getSize().y;
-            float length = shape.getSize().x;
-            return new Shape2D(new Point2D(positionX, positionY), new Point2D(thickness, length));
+        public WallShape getWallShape(int positionX, int positionY, int sizeX, int sizeY) {
+            return new WallShape(positionX, positionY, sizeY, sizeX);
         }
 
         @Override
@@ -93,7 +74,37 @@ public enum WallType {
         return relativePositionY;
     }
 
-    public abstract Shape2D getWallShape(Shape2D shape);
+    public abstract WallShape getWallShape(int positionX, int positionY, int sizeX, int sizeY);
 
     public abstract WallType getOppositeWall();
+
+    public static class WallShape {
+        private final int positionX;
+        private final int positionY;
+        private final int sizeX;
+        private final int sizeY;
+
+        public WallShape(int positionX, int positionY, int sizeX, int sizeY) {
+            this.positionX = positionX;
+            this.positionY = positionY;
+            this.sizeX = sizeX;
+            this.sizeY = sizeY;
+        }
+
+        public int getPositionX() {
+            return positionX;
+        }
+
+        public int getPositionY() {
+            return positionY;
+        }
+
+        public int getSizeX() {
+            return sizeX;
+        }
+
+        public int getSizeY() {
+            return sizeY;
+        }
+    }
 }
