@@ -18,7 +18,7 @@ public class Player {
         this.map = map;
         collisionFinder = new CollisionFinder(map, PlayerConfig.HITBOX_RADIUS);
 
-        this.position = position.multiply(MapConfig.BOX_SIZE);
+        this.position = new Point2D(position).multiply(MapConfig.BOX_SIZE);
         this.rotation = 0;
         this.speed = PlayerConfig.INITIAL_SPEED;
     }

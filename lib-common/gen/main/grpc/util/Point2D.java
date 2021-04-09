@@ -22,14 +22,20 @@ public class Point2D {
     }
 
     public Point2D add(Point2D other) {
-        return new Point2D(x+other.x, y+other.y);
+        this.x += other.x;
+        this.y += other.y;
+        return this;
     }
 
     public Point2D multiply(float scalar) {
-        return new Point2D(x*scalar, y*scalar);
+        this.x *= scalar;
+        this.y *= scalar;
+        return this;
     }
 
     public Point2D divide(float scalar) {
-        return new Point2D(x/scalar, y/scalar);
+        this.x /= scalar;
+        this.y /= scalar;
+        return this;
     }
 }
