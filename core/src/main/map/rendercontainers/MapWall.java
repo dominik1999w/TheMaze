@@ -3,10 +3,11 @@ package map.rendercontainers;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
 import types.TextureType;
+import util.Shape2D;
 
 public class MapWall extends MapElement {
 
-    public MapWall(int positionX, int positionY, int sizeX, int sizeY) {
-        super(TextureRegion.split(TextureType.Wall.createTexture(), sizeX, sizeY)[0][0], positionX, positionY);
+    public MapWall(Shape2D shape) {
+        super(TextureRegion.split(TextureType.Wall.createTexture(), (int) shape.getSize().x, (int) shape.getSize().y)[0][0], shape);
     }
 }

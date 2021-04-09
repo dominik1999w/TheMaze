@@ -1,11 +1,7 @@
 package db;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import map.Map;
-import map.rendercontainers.MapTile;
-import renderable.MapView;
+import map.config.MapConfig;
 
 public class Database implements DatabaseGateway {
     private final DatabaseEngine databaseEngine;
@@ -15,10 +11,10 @@ public class Database implements DatabaseGateway {
     }
 
     @Override
-    public MapView loadMap() {
-        List<MapTile> tiles = new ArrayList<>();
-        databaseEngine.readMap((x, y, walls) -> tiles.add(new MapTile(x, y, walls)));
-        return new MapView(tiles);
+    public Map loadMap() {
+        Map.Node[][] map = new Map.Node[MapConfig.MAP_LENGTH][MapConfig.MAP_LENGTH];
+        databaseEngine.readMap((x, y, walls) -> map[x][y] = new Map.Node(x, y, walls));
+        return new Map(map);
     }
 
     @Override

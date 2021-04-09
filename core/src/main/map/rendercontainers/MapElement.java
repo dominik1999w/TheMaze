@@ -2,26 +2,22 @@ package map.rendercontainers;
 
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
-public class MapElement {
-    protected TextureRegion textureRegion;
-    protected int positionX;
-    protected int positionY;
+import util.Shape2D;
 
-    protected MapElement(TextureRegion textureRegion, int positionX, int positionY) {
+public class MapElement {
+    protected final TextureRegion textureRegion;
+    protected final Shape2D shape;
+
+    protected MapElement(TextureRegion textureRegion, Shape2D shape) {
         this.textureRegion = textureRegion;
-        this.positionX = positionX;
-        this.positionY = positionY;
+        this.shape = shape;
     }
 
     public TextureRegion getTextureRegion() {
         return textureRegion;
     }
 
-    public int getPositionX() {
-        return positionX;
-    }
-
-    public int getPositionY() {
-        return positionY;
+    public Shape2D getShape() {
+        return shape;
     }
 }

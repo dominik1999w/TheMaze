@@ -9,7 +9,6 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 
-import loader.GameLoader;
 import map.Map;
 import map.config.MapConfig;
 import map.mapobjects.Player;
@@ -22,18 +21,18 @@ public class OfflineGameScreen extends ScreenAdapter {
 
     private final OrthographicCamera camera;
     private final SpriteBatch batch;
-    private final MapView tileMap;
+    private final MapView mapView;
     final PlayerView playerView;
     final GameUI gameUI;
     final AssetManager assetManager;
 
-    public OfflineGameScreen(SpriteBatch batch, GameLoader loader, Map map) {
+    public OfflineGameScreen(SpriteBatch batch, Map map) {
         this.camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         this.batch = batch;
         this.assetManager = new AssetManager();
         assetManager.load("player.png", Texture.class);
         assetManager.finishLoading();
-        this.tileMap = loader.getTileMap();
+        this.mapView = new MapView(map);
         this.playerView = new PlayerView(new Player(new Point2D(3, 2), map),
                 assetManager.get("player.png"));
         this.gameUI = new GameUI();
@@ -69,8 +68,8 @@ public class OfflineGameScreen extends ScreenAdapter {
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
 
-        tileMap.setView(camera);
-        tileMap.render(batch);
+        mapView.setView(camera);
+        mapView.render(batch);
         playerView.render(batch);
 
         extraRender(batch);

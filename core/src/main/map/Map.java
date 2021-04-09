@@ -1,6 +1,5 @@
 package map;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import types.WallType;
@@ -11,6 +10,7 @@ public class Map {
     public Map(Node[][] map) {
         this.map = map;
     }
+
 
     public boolean hasWall(WallType wall, int x, int y) {
         if (x < 0 || y < 0 || x >= map.length || y >= map[0].length) {
@@ -25,9 +25,13 @@ public class Map {
 
     public static class Node {
         private final List<WallType> wallRelativePositions;
+        private final int positionX;
+        private final int positionY;
 
-        public Node() {
-            wallRelativePositions = new ArrayList<>();
+        public Node(int x, int y, List<WallType> walls) {
+            this.positionX = x;
+            this.positionY = y;
+            wallRelativePositions = walls;
         }
 
         public void addWall(WallType wall) {
@@ -40,6 +44,18 @@ public class Map {
 
         public boolean hasWall(WallType wall) {
             return wallRelativePositions.contains(wall);
+        }
+
+        public List<WallType> getWallRelativePositions() {
+            return wallRelativePositions;
+        }
+
+        public int getPositionX() {
+            return positionX;
+        }
+
+        public int getPositionY() {
+            return positionY;
         }
 
         @Override

@@ -1,6 +1,7 @@
 package map.generator;
 
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -23,14 +24,10 @@ public class MapGenerator {
         graph = new Map.Node[MapConfig.MAP_LENGTH][MapConfig.MAP_LENGTH];
     }
 
-    public Map.Node[][] generateMap() {
+    public Map generateMap() {
         for (int i = 0; i < MapConfig.MAP_LENGTH; i++) {
             for (int j = 0; j < MapConfig.MAP_LENGTH; j++) {
-                graph[i][j] = new Map.Node();
-                graph[i][j].addWall(UP_WALL);
-                graph[i][j].addWall(DOWN_WALL);
-                graph[i][j].addWall(LEFT_WALL);
-                graph[i][j].addWall(RIGHT_WALL);
+                graph[i][j] = new Map.Node(i, j, new ArrayList<>(Arrays.asList(WallType.values())));
             }
         }
         boolean[][] visited = new boolean[MapConfig.MAP_LENGTH][MapConfig.MAP_LENGTH];
@@ -49,7 +46,7 @@ public class MapGenerator {
             }
         }
 
-        return graph;
+        return new Map(graph);
     }
 
     private void dfs(Map.Node[][] graph, boolean[][] visited, int i, int j) {
@@ -61,11 +58,13 @@ public class MapGenerator {
             if (!graph[i][j].hasWall(wall)) {
                 continue;
             }
+
             int newI = i + wall.getRelativePositionX();
             int newJ = j + wall.getRelativePositionY();
             if (newI < 0 || newI >= MapConfig.MAP_LENGTH || newJ < 0 || newJ >= MapConfig.MAP_LENGTH || visited[newI][newJ]) {
                 continue;
             }
+
             graph[i][j].removeWall(wall);
             graph[newI][newJ].removeWall(wall.getOppositeWall());
             dfs(graph, visited, newI, newJ);

@@ -1,10 +1,9 @@
 package db;
 
 import map.Map;
-import renderable.MapView;
 
 public interface DatabaseGateway {
-    MapView loadMap();
+    Map loadMap();
 
     void saveMap(Map map);
 }
