@@ -17,6 +17,7 @@ message ConnectRequest {
 
 message ConnectReply {
   int32 count = 1;
+  int32 seed = 2;
 }
 
 message PlayerState {

@@ -5,6 +5,7 @@ import java.util.UUID;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
+import lib.connection.ConnectReply;
 import lib.connection.ConnectRequest;
 import lib.connection.GameStateRequest;
 import lib.connection.GameStateResponse;
@@ -20,7 +21,7 @@ public class GrpcClient implements GameClient {
     private final TheMazeGrpc.TheMazeBlockingStub blockingStub;
     private final TheMazeGrpc.TheMazeStub asyncStub;
 
-    private final Player player;
+    private Player player;
     private final World world;
 
     private final UUID id;
@@ -38,7 +39,7 @@ public class GrpcClient implements GameClient {
     }
 
     @Override
-    public int connect() {
+    public ConnectReply connect() {
         ConnectRequest request = ConnectRequest.newBuilder().setId(id.toString()).build();
 
         gameStateRequestStream = asyncStub.syncGameState(new StreamObserver<GameStateResponse>() {
@@ -69,7 +70,7 @@ public class GrpcClient implements GameClient {
             }
         });
 
-        return blockingStub.connect(request).getCount();
+        return blockingStub.connect(request);
     }
 
     @Override
@@ -83,5 +84,9 @@ public class GrpcClient implements GameClient {
                         .build())
                 .build();
         gameStateRequestStream.onNext(request);
+    }
+
+    public void setPlayer(Player player) {
+        this.player = player;
     }
 }

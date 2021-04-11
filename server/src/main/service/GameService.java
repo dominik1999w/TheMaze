@@ -32,7 +32,7 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
         // update the simulation world
         connectedPlayers.put(request.getId(), new RemotePlayer());
         // reply with current game state
-        ConnectReply reply = ConnectReply.newBuilder().setCount(connectedPlayers.size()).build();
+        ConnectReply reply = ConnectReply.newBuilder().setCount(connectedPlayers.size()).setSeed(17).build();
         responseObserver.onNext(reply);
         responseObserver.onCompleted();
     }

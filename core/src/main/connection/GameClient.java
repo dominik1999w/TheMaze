@@ -1,8 +1,10 @@
 package connection;
 
+import lib.connection.ConnectReply;
+
 public interface GameClient {
 
-    int connect();
+    ConnectReply connect();
     void syncGameState();
 
 }

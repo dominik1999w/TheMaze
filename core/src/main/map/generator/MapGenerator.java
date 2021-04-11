@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 import map.Map;
 import map.config.MapConfig;
@@ -17,11 +18,13 @@ import static types.WallType.UP_WALL;
 
 public class MapGenerator {
     private final Map.Node[][] graph;
+    private final Random random;
     private final float walls_to_remove = 0.5f;
 
 
-    public MapGenerator() {
+    public MapGenerator(int seed) {
         graph = new Map.Node[MapConfig.MAP_LENGTH][MapConfig.MAP_LENGTH];
+        this.random = new Random(seed);
     }
 
     public Map generateMap() {
@@ -35,11 +38,11 @@ public class MapGenerator {
 
         for (int i = 1; i < MapConfig.MAP_LENGTH; i++) {
             for (int j = 1; j < MapConfig.MAP_LENGTH; j++) {
-                if (Math.random() < walls_to_remove) {
+                if (random.nextDouble() < walls_to_remove) {
                     graph[i][j].removeWall(DOWN_WALL);
                     graph[i][j - 1].removeWall(UP_WALL);
                 }
-                if (Math.random() < walls_to_remove) {
+                if (random.nextDouble() < walls_to_remove) {
                     graph[i][j].removeWall(LEFT_WALL);
                     graph[i - 1][j].removeWall(RIGHT_WALL);
                 }
@@ -52,7 +55,7 @@ public class MapGenerator {
     private void dfs(Map.Node[][] graph, boolean[][] visited, int i, int j) {
         visited[i][j] = true;
         List<WallType> wallList = Arrays.asList(WallType.values());
-        Collections.shuffle(wallList);
+        Collections.shuffle(wallList, random);
 
         for (WallType wall : wallList) {
             if (!graph[i][j].hasWall(wall)) {

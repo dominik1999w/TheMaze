@@ -2,8 +2,10 @@ package renderable;
 
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.maps.MapRenderer;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
@@ -17,12 +19,10 @@ import types.WallType;
 public class MapView implements Renderable {
 
     private final AssetManager assetManager;
-    private final Map map;
-    private final OrthogonalTiledMapRenderer render;
+    private final MapRenderer render;
 
     public MapView(Map map, AssetManager assetManager) {
         this.assetManager = assetManager;
-        this.map = map;
         render = new OrthogonalTiledMapRenderer(convertTileMapGdxMap(map));
     }
 
@@ -41,11 +41,9 @@ public class MapView implements Renderable {
             for (int j = 0; j < MapConfig.MAP_LENGTH; j++) {
                 TiledMapTileLayer.Cell tileCell = new TiledMapTileLayer.Cell();
 
-                TextureRegion tileTexture = TextureRegion.split(
-                        assetManager.get(TextureType.GROUND.getName()), MapConfig.BOX_SIZE, MapConfig.BOX_SIZE
-                )[0][0];
-
-                tileCell.setTile(new StaticTiledMapTile(tileTexture));
+                Texture tileTexture = assetManager.get(TextureType.GROUND.getName());
+                TextureRegion tileTextureRegion = new TextureRegion(tileTexture, 0, 0, MapConfig.BOX_SIZE, MapConfig.BOX_SIZE);
+                tileCell.setTile(new StaticTiledMapTile(tileTextureRegion));
                 tileLayer.setCell(tiles[i][j].getPositionX(), tiles[i][j].getPositionY(), tileCell);
 
                 Map.Node tile = tiles[i][j];
@@ -56,14 +54,11 @@ public class MapView implements Renderable {
                             tile.getPositionX(), tile.getPositionY(),
                             MapConfig.BOX_SIZE, MapConfig.WALL_THICKNESS
                     );
+                    Texture wallTexture = assetManager.get(TextureType.WALL.getName());
+                    TextureRegion wallTextureRegion = new TextureRegion(wallTexture, 0, 0, wallShape.getSizeX(), wallShape.getSizeY());
+                    wallCell.setTile(new StaticTiledMapTile(wallTextureRegion));
 
-                    TextureRegion wallTexture = TextureRegion.split(
-                            assetManager.get(TextureType.WALL.getName()), wallShape.getSizeX(), wallShape.getSizeY()
-                    )[0][0];
-
-                    wallCell.setTile(new StaticTiledMapTile(wallTexture));
-
-                    if (wallTexture.getRegionHeight() < wallTexture.getRegionWidth()) {
+                    if (wallShape.getSizeY() < wallShape.getSizeX()) {
                         horizontalWallLayer.setCell(wallShape.getPositionX(), wallShape.getPositionY(), wallCell);
                     } else {
                         verticalWallLayer.setCell(wallShape.getPositionX(), wallShape.getPositionY(), wallCell);
