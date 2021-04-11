@@ -3,7 +3,8 @@ package types;
 public enum TextureType {
     GROUND("graytile.png"),
     WALL("blacktile.png"),
-    PLAYER("player.png");
+    PLAYER("player.png"),
+    BULLET("bullet.png");
 
     private final String name;
 

@@ -29,6 +29,10 @@ public class Point2D {
         this.y = y;
     }
 
+    public void set(Point2D other) {
+        set(other.x, other.y);
+    }
+
     public Point2D add(Point2D other) {
         this.x += other.x;
         this.y += other.y;

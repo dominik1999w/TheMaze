@@ -6,7 +6,7 @@ import util.Point2D;
 
 public class Bullet {
     private final Player player;
-    private Point2D position;
+    private final Point2D position;
     private final float rotation;
     private final float speed;
     private final CollisionFinder collisionFinder;
@@ -45,7 +45,7 @@ public class Bullet {
         if(collisionFinder.found()) {
             player.bulletImpact();
         } else {
-            position = newPosition;
+            position.set(newPosition);
         }
     }
 

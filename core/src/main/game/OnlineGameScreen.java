@@ -28,7 +28,7 @@ public class OnlineGameScreen extends OfflineGameScreen {
     public OnlineGameScreen(SpriteBatch batch, Map map) {
         super(batch, map);
         World world = new World();
-        this.worldView = new WorldView(world);
+        this.worldView = new WorldView(world, assetManager);
         this.client = new GrpcClient(this.playerView.getPlayer(), world, HOST, PORT);
     }
 
