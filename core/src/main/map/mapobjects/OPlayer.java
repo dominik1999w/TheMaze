@@ -3,9 +3,11 @@ package map.mapobjects;
 import input.IPlayerInput;
 import map.Map;
 import map.config.MapConfig;
+import renderable.BulletView;
+import types.TextureType;
 import util.Point2D;
 
-public class Player {
+public class OPlayer {
     private Point2D position;
     private float rotation;
     private float speed;
@@ -14,7 +16,7 @@ public class Player {
 
     private Bullet bullet;
 
-    public Player(Point2D position, Map map) {
+    public OPlayer(Point2D position, Map map) {
         this.map = map;
         collisionFinder = new CollisionFinder(map, PlayerConfig.HITBOX_RADIUS);
 
@@ -60,5 +62,11 @@ public class Player {
 
     public void bulletImpact() {
         bullet = null;
+    }
+
+    // TODO: temp, should be in *PlayerController
+    public void updateFromInput(IPlayerInput playerInput, float delta) {
+        if(playerInput.isShootPressed()) shoot();
+        updatePosition(playerInput, delta);
     }
 }

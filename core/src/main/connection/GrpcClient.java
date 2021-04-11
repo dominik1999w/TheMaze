@@ -11,9 +11,9 @@ import lib.connection.GameStateRequest;
 import lib.connection.GameStateResponse;
 import lib.connection.PlayerState;
 import lib.connection.TheMazeGrpc;
-import map.mapobjects.Player;
-import player.RemotePlayer;
-import experimental.World;
+import map.mapobjects.OPlayer;
+import player.Player;
+import world.World;
 
 public class GrpcClient implements GameClient {
 
@@ -21,16 +21,14 @@ public class GrpcClient implements GameClient {
     private final TheMazeGrpc.TheMazeBlockingStub blockingStub;
     private final TheMazeGrpc.TheMazeStub asyncStub;
 
-    private Player player;
-    private final World world;
+    private OPlayer player;
+    private World world;
 
     private final UUID id;
 
     private StreamObserver<GameStateRequest> gameStateRequestStream;
 
-    public GrpcClient(Player player, World world, String host, int port) {
-        this.player = player;
-        this.world = world;
+    public GrpcClient(String host, int port) {
         this.id = UUID.randomUUID();
 
         this.channel = ManagedChannelBuilder.forTarget("dns:///" + host + ":" + port).usePlaintext().build();
@@ -53,7 +51,7 @@ public class GrpcClient implements GameClient {
                 value.getPlayersList().stream()
                         .filter(playerState -> !playerState.getId().equals(id.toString()))
                         .forEach(playerState -> {
-                            RemotePlayer player = world.getPlayer(playerState.getId());
+                            Player player = world.getPlayer(playerState.getId());
                             player.setPosition(playerState.getPositionX(), playerState.getPositionY());
                             player.setRotation(playerState.getRotation());
                         });
@@ -86,7 +84,8 @@ public class GrpcClient implements GameClient {
         gameStateRequestStream.onNext(request);
     }
 
-    public void setPlayer(Player player) {
+    public void enterGame(OPlayer player, World world) {
         this.player = player;
+        this.world = world;
     }
 }

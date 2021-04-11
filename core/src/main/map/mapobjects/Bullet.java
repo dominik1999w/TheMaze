@@ -5,13 +5,13 @@ import map.config.MapConfig;
 import util.Point2D;
 
 public class Bullet {
-    private final Player player;
+    private final OPlayer player;
     private final Point2D position;
     private final float rotation;
     private final float speed;
     private final CollisionFinder collisionFinder;
 
-    Bullet(Player player, Point2D position, float angle, Map map) {
+    Bullet(OPlayer player, Point2D position, float angle, Map map) {
         this.player = player;
         collisionFinder = new CollisionFinder(map, 0.075f);
 

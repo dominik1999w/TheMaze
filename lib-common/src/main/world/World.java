@@ -1,16 +1,15 @@
-package experimental;
+package world;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import player.RemotePlayer;
+import player.Player;
 
 public class World {
 
-    private final Map<String, RemotePlayer> players = new ConcurrentHashMap<>();
+    private final Map<String, Player> players = new ConcurrentHashMap<>();
 
     private final List<OnPlayerAdded> onPlayerAddedSubscribers = new ArrayList<>();
 
@@ -22,9 +21,9 @@ public class World {
         onPlayerAddedSubscribers.add(callback);
     }
 
-    public RemotePlayer getPlayer(String id) {
+    public Player getPlayer(String id) {
         return players.computeIfAbsent(id, k -> {
-            RemotePlayer player = new RemotePlayer();
+            Player player = new Player();
             onPlayerAddedSubscribers.forEach(subscriber -> subscriber.onPlayerAdded(player));
             return player;
         });
@@ -32,6 +31,6 @@ public class World {
 
     @FunctionalInterface
     public interface OnPlayerAdded {
-        void onPlayerAdded(RemotePlayer player);
+        void onPlayerAdded(Player player);
     }
 }

@@ -1,20 +1,20 @@
-package experimental;
+package renderable;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import map.config.MapConfig;
-import player.RemotePlayer;
+import player.Player;
 import renderable.Renderable;
+import util.Point2D;
 
 public class RemotePlayerView implements Renderable {
 
-    private final RemotePlayer player;
-
+    private final Player player;
     private final Sprite sprite;
 
-    public RemotePlayerView(RemotePlayer player, Texture spriteTexture) {
+    public RemotePlayerView(Player player, Texture spriteTexture) {
         this.player = player;
         this.sprite = new Sprite(spriteTexture);
         sprite.setSize(MapConfig.BOX_SIZE, MapConfig.BOX_SIZE);
@@ -23,7 +23,9 @@ public class RemotePlayerView implements Renderable {
 
     @Override
     public void render(SpriteBatch batch) {
-        sprite.setPosition(player.getX(), player.getY());
+        Point2D position = player.getPosition();
+        sprite.setPosition(position.x(), position.y());
+        sprite.setRotation(player.getRotation());
         sprite.draw(batch);
     }
 }
