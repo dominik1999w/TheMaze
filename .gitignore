@@ -127,3 +127,6 @@ Thumbs.db
 /ios/xcode/native/
 /ios/IOSLauncher.app
 /ios/IOSLauncher.app.dSYM
+
+## auto-generated classes
+/lib-common/gen/
