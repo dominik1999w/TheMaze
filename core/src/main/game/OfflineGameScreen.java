@@ -61,7 +61,7 @@ public class OfflineGameScreen extends ScreenAdapter {
         playerView.updateFromInput(gameUI.getPlayerInput(), delta);
 
         Point2D playerPosition = playerView.getPlayer().getPosition();
-        camera.position.set(new Vector2(playerPosition.x, playerPosition.y), 0);
+        camera.position.set(new Vector2(playerPosition.x(), playerPosition.y()), 0);
         camera.update();
 
         // render the world

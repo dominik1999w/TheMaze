@@ -77,8 +77,8 @@ public class GrpcClient implements GameClient {
         GameStateRequest request = GameStateRequest.newBuilder()
                 .setPlayer(PlayerState.newBuilder()
                         .setId(id.toString())
-                        .setPositionX(player.getPosition().x)
-                        .setPositionY(player.getPosition().y)
+                        .setPositionX(player.getPosition().x())
+                        .setPositionY(player.getPosition().y())
                         .setRotation(player.getRotation())
                         .build())
                 .build();

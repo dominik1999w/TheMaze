@@ -1,9 +1,10 @@
 package player;
 
+import util.Point2D;
+
 public class RemotePlayer {
 
-    private float x;
-    private float y;
+    private final Point2D position = new Point2D();
     private float rotation;
 
     public RemotePlayer() {
@@ -11,13 +12,12 @@ public class RemotePlayer {
     }
 
     public void setPosition(float x, float y) {
-        this.x = x;
-        this.y = y;
+        this.position.set(x, y);
     }
 
-    public float getX() { return this.x; }
+    public float getX() { return this.position.x(); }
 
-    public float getY() { return this.y; }
+    public float getY() { return this.position.y(); }
 
     public void setRotation(float rotation) {
         this.rotation = rotation;

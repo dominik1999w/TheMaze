@@ -30,7 +30,7 @@ public class PlayerView implements Renderable {
 
     public void updatePosition() {
         Point2D position = player.getPosition();
-        sprite.setPosition(position.x, position.y);
+        sprite.setPosition(position.x(), position.y());
         sprite.setRotation(player.getRotation());
         Bullet bullet = player.getBullet();
         if(player.getBullet() != null) {

@@ -21,7 +21,7 @@ public class BulletView implements Renderable {
 
     public void updatePosition() {
         Point2D position = bullet.getPosition();
-        sprite.setPosition(position.x, position.y);
+        sprite.setPosition(position.x(), position.y());
         sprite.setRotation(bullet.getRotation());
     }
 
