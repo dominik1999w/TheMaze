@@ -14,9 +14,9 @@ public class RemotePlayerView implements Renderable {
 
     private final Sprite sprite;
 
-    public RemotePlayerView(RemotePlayer player) {
+    public RemotePlayerView(RemotePlayer player, Texture spriteTexture) {
         this.player = player;
-        this.sprite = new Sprite(new Texture("player.png"));
+        this.sprite = new Sprite(spriteTexture);
         sprite.setSize(MapConfig.BOX_SIZE, MapConfig.BOX_SIZE);
         sprite.setOriginCenter();
     }

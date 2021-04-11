@@ -49,8 +49,12 @@ public class OnlineGameScreen extends ScreenAdapter {
     private final AssetManager assetManager;
 
     public OnlineGameScreen(SpriteBatch batch) {
+        this.assetManager = new AssetManager();
+        for (TextureType textureType : TextureType.values())
+            assetManager.load(textureType.getName(), Texture.class);
+        assetManager.finishLoading();
         World world = new World();
-        this.worldView = new WorldView(world);
+        this.worldView = new WorldView(world, assetManager);
         this.client = new GrpcClient(null, world, HOST, PORT);
         int seed = this.client.connect().getSeed();
 
@@ -59,13 +63,11 @@ public class OnlineGameScreen extends ScreenAdapter {
 
         this.camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         this.batch = batch;
-        this.assetManager = new AssetManager();
-        for (TextureType textureType : TextureType.values())
-            assetManager.load(textureType.getName(), Texture.class);
-        assetManager.finishLoading();
+
         this.mapView = new MapView(map, assetManager);
         this.playerView = new PlayerView(new Player(new Point2D(3, 2), map),
-                assetManager.get(TextureType.PLAYER.getName()));
+                assetManager.get(TextureType.PLAYER.getName()),
+                assetManager);
         this.gameUI = new GameUI();
 
         camera.translate((float) Gdx.graphics.getWidth() / 2,

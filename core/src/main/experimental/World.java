@@ -30,10 +30,6 @@ public class World {
         });
     }
 
-    public Collection<RemotePlayer> allPlayers() {
-        return players.values();
-    }
-
     @FunctionalInterface
     public interface OnPlayerAdded {
         void onPlayerAdded(RemotePlayer player);
