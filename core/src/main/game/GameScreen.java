@@ -8,10 +8,9 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
-import connection.GrpcClient;
+import connection.GameClient;
 import world.World;
 import renderable.WorldView;
-import lib.connection.ConnectReply;
 import map.Map;
 import map.config.MapConfig;
 import map.generator.MapGenerator;
@@ -20,7 +19,7 @@ import types.TextureType;
 import ui.GameUI;
 import util.Point2D;
 
-public class OnlineGameScreen extends ScreenAdapter {
+public class GameScreen extends ScreenAdapter {
 
     private final OrthographicCamera camera;
     private final SpriteBatch batch;
@@ -31,14 +30,14 @@ public class OnlineGameScreen extends ScreenAdapter {
     private final GameUI gameUI;
     private final AssetManager assetManager;
 
-    public OnlineGameScreen(SpriteBatch batch) {
+    public GameScreen(SpriteBatch batch, GameClient client) {
         this.batch = batch;
         this.assetManager = new AssetManager();
         for (TextureType textureType : TextureType.values())
             assetManager.load(textureType.getName(), Texture.class);
         assetManager.finishLoading();
 
-        this.client = new GrpcClient(HOST, PORT);
+        this.client = client;
         int seed = this.client.connect().getSeed();
 
         MapGenerator mapGenerator = new MapGenerator(seed);
@@ -108,17 +107,6 @@ public class OnlineGameScreen extends ScreenAdapter {
         gameUI.dispose();
     }
 
-    private final GrpcClient client;
+    private final GameClient client;
     private int frameCounter = 0;
-
-    private static final String HOST =
-            //"10.0.2.2"
-            //"localhost"
-            "10.232.0.13"
-            ;
-
-    private static final int PORT =
-            50051
-            //8080
-            ;
 }

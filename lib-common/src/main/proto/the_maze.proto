@@ -1,12 +1,15 @@
 syntax = "proto3";
 
+package the_maze;
+
 option java_multiple_files = true;
 option java_package = "lib.connection";
 option java_outer_classname = "TheMazeGrpcGdx";
 
-package the_maze;
+import "google/protobuf/empty.proto";
 
 service TheMaze {
+  rpc Handshake (google.protobuf.Empty) returns (google.protobuf.Empty) {}
   rpc Connect (ConnectRequest) returns (ConnectReply) {}
   rpc SyncGameState (stream GameStateRequest) returns (stream GameStateResponse) {}
 }

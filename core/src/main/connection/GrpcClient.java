@@ -3,7 +3,6 @@ package connection;
 import java.util.UUID;
 
 import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
 import lib.connection.ConnectReply;
 import lib.connection.ConnectRequest;
@@ -17,7 +16,6 @@ import world.World;
 
 public class GrpcClient implements GameClient {
 
-    private final ManagedChannel channel;
     private final TheMazeGrpc.TheMazeBlockingStub blockingStub;
     private final TheMazeGrpc.TheMazeStub asyncStub;
 
@@ -28,10 +26,9 @@ public class GrpcClient implements GameClient {
 
     private StreamObserver<GameStateRequest> gameStateRequestStream;
 
-    public GrpcClient(String host, int port) {
+    public GrpcClient(ManagedChannel channel) {
         this.id = UUID.randomUUID();
 
-        this.channel = ManagedChannelBuilder.forTarget("dns:///" + host + ":" + port).usePlaintext().build();
         this.blockingStub = TheMazeGrpc.newBlockingStub(channel);
         this.asyncStub = TheMazeGrpc.newStub(channel);
     }

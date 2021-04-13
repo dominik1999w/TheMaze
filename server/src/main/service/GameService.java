@@ -1,5 +1,7 @@
 package service;
 
+import com.google.protobuf.Empty;
+
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -24,6 +26,12 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
 
     public GameService(Logger logger) {
         this.logger = logger;
+    }
+
+    @Override
+    public void handshake(Empty request, StreamObserver<Empty> responseObserver) {
+        logger.info("Handshake from unknown");
+        responseObserver.onNext(Empty.newBuilder().build());
     }
 
     @Override
