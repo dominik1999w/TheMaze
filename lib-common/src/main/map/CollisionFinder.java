@@ -1,6 +1,5 @@
-package map.mapobjects;
+package map;
 
-import map.Map;
 import map.config.MapConfig;
 import types.WallType;
 import util.Point2D;

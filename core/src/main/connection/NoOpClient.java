@@ -2,8 +2,8 @@ package connection;
 
 import java.util.Random;
 
+import entity.player.Player;
 import lib.connection.ConnectReply;
-import map.mapobjects.OPlayer;
 import world.World;
 
 public class NoOpClient implements GameClient {
@@ -21,7 +21,7 @@ public class NoOpClient implements GameClient {
     }
 
     @Override
-    public void enterGame(OPlayer player, World world) {
+    public void enterGame(Player player, World world) {
 
     }
 }

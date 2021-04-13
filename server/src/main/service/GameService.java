@@ -16,7 +16,7 @@ import lib.connection.GameStateRequest;
 import lib.connection.GameStateResponse;
 import lib.connection.PlayerState;
 import lib.connection.TheMazeGrpc;
-import player.Player;
+import entity.player.Player;
 
 public class GameService extends TheMazeGrpc.TheMazeImplBase {
 

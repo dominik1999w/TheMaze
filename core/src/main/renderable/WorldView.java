@@ -8,35 +8,32 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import map.Map;
-import map.mapobjects.OPlayer;
+import entity.bullet.Bullet;
+import entity.player.Player;
 import types.TextureType;
 import world.World;
+import entity.WorldEntity;
 
 public class WorldView implements Renderable {
 
-    private final World world;
-
     private final MapView mapView;
-    private final PlayerView playerView;
-    private final List<RemotePlayerView> playerViews = new CopyOnWriteArrayList<>();
-
+    private final List<SimpleView<? extends WorldEntity>> views = new CopyOnWriteArrayList<>();
     private final OrthographicCamera camera;
 
-    public WorldView(World world, Map map, OPlayer player, OrthographicCamera camera, AssetManager assetManager) {
-        this.world = world;
-        this.camera = camera;
+    public WorldView(World world, Map map, OrthographicCamera camera, Player localPlayer, AssetManager assetManager) {
         this.mapView = new MapView(map, assetManager);
-        this.playerView = new PlayerView(player, assetManager.get(TextureType.PLAYER.getName()), assetManager);
+        this.camera = camera;
+        views.add(new SimpleView<>(localPlayer, assetManager.get(TextureType.PLAYER.getName())));
 
-        world.subscribe(newPlayer -> playerViews.add(new RemotePlayerView(newPlayer,
-                assetManager.get(TextureType.PLAYER.getName()))));
+        world.subscribeOnPlayerAdded(newPlayer -> views.add(new SimpleView<Player>(newPlayer, assetManager.get(TextureType.PLAYER.getName()))));
+        world.subscribeOnBulletAdded(newBullet -> views.add(new SimpleView<Bullet>(newBullet, assetManager.get(TextureType.BULLET.getName()))));
+        world.subscribeOnBulletRemoved(bullet -> views.removeIf(view -> view.getId().equals(bullet.getId())));
     }
 
     @Override
     public void render(SpriteBatch batch) {
         mapView.setView(camera);
         mapView.render(batch);
-        playerView.render(batch);
-        playerViews.forEach(playerView -> playerView.render(batch));
+        views.forEach(view -> view.render(batch));
     }
 }

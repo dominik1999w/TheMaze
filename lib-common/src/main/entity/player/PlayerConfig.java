@@ -1,4 +1,4 @@
-package map.mapobjects;
+package entity.player;
 
 public class PlayerConfig {
     public static final int INITIAL_SPEED = 3;

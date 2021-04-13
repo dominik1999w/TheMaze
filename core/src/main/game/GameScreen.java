@@ -14,7 +14,8 @@ import renderable.WorldView;
 import map.Map;
 import map.config.MapConfig;
 import map.generator.MapGenerator;
-import map.mapobjects.OPlayer;
+import entity.player.controller.InputPlayerController;
+import entity.player.Player;
 import types.TextureType;
 import ui.GameUI;
 import util.Point2D;
@@ -24,10 +25,12 @@ public class GameScreen extends ScreenAdapter {
     private final OrthographicCamera camera;
     private final SpriteBatch batch;
 
-    private final OPlayer player;
+    private final Player player;
+    private final InputPlayerController playerController;
 
-    private final WorldView worldView;
     private final GameUI gameUI;
+    private final World world;
+    private final WorldView worldView;
     private final AssetManager assetManager;
 
     public GameScreen(SpriteBatch batch, GameClient client) {
@@ -45,11 +48,13 @@ public class GameScreen extends ScreenAdapter {
 
         this.camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
-        this.player = new OPlayer(new Point2D(3, 2), map);
-        World world = new World();
-        this.worldView = new WorldView(world, map, player, camera, assetManager);
-
         this.gameUI = new GameUI();
+        this.world = new World(map);
+
+        this.player = new Player(new Point2D(3, 2));
+        this.playerController = new InputPlayerController(player, gameUI.getPlayerInput(), map, world);
+
+        this.worldView = new WorldView(world, map, camera, player, assetManager);
 
         int mapWidth = 10; // temporary: number of boxes horizontal-wise
         float c = mapWidth * MapConfig.BOX_SIZE / (float) Gdx.graphics.getWidth(); // temporary
@@ -68,7 +73,8 @@ public class GameScreen extends ScreenAdapter {
         gameUI.readInput();
 
         // update the world according to player input
-        player.updateFromInput(gameUI.getPlayerInput(), delta);
+        playerController.update(delta);
+        world.update(delta);
 
         Point2D playerPosition = player.getPosition();
         camera.position.set(playerPosition.x(), playerPosition.y(), 0);

@@ -4,16 +4,19 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
-import map.config.MapConfig;
-import map.mapobjects.Bullet;
-import util.Point2D;
+import java.util.UUID;
 
-public class BulletView implements Renderable {
-    private final Bullet bullet;
+import map.config.MapConfig;
+import util.Point2D;
+import entity.WorldEntity;
+
+public class SimpleView<T extends WorldEntity> implements Renderable {
+
+    private final T object;
     private final Sprite sprite;
 
-    public BulletView(Bullet bullet, Texture spriteTexture) {
-        this.bullet = bullet;
+    public SimpleView(T object, Texture spriteTexture) {
+        this.object = object;
         sprite = new Sprite(spriteTexture);
         sprite.setSize(MapConfig.BOX_SIZE, MapConfig.BOX_SIZE);
         sprite.setOriginCenter();
@@ -21,9 +24,13 @@ public class BulletView implements Renderable {
 
     @Override
     public void render(SpriteBatch spriteBatch) {
-        Point2D position = bullet.getPosition();
+        Point2D position = object.getPosition();
         sprite.setPosition(position.x(), position.y());
-        sprite.setRotation(bullet.getRotation());
+        sprite.setRotation(object.getRotation());
         sprite.draw(spriteBatch);
+    }
+
+    public UUID getId() {
+        return object.getId();
     }
 }

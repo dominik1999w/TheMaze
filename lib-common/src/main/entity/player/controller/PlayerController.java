@@ -1,4 +1,6 @@
-package player;
+package entity.player.controller;
+
+import entity.player.Player;
 
 public abstract class PlayerController {
 

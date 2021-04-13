@@ -10,8 +10,8 @@ import lib.connection.GameStateRequest;
 import lib.connection.GameStateResponse;
 import lib.connection.PlayerState;
 import lib.connection.TheMazeGrpc;
-import map.mapobjects.OPlayer;
-import player.Player;
+import entity.player.controller.AuthoritativePlayerController;
+import entity.player.Player;
 import world.World;
 
 public class GrpcClient implements GameClient {
@@ -19,7 +19,7 @@ public class GrpcClient implements GameClient {
     private final TheMazeGrpc.TheMazeBlockingStub blockingStub;
     private final TheMazeGrpc.TheMazeStub asyncStub;
 
-    private OPlayer player;
+    private Player player;
     private World world;
 
     private final UUID id;
@@ -48,9 +48,9 @@ public class GrpcClient implements GameClient {
                 value.getPlayersList().stream()
                         .filter(playerState -> !playerState.getId().equals(id.toString()))
                         .forEach(playerState -> {
-                            Player player = world.getPlayer(playerState.getId());
-                            player.setPosition(playerState.getPositionX(), playerState.getPositionY());
-                            player.setRotation(playerState.getRotation());
+                            AuthoritativePlayerController playerController = (AuthoritativePlayerController) world.getPlayerController(playerState.getId());
+                            playerController.setNextPosition(playerState.getPositionX(), playerState.getPositionY());
+                            playerController.setNextRotation(playerState.getRotation());
                         });
             }
 
@@ -81,7 +81,7 @@ public class GrpcClient implements GameClient {
         gameStateRequestStream.onNext(request);
     }
 
-    public void enterGame(OPlayer player, World world) {
+    public void enterGame(Player player, World world) {
         this.player = player;
         this.world = world;
     }

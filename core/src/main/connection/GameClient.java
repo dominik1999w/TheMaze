@@ -1,7 +1,7 @@
 package connection;
 
+import entity.player.Player;
 import lib.connection.ConnectReply;
-import map.mapobjects.OPlayer;
 import world.World;
 
 public interface GameClient {
@@ -9,5 +9,5 @@ public interface GameClient {
     ConnectReply connect();
     void syncGameState();
 
-    void enterGame(OPlayer player, World world);
+    void enterGame(Player player, World world);
 }

@@ -1,8 +1,13 @@
-package player;
+package entity.player;
 
+import java.util.UUID;
+
+import entity.WorldEntity;
+import map.config.MapConfig;
 import util.Point2D;
 
-public class Player {
+public class Player implements WorldEntity {
+    private final UUID id = UUID.randomUUID();
 
     private final Point2D position = new Point2D();
     private float rotation = 0;
@@ -11,9 +16,9 @@ public class Player {
 
     }
 
-    public Player(Point2D position, float rotation) {
+    public Player(Point2D position) {
         this.position.set(position);
-        this.rotation = rotation;
+        this.position.multiply(MapConfig.BOX_SIZE);
     }
 
     public void setPosition(float x, float y) {
@@ -34,5 +39,10 @@ public class Player {
 
     public float getRotation() {
         return this.rotation;
+    }
+
+    @Override
+    public UUID getId() {
+        return id;
     }
 }
