@@ -2,12 +2,12 @@ package service;
 
 import com.google.protobuf.Empty;
 
-import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import entity.player.controller.AuthoritativePlayerController;
+import entity.player.controller.PlayerController;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import lib.connection.ConnectReply;
@@ -16,16 +16,15 @@ import lib.connection.GameStateRequest;
 import lib.connection.GameStateResponse;
 import lib.connection.PlayerState;
 import lib.connection.TheMazeGrpc;
-import entity.player.Player;
+import world.World;
 
 public class GameService extends TheMazeGrpc.TheMazeImplBase {
+    private static final Logger logger = Logger.getLogger(GameService.class.getName());
 
-    private final Logger logger;
+    private final World<AuthoritativePlayerController> world;
 
-    private final Map<String, Player> connectedPlayers = new ConcurrentHashMap<>();
-
-    public GameService(Logger logger) {
-        this.logger = logger;
+    public GameService(World<AuthoritativePlayerController> world) {
+        this.world = world;
     }
 
     @Override
@@ -38,18 +37,20 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
     public void connect(ConnectRequest request, StreamObserver<ConnectReply> responseObserver) {
         logger.info("Connect from " + request.getId());
 
-        if (connectedPlayers.containsKey(request.getId())) {
+        /* idk if this is necessary
+        if (StreamSupport.stream(world.getConnectedPlayers().spliterator(), false)
+                .anyMatch(e -> e.getKey().equals(request.getId()))) {
             logger.warning(String.format(Locale.ENGLISH,
                     "Player %s has already connected", request.getId()));
             responseObserver.onError(new RuntimeException("Cannot connect() twice"));
             return;
         }
+        */
 
         // update the simulation world
-        connectedPlayers.put(request.getId(), new Player());
+        world.getPlayerController(request.getId());
         // reply with current game state
         ConnectReply reply = ConnectReply.newBuilder()
-                .setCount(connectedPlayers.size())
                 .setSeed(17)
                 .build();
         responseObserver.onNext(reply);
@@ -62,17 +63,17 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
             @Override
             public void onNext(GameStateRequest value) {
                 PlayerState source = value.getPlayer();
-                Player player = connectedPlayers.getOrDefault(source.getId(), new Player());
-                player.setPosition(source.getPositionX(), source.getPositionY());
-                player.setRotation(source.getRotation());
+                AuthoritativePlayerController playerController = world.getPlayerController(source.getId());
+                playerController.setNextPosition(source.getPositionX(), source.getPositionY());
+                playerController.setNextRotation(source.getRotation());
 
                 GameStateResponse.Builder response = GameStateResponse.newBuilder();
-                for (Map.Entry<String, Player> connectedPlayer : connectedPlayers.entrySet()) {
+                for (Map.Entry<String, ? extends PlayerController> connectedPlayer : world.getConnectedPlayers()) {
                     response.addPlayers(PlayerState.newBuilder()
                             .setId(connectedPlayer.getKey())
-                            .setPositionX(connectedPlayer.getValue().getPosition().x())
-                            .setPositionY(connectedPlayer.getValue().getPosition().y())
-                            .setRotation(connectedPlayer.getValue().getRotation())
+                            .setPositionX(connectedPlayer.getValue().getPlayerPosition().x())
+                            .setPositionY(connectedPlayer.getValue().getPlayerPosition().y())
+                            .setRotation(connectedPlayer.getValue().getPlayerRotation())
                             .build());
                 }
                 responseObserver.onNext(response.build());

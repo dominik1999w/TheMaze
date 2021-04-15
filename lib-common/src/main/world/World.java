@@ -5,17 +5,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
-import entity.player.controller.AuthoritativePlayerController;
 import entity.bullet.Bullet;
 import entity.bullet.BulletController;
 import entity.player.Player;
 import entity.player.controller.PlayerController;
 import util.Point2D;
 
-public class World {
+public class World<TController extends PlayerController> {
 
-    private final Map<String, PlayerController> players = new ConcurrentHashMap<>();
+    private final Map<String, TController> players = new ConcurrentHashMap<>();
     private final Map<Player, BulletController> bullets = new ConcurrentHashMap<>();
 
     private final List<Consumer<Player>> onPlayerAddedSubscribers = new ArrayList<>();
@@ -23,9 +23,11 @@ public class World {
     private final List<Consumer<Bullet>> onBulletRemovedSubscribers = new ArrayList<>();
 
     private final map.Map map;
+    private final Function<Player, TController> controllerConstructor;
 
-    public World(map.Map map) {
+    public World(map.Map map, Function<Player, TController> controllerConstructor) {
         this.map = map;
+        this.controllerConstructor = controllerConstructor;
     }
 
     public void subscribeOnPlayerAdded(Consumer<Player> callback) {
@@ -40,11 +42,11 @@ public class World {
         onBulletRemovedSubscribers.add(callback);
     }
 
-    public PlayerController getPlayerController(String id) {
+    public TController getPlayerController(String id) {
         return players.computeIfAbsent(id, k -> {
             Player player = new Player(new Point2D(3, 2));
             onPlayerAddedSubscribers.forEach(subscriber -> subscriber.accept(player));
-            return new AuthoritativePlayerController(player);
+            return controllerConstructor.apply(player);
         });
     }
 
@@ -66,5 +68,9 @@ public class World {
                 bullets.remove(player);
             }
         });
+    }
+
+    public Iterable<Map.Entry<String, TController>> getConnectedPlayers() {
+        return players.entrySet();
     }
 }

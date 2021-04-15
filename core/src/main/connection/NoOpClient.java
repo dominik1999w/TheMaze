@@ -8,11 +8,8 @@ import world.World;
 
 public class NoOpClient implements GameClient {
     @Override
-    public ConnectReply connect() {
-        return ConnectReply.newBuilder()
-                .setSeed(new Random().nextInt())
-                .setCount(1)
-                .build();
+    public int connect() {
+        return new Random().nextInt();
     }
 
     @Override

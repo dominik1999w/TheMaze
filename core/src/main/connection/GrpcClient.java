@@ -4,7 +4,6 @@ import java.util.UUID;
 
 import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
-import lib.connection.ConnectReply;
 import lib.connection.ConnectRequest;
 import lib.connection.GameStateRequest;
 import lib.connection.GameStateResponse;
@@ -20,7 +19,7 @@ public class GrpcClient implements GameClient {
     private final TheMazeGrpc.TheMazeStub asyncStub;
 
     private Player player;
-    private World world;
+    private World<AuthoritativePlayerController> world;
 
     private final UUID id;
 
@@ -34,7 +33,7 @@ public class GrpcClient implements GameClient {
     }
 
     @Override
-    public ConnectReply connect() {
+    public int connect() {
         ConnectRequest request = ConnectRequest.newBuilder().setId(id.toString()).build();
 
         gameStateRequestStream = asyncStub.syncGameState(new StreamObserver<GameStateResponse>() {
@@ -48,7 +47,7 @@ public class GrpcClient implements GameClient {
                 value.getPlayersList().stream()
                         .filter(playerState -> !playerState.getId().equals(id.toString()))
                         .forEach(playerState -> {
-                            AuthoritativePlayerController playerController = (AuthoritativePlayerController) world.getPlayerController(playerState.getId());
+                            AuthoritativePlayerController playerController = world.getPlayerController(playerState.getId());
                             playerController.setNextPosition(playerState.getPositionX(), playerState.getPositionY());
                             playerController.setNextRotation(playerState.getRotation());
                         });
@@ -65,7 +64,7 @@ public class GrpcClient implements GameClient {
             }
         });
 
-        return blockingStub.connect(request);
+        return blockingStub.connect(request).getSeed();
     }
 
     @Override
@@ -81,7 +80,7 @@ public class GrpcClient implements GameClient {
         gameStateRequestStream.onNext(request);
     }
 
-    public void enterGame(Player player, World world) {
+    public void enterGame(Player player, World<AuthoritativePlayerController> world) {
         this.player = player;
         this.world = world;
     }
