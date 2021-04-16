@@ -21,10 +21,6 @@ public class Player implements WorldEntity {
         this.position.multiply(MapConfig.BOX_SIZE);
     }
 
-    public void setPosition(float x, float y) {
-        this.position.set(x, y);
-    }
-
     public void setPosition(Point2D position) {
         this.position.set(position);
     }

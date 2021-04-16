@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import connection.GameClient;
+import entity.player.controller.AuthoritativePlayerController;
 import world.World;
 import renderable.WorldView;
 import map.Map;
@@ -29,9 +30,12 @@ public class GameScreen extends ScreenAdapter {
     private final InputPlayerController playerController;
 
     private final GameUI gameUI;
-    private final World world;
+    private final World<AuthoritativePlayerController> world;
     private final WorldView worldView;
     private final AssetManager assetManager;
+
+    private final GameClient client;
+    private int frameCounter = 0;
 
     public GameScreen(SpriteBatch batch, GameClient client) {
         this.batch = batch;
@@ -41,7 +45,7 @@ public class GameScreen extends ScreenAdapter {
         assetManager.finishLoading();
 
         this.client = client;
-        int seed = this.client.connect().getSeed();
+        int seed = this.client.connect();
 
         MapGenerator mapGenerator = new MapGenerator(seed);
         Map map = mapGenerator.generateMap();
@@ -49,7 +53,7 @@ public class GameScreen extends ScreenAdapter {
         this.camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
         this.gameUI = new GameUI();
-        this.world = new World(map);
+        this.world = new World<>(map, AuthoritativePlayerController::new);
 
         this.player = new Player(new Point2D(3, 2));
         this.playerController = new InputPlayerController(player, gameUI.getPlayerInput(), map, world);
@@ -57,14 +61,12 @@ public class GameScreen extends ScreenAdapter {
         this.worldView = new WorldView(world, map, camera, player, assetManager);
 
         int mapWidth = 10; // temporary: number of boxes horizontal-wise
-        float c = mapWidth * MapConfig.BOX_SIZE / (float) Gdx.graphics.getWidth(); // temporary
-
-        camera.zoom = c;
+        camera.zoom = mapWidth * MapConfig.BOX_SIZE / (float) Gdx.graphics.getWidth();
         camera.update();
 
         gameUI.build();
 
-        this.client.enterGame(player, world);
+        client.enterGame(player, world);
     }
 
     @Override
@@ -97,7 +99,7 @@ public class GameScreen extends ScreenAdapter {
 
     @Override
     public void show() {
-        // FIXME: must not connect twice
+        // Deprecated
         //ConnectReply connect = client.connect();
         //this.gameUI.setDebugText("" + connect.getCount() + " " + connect.getSeed());
     }
@@ -112,7 +114,4 @@ public class GameScreen extends ScreenAdapter {
         assetManager.dispose();
         gameUI.dispose();
     }
-
-    private final GameClient client;
-    private int frameCounter = 0;
 }

@@ -20,7 +20,7 @@ public class WorldView implements Renderable {
     private final List<SimpleView<? extends WorldEntity>> views = new CopyOnWriteArrayList<>();
     private final OrthographicCamera camera;
 
-    public WorldView(World world, Map map, OrthographicCamera camera, Player localPlayer, AssetManager assetManager) {
+    public WorldView(World<?> world, Map map, OrthographicCamera camera, Player localPlayer, AssetManager assetManager) {
         this.mapView = new MapView(map, assetManager);
         this.camera = camera;
         views.add(new SimpleView<>(localPlayer, assetManager.get(TextureType.PLAYER.getName())));

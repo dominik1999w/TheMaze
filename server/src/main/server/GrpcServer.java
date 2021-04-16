@@ -13,9 +13,9 @@ public class GrpcServer implements GameServer {
 
     private final Server server;
 
-    public GrpcServer(int port) {
+    public GrpcServer(int port, GameService gameService) {
         server = ServerBuilder.forPort(port)
-                .addService(new GameService(logger))
+                .addService(gameService)
                 .build();
     }
 

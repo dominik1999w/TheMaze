@@ -1,6 +1,7 @@
 package entity.player.controller;
 
 import entity.player.Player;
+import util.Point2D;
 
 public abstract class PlayerController {
 
@@ -11,4 +12,12 @@ public abstract class PlayerController {
     }
 
     public abstract void update(float delta);
+
+    public final Point2D getPlayerPosition() {
+        return player.getPosition();
+    }
+
+    public final float getPlayerRotation() {
+        return player.getRotation();
+    }
 }

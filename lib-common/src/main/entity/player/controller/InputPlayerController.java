@@ -13,9 +13,9 @@ public class InputPlayerController extends PlayerController {
 
     private final IPlayerInput playerInput;
     private final CollisionFinder collisionFinder;
-    private final World world;
+    private final World<?> world;
 
-    public InputPlayerController(Player player, IPlayerInput playerInput, Map map, World world) {
+    public InputPlayerController(Player player, IPlayerInput playerInput, Map map, World<?> world) {
         super(player);
         this.playerInput = playerInput;
         this.collisionFinder = new CollisionFinder(map, PlayerConfig.HITBOX_RADIUS);
