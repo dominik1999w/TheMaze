@@ -23,7 +23,7 @@ public class Main {
         GameServer server = new GrpcServer(50051, gameService);
         server.start();
 
-        //new Thread(() -> Timer.executeAtFixedRate(world::update, 0.025f)).start(); // 40 fps
+        new Thread(() -> Timer.executeAtFixedRate(world::update, 0.025f)).start(); // 40 fps
 
         // start new Thread with
         // clientResponseObservers.forEach(::onNext(GameStateResponse))

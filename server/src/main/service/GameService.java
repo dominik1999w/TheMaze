@@ -31,6 +31,7 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
     public void handshake(Empty request, StreamObserver<Empty> responseObserver) {
         logger.info("Handshake from unknown");
         responseObserver.onNext(Empty.newBuilder().build());
+        responseObserver.onCompleted();
     }
 
     @Override
