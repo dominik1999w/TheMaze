@@ -1,5 +1,8 @@
 
+import entity.bullet.BulletController;
 import entity.player.controller.AuthoritativePlayerController;
+import physics.mapcollision.IterativeMapCollisionFinder;
+import physics.mapcollision.MapCollisionFinder;
 import server.GameServer;
 import server.GrpcServer;
 import service.GameService;
@@ -18,7 +21,10 @@ public class Main {
 //        new Player();
 
 
-        World<AuthoritativePlayerController> world = new World<>(null, AuthoritativePlayerController::new);
+        MapCollisionFinder mapCollisionFinder = new IterativeMapCollisionFinder(null);
+        World<AuthoritativePlayerController> world = new World<>(
+                AuthoritativePlayerController::new,
+                bullet -> new BulletController(bullet, mapCollisionFinder));
         GameService gameService = new GameService(world);
         GameServer server = new GrpcServer(50051, gameService);
         server.start();

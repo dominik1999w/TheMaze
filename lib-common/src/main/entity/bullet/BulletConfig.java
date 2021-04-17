@@ -1,7 +1,7 @@
 package entity.bullet;
 
 import entity.player.PlayerConfig;
-import map.config.MapConfig;
+import map.MapConfig;
 import util.Point2D;
 
 public class BulletConfig {

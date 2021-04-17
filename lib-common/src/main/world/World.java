@@ -3,6 +3,7 @@ package world;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -20,14 +21,15 @@ public class World<TController extends PlayerController> {
 
     private final List<Consumer<Player>> onPlayerAddedSubscribers = new ArrayList<>();
     private final List<Consumer<Bullet>> onBulletAddedSubscribers = new ArrayList<>();
-    private final List<Consumer<Bullet>> onBulletRemovedSubscribers = new ArrayList<>();
+    private final List<Consumer<UUID>> onBulletRemovedSubscribers = new ArrayList<>();
 
-    private final map.Map map;
     private final Function<Player, TController> controllerConstructor;
+    private final Function<Bullet, BulletController> bulletControllerConstructor;
 
-    public World(map.Map map, Function<Player, TController> controllerConstructor) {
-        this.map = map;
-        this.controllerConstructor = controllerConstructor;
+    public World(Function<Player, TController> playerControllerConstructor,
+                 Function<Bullet, BulletController> bulletControllerConstructor) {
+        this.controllerConstructor = playerControllerConstructor;
+        this.bulletControllerConstructor = bulletControllerConstructor;
     }
 
     public void subscribeOnPlayerAdded(Consumer<Player> callback) {
@@ -38,7 +40,7 @@ public class World<TController extends PlayerController> {
         onBulletAddedSubscribers.add(callback);
     }
 
-    public void subscribeOnBulletRemoved(Consumer<Bullet> callback) {
+    public void subscribeOnBulletRemoved(Consumer<UUID> callback) {
         onBulletRemovedSubscribers.add(callback);
     }
 
@@ -55,7 +57,7 @@ public class World<TController extends PlayerController> {
         {
             Bullet bullet = new Bullet(p.getPosition(), p.getRotation());
             onBulletAddedSubscribers.forEach(subscriber -> subscriber.accept(bullet));
-            return new BulletController(bullet, map);
+            return bulletControllerConstructor.apply(bullet);
         });
     }
 
@@ -64,7 +66,7 @@ public class World<TController extends PlayerController> {
         bullets.forEach((player, bulletController) ->
         {
             if (!bulletController.update(delta)) {
-                onBulletRemovedSubscribers.forEach(subscriber -> subscriber.accept(bulletController.getBullet()));
+                onBulletRemovedSubscribers.forEach(subscriber -> subscriber.accept(bulletController.getBullet().getId()));
                 bullets.remove(player);
             }
         });

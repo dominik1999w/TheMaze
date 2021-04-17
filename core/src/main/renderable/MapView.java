@@ -12,7 +12,7 @@ import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.maps.tiled.tiles.StaticTiledMapTile;
 
 import map.Map;
-import map.config.MapConfig;
+import map.MapConfig;
 import types.TextureType;
 import types.WallType;
 

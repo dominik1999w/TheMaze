@@ -6,7 +6,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import java.util.UUID;
 
-import map.config.MapConfig;
+import map.MapConfig;
 import util.Point2D;
 import entity.WorldEntity;
 
@@ -25,7 +25,7 @@ public class SimpleView<T extends WorldEntity> implements Renderable {
     @Override
     public void render(SpriteBatch spriteBatch) {
         Point2D position = object.getPosition();
-        sprite.setPosition(position.x(), position.y());
+        sprite.setOriginBasedPosition(position.x(), position.y());
         sprite.setRotation(object.getRotation());
         sprite.draw(spriteBatch);
     }

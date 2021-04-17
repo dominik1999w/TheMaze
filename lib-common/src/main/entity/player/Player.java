@@ -3,7 +3,6 @@ package entity.player;
 import java.util.UUID;
 
 import entity.WorldEntity;
-import map.config.MapConfig;
 import util.Point2D;
 
 public class Player implements WorldEntity {
@@ -18,7 +17,6 @@ public class Player implements WorldEntity {
 
     public Player(Point2D position) {
         this.position.set(position);
-        this.position.multiply(MapConfig.BOX_SIZE);
     }
 
     public void setPosition(Point2D position) {

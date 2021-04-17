@@ -1,18 +1,17 @@
 package entity.bullet;
 
-import map.CollisionFinder;
-import map.Map;
-import map.config.MapConfig;
+import map.MapConfig;
+import physics.mapcollision.MapCollisionFinder;
 import util.Point2D;
 
 public class BulletController {
 
     private final Bullet bullet;
-    private final CollisionFinder collisionFinder;
+    private final MapCollisionFinder collisionFinder;
 
-    public BulletController(Bullet bullet, Map map) {
+    public BulletController(Bullet bullet, MapCollisionFinder collisionFinder) {
         this.bullet = bullet;
-        this.collisionFinder = new CollisionFinder(map, BulletConfig.HITBOX_RADIUS);
+        this.collisionFinder = collisionFinder;
     }
 
     public Bullet getBullet() {
@@ -25,11 +24,12 @@ public class BulletController {
                 (float)Math.sin(Math.toRadians(bullet.getRotation()))
         ).multiply(MapConfig.BOX_SIZE*bullet.getSpeed()*delta);
 
-        Point2D newPosition = collisionFinder.getNewPosition(bullet.getPosition(), deltaPosition);
-        if(collisionFinder.found()) {
+        MapCollisionFinder.MapCollisionInfo collisionInfo = collisionFinder.getNewPosition(
+                bullet.getPosition(), deltaPosition, BulletConfig.HITBOX_RADIUS);
+        if (collisionInfo.hasCollided) {
             return false;
         } else {
-            bullet.setPosition(newPosition);
+            bullet.setPosition(collisionInfo.nextPosition);
             return true;
         }
     }
