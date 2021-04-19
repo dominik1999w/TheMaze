@@ -5,21 +5,19 @@ import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import connection.GameClient;
+import entity.player.Player;
 import entity.player.controller.AuthoritativePlayerController;
-import world.World;
-import renderable.WorldView;
+import entity.player.controller.InputPlayerController;
 import map.Map;
 import map.config.MapConfig;
 import map.generator.MapGenerator;
-import entity.player.controller.InputPlayerController;
-import entity.player.Player;
-import types.TextureType;
+import renderable.WorldView;
 import ui.GameUI;
 import util.Point2D;
+import world.World;
 
 public class GameScreen extends ScreenAdapter {
 
@@ -32,17 +30,12 @@ public class GameScreen extends ScreenAdapter {
     private final GameUI gameUI;
     private final World<AuthoritativePlayerController> world;
     private final WorldView worldView;
-    private final AssetManager assetManager;
 
     private final GameClient client;
     private int frameCounter = 0;
 
-    public GameScreen(SpriteBatch batch, GameClient client) {
+    public GameScreen(SpriteBatch batch, GameClient client, AssetManager assetManager) {
         this.batch = batch;
-        this.assetManager = new AssetManager();
-        for (TextureType textureType : TextureType.values())
-            assetManager.load(textureType.getName(), Texture.class);
-        assetManager.finishLoading();
 
         this.client = client;
         int seed = this.client.connect();
@@ -52,7 +45,7 @@ public class GameScreen extends ScreenAdapter {
 
         this.camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
-        this.gameUI = new GameUI();
+        this.gameUI = new GameUI(assetManager);
         this.world = new World<>(map, AuthoritativePlayerController::new);
 
         this.player = new Player(new Point2D(3, 2));
@@ -111,7 +104,6 @@ public class GameScreen extends ScreenAdapter {
 
     @Override
     public void dispose() {
-        assetManager.dispose();
         gameUI.dispose();
     }
 }
