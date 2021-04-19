@@ -63,16 +63,15 @@ public class World<TController extends PlayerController> {
 
     public void update(float delta) {
         players.values().forEach(playerController -> playerController.update(delta));
-        bullets.forEach((player, bulletController) ->
-        {
-            if (!bulletController.update(delta)) {
-                onBulletRemovedSubscribers.forEach(subscriber -> subscriber.accept(bulletController.getBullet().getId()));
-                bullets.remove(player);
-            }
-        });
+        bullets.values().forEach(bulletController -> bulletController.update(delta));
     }
 
     public Iterable<Map.Entry<String, TController>> getConnectedPlayers() {
         return players.entrySet();
+    }
+
+    public void onBulletDied(UUID bulletID) {
+        onBulletRemovedSubscribers.forEach(subscriber -> subscriber.accept(bulletID));
+        bullets.values().removeIf(bullet -> bullet.getBulletId().equals(bulletID));
     }
 }

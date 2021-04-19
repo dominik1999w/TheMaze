@@ -9,12 +9,10 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import connection.GameClient;
 import entity.bullet.BulletController;
+import entity.bullet.BulletHitbox;
 import entity.player.PlayerHitbox;
 import entity.player.controller.AuthoritativePlayerController;
-import physics.mapcollision.ClampMapCollisionFinder;
 import physics.CollisionWorld;
-import physics.mapcollision.LineMapCollisionFinder;
-import physics.mapcollision.MapCollisionFinder;
 import world.World;
 import renderable.WorldView;
 import entity.player.Player;
@@ -56,13 +54,13 @@ public class GameScreen extends ScreenAdapter {
 
         this.gameUI = new GameUI(assetManager);
 
-        MapCollisionFinder mapCollisionFinder = new ClampMapCollisionFinder(map);
-        this.world = new World<>(AuthoritativePlayerController::new,
-                bullet -> new BulletController(bullet, new LineMapCollisionFinder(map)));
+        this.world = new World<>(AuthoritativePlayerController::new, BulletController::new);
         this.player = new Player(new Point2D(3.5f * MapConfig.BOX_SIZE, 2.5f * MapConfig.BOX_SIZE));
-        this.playerController = new InputPlayerController(player, gameUI.getPlayerInput(),
-                mapCollisionFinder, world);
-        this.collisionWorld = new CollisionWorld();
+        this.playerController = new InputPlayerController(player, gameUI.getPlayerInput(), world);
+        this.collisionWorld = new CollisionWorld(map);
+        world.subscribeOnPlayerAdded(newPlayer -> collisionWorld.addHitbox(new PlayerHitbox(newPlayer)));
+        world.subscribeOnBulletAdded(newBullet -> collisionWorld.addHitbox(new BulletHitbox(newBullet, world)));
+        world.subscribeOnBulletRemoved(collisionWorld::removeHitbox);
         collisionWorld.addHitbox(new PlayerHitbox(player));
 
         this.worldView = new WorldView(world, map, camera, player, assetManager);

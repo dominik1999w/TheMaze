@@ -1,19 +1,20 @@
 package physics.mapcollision;
 
 import map.Map;
+import physics.HitboxHistory;
 import util.Point2D;
 
-public abstract class MapCollisionFinder {
+public abstract class MapCollisionDetector {
 
     protected final Map map;
 
-    protected MapCollisionFinder(Map map) {
+    protected MapCollisionDetector(Map map) {
         this.map = map;
     }
 
-    public abstract MapCollisionInfo getNewPosition(Point2D initial_position, Point2D delta_position, float hitboxRadius);
+    public abstract MapCollisionInfo detectMapCollision(HitboxHistory history);
 
-    public class MapCollisionInfo {
+    public static class MapCollisionInfo {
         public final Point2D nextPosition;
         public final boolean hasCollided;
         protected MapCollisionInfo(Point2D nextPosition, boolean hasCollided) {

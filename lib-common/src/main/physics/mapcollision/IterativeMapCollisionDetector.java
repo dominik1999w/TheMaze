@@ -2,14 +2,22 @@ package physics.mapcollision;
 
 import map.Map;
 import map.MapConfig;
+import physics.HitboxHistory;
 import types.WallType;
 import util.Point2D;
 
-public class IterativeMapCollisionFinder extends MapCollisionFinder {
+public class IterativeMapCollisionDetector extends MapCollisionDetector {
     private final int FREQUENCY = 10;
 
-    public IterativeMapCollisionFinder(Map map) {
+    public IterativeMapCollisionDetector(Map map) {
         super(map);
+    }
+
+    @Override
+    public MapCollisionInfo detectMapCollision(HitboxHistory history) {
+        Point2D initialPosition = history.getPreviousPosition();
+        Point2D deltaPosition = new Point2D(history.getHitbox().getPosition()).subtract(initialPosition);
+        return detectMapCollisions(initialPosition, deltaPosition, history.getHitbox().getRadius());
     }
 
     private boolean verticalWallCollision(Point2D position, float hitboxRadius) {
@@ -38,8 +46,7 @@ public class IterativeMapCollisionFinder extends MapCollisionFinder {
         return map.hasWall(WallType.DOWN_WALL, hl_x_min, hl_y) || map.hasWall(WallType.DOWN_WALL, hl_x_max, hl_y);
     }
 
-    @Override
-    public MapCollisionInfo getNewPosition(Point2D initial_position, Point2D delta_position, float hitboxRadius) {
+    public MapCollisionInfo detectMapCollisions(Point2D initial_position, Point2D delta_position, float hitboxRadius) {
         Point2D position = new Point2D(initial_position);
         Point2D projected_pos = new Point2D(initial_position);
         Point2D delta_position_fragment = new Point2D(delta_position).divide(FREQUENCY);

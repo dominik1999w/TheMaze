@@ -2,6 +2,7 @@ package physics.mapcollision;
 
 import map.Map;
 import map.MapConfig;
+import physics.HitboxHistory;
 import types.WallType;
 import util.Point2D;
 import util.Point2Di;
@@ -9,13 +10,19 @@ import util.Point2Di;
 import static util.MathUtils.clamp;
 import static util.MathUtils.floor;
 
-public class ClampMapCollisionFinder extends MapCollisionFinder {
-    public ClampMapCollisionFinder(Map map) {
+public class ClampMapCollisionDetector extends MapCollisionDetector {
+    public ClampMapCollisionDetector(Map map) {
         super(map);
     }
 
     @Override
-    public MapCollisionInfo getNewPosition(Point2D initialPosition, Point2D deltaPosition, float hitboxRadius) {
+    public MapCollisionInfo detectMapCollision(HitboxHistory history) {
+        Point2D initialPosition = history.getPreviousPosition();
+        Point2D deltaPosition = new Point2D(history.getHitbox().getPosition()).subtract(initialPosition);
+        return detectMapCollisions(initialPosition, deltaPosition, history.getHitbox().getRadius());
+    }
+
+    public MapCollisionInfo detectMapCollisions(Point2D initialPosition, Point2D deltaPosition, float hitboxRadius) {
         Point2D currentPosition = new Point2D(initialPosition);
         Point2D targetPosition = new Point2D(initialPosition).add(deltaPosition);
 

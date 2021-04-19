@@ -1,6 +1,9 @@
 package entity.player;
 
+import java.util.UUID;
+
 import physics.Hitbox;
+import physics.HitboxType;
 import util.Point2D;
 
 public class PlayerHitbox implements Hitbox {
@@ -9,6 +12,16 @@ public class PlayerHitbox implements Hitbox {
 
     public PlayerHitbox(Player player) {
         this.player = player;
+    }
+
+    @Override
+    public UUID getId() {
+        return player.getId();
+    }
+
+    @Override
+    public HitboxType getType() {
+        return HitboxType.SLOW;
     }
 
     @Override
@@ -24,5 +37,10 @@ public class PlayerHitbox implements Hitbox {
     @Override
     public void setPosition(Point2D resolvedPosition) {
         player.setPosition(resolvedPosition);
+    }
+
+    @Override
+    public void notifyMapCollision() {
+
     }
 }
