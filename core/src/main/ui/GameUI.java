@@ -1,6 +1,7 @@
 package ui;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageTextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -9,6 +10,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 
 import input.IPlayerInput;
 import input.PlayerInput;
+import types.SkinType;
 
 public class GameUI {
 
@@ -20,14 +22,14 @@ public class GameUI {
 
     private final PlayerInput playerInput = new PlayerInput();
 
-    public GameUI() {
+    public GameUI(AssetManager assetManager) {
         this.stage = new Stage();
         Gdx.input.setInputProcessor(stage);
         this.table = new Table();
         table.setFillParent(true);
         stage.addActor(table);
         table.setDebug(true);
-        skin = new Skin(Gdx.files.internal("skins/biological-attack/skin/biological-attack-ui.json"));
+        skin = assetManager.get(SkinType.ATTACK.getName());
     }
 
     public void build() {
