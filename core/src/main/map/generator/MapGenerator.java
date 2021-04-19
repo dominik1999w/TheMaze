@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Random;
 
 import map.Map;
-import map.config.MapConfig;
+import map.MapConfig;
 import types.WallType;
 
 import static types.WallType.DOWN_WALL;

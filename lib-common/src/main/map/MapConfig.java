@@ -1,4 +1,4 @@
-package map.config;
+package map;
 
 public class MapConfig {
     public static final int BOX_SIZE = 32;

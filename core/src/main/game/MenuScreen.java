@@ -24,8 +24,8 @@ public class MenuScreen extends ScreenAdapter {
     private final Table table;
 
     private static final String HOST =
-            "10.0.2.2"
-//            "localhost"
+            //"10.0.2.2"
+            "localhost"
 //            "10.232.0.13"
             ;
 
@@ -63,6 +63,12 @@ public class MenuScreen extends ScreenAdapter {
 
         table.add(newGame).fillX().uniformX();
         Gdx.input.setInputProcessor(stage);
+        stage.draw();
+    }
+
+    @Override
+    public void render(float delta) {
+        stage.act(delta);
         stage.draw();
     }
 

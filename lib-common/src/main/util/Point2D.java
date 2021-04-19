@@ -1,5 +1,7 @@
 package util;
 
+import java.util.Locale;
+
 public class Point2D {
     private float x;
     private float y;
@@ -49,5 +51,37 @@ public class Point2D {
         this.x /= scalar;
         this.y /= scalar;
         return this;
+    }
+
+    public Point2D subtract(Point2D other) {
+        this.x -= other.x;
+        this.y -= other.y;
+        return this;
+    }
+
+    public float mag() {
+        return (float) Math.sqrt(x * x + y * y);
+    }
+
+    public Point2D normalize() {
+        float mag = mag();
+        return divide(mag);
+    }
+
+    @Override
+    public String toString() {
+        return String.format(Locale.ENGLISH, "Point2D(%f,%f)", x, y);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null)
+            return false;
+        if (getClass() != o.getClass())
+            return false;
+        Point2D po = (Point2D) o;
+        return x == po.x && y == po.y;
     }
 }

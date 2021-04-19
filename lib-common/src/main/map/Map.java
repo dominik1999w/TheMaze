@@ -1,8 +1,10 @@
 package map;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import types.WallType;
+import util.Point2Di;
 
 public class Map {
     private final Node[][] map;
@@ -21,6 +23,19 @@ public class Map {
 
     public Node[][] getMapArray() {
         return map;
+    }
+
+    public Iterable<? extends WallType.WallShape> getWallsInArea(Point2Di areaMin, Point2Di areaMax) {
+        List<WallType.WallShape> walls = new ArrayList<>();
+        for (int x = areaMin.x(); x < areaMax.x(); x++) {
+            for (int y = areaMin.y(); y < areaMax.y(); y++) {
+                for (WallType wallType : WallType.values()) {
+                    if (map[x][y].hasWall(wallType))
+                        walls.add(wallType.getWallShape(x, y, MapConfig.BOX_SIZE, MapConfig.WALL_THICKNESS));
+                }
+            }
+        }
+        return walls;
     }
 
     public static class Node {

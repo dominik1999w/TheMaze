@@ -1,7 +1,7 @@
 package db;
 
 import map.Map;
-import map.config.MapConfig;
+import map.MapConfig;
 
 public class Database implements DatabaseGateway {
     private final DatabaseEngine databaseEngine;
