@@ -1,5 +1,7 @@
 package physics.mapcollision;
 
+import java.util.Locale;
+
 import map.Map;
 import map.MapConfig;
 import physics.HitboxHistory;
@@ -22,13 +24,12 @@ public class LineMapCollisionDetector extends MapCollisionDetector {
         return detectMapCollisions(initialPosition, deltaPosition, history.getHitbox().getRadius());
     }
 
-    public MapCollisionInfo detectMapCollisions(Point2D initialPosition, Point2D deltaPosition, float hitboxRadius) {
-        Point2D currentPosition = new Point2D(initialPosition);
-        Point2D targetPosition = new Point2D(initialPosition).add(deltaPosition);
+    public MapCollisionInfo detectMapCollisions(Point2D currentPosition, Point2D deltaPosition, float hitboxRadius) {
+        Point2D targetPosition = new Point2D(currentPosition).add(deltaPosition);
 
         Point2Di currentTile = new Point2Di(
-                floor(initialPosition.x() / MapConfig.BOX_SIZE),
-                floor(initialPosition.y() / MapConfig.BOX_SIZE)
+                floor(currentPosition.x() / MapConfig.BOX_SIZE),
+                floor(currentPosition.y() / MapConfig.BOX_SIZE)
         );
         Point2Di targetTile = new Point2Di(
                 floor(targetPosition.x() / MapConfig.BOX_SIZE),
@@ -38,17 +39,18 @@ public class LineMapCollisionDetector extends MapCollisionDetector {
         int xStep = 1, yStep = 1;
         float dy = (targetPosition.y() - currentPosition.y());
         float dx = (targetPosition.x() - currentPosition.x());
-        int xFirstIndex = 1, yFirstIndex = 1;
+        WallType yWallType = WallType.UP_WALL;
+        WallType xWallType = WallType.RIGHT_WALL;
         Point2Di tileAreaSize = new Point2Di(targetTile).subtract(currentTile);
         if (tileAreaSize.y() < 0) {
             yStep = -1;
             tileAreaSize.set(tileAreaSize.x(), -tileAreaSize.y());
-            yFirstIndex = 0;
+            yWallType = WallType.DOWN_WALL;
         }
         if (tileAreaSize.x() < 0) {
             xStep = -1;
             tileAreaSize.set(-tileAreaSize.x(), tileAreaSize.y());
-            xFirstIndex = 0;
+            xWallType = WallType.LEFT_WALL;
         }
 
         float x, y;
@@ -56,9 +58,11 @@ public class LineMapCollisionDetector extends MapCollisionDetector {
             x = currentTile.x();
             y = currentTile.y();
             float dydx = dy / dx;
-            for (int i = xFirstIndex; i <= xFirstIndex + tileAreaSize.x(); i++) {
-                if (map.hasWall(WallType.LEFT_WALL, (int) x, floor(y))) {
-                    System.out.println("Bullet LEFT_WALL collision at " + x + "," + y);
+            for (int i = 0; i < tileAreaSize.x(); i++) {
+                if (map.hasWall(xWallType, (int) x, floor(y))) {
+                    System.out.println(String.format(Locale.ENGLISH,
+                            "With (%s,%s): Bullet %s collision at (%f,%f)",
+                            currentPosition, targetPosition, xWallType, x, y));
                     return new MapCollisionInfo(new Point2D(x, floor(y)), true);
                 }
                 x += xStep;
@@ -69,9 +73,11 @@ public class LineMapCollisionDetector extends MapCollisionDetector {
             x = currentTile.x();
             y = currentTile.y();
             float dxdy = dx / dy;
-            for (int i = yFirstIndex; i <= yFirstIndex + tileAreaSize.y(); i++) {
-                if (map.hasWall(WallType.DOWN_WALL, floor(x), (int) y)) {
-                    System.out.println("Bullet DOWN_WALL collision at " + x + "," + y);
+            for (int i = 0; i < tileAreaSize.y(); i++) {
+                if (map.hasWall(yWallType, floor(x), (int) y)) {
+                    System.out.println(String.format(Locale.ENGLISH,
+                            "With (%s,%s): Bullet %s collision at (%f,%f)",
+                            currentPosition, targetPosition, yWallType, x, y));
                     return new MapCollisionInfo(new Point2D(floor(x), y), true);
                 }
                 y += yStep;
