@@ -13,6 +13,10 @@ public abstract class PlayerController {
 
     public abstract void update(float delta);
 
+    public final Player getPlayer() {
+        return player;
+    }
+
     public final Point2D getPlayerPosition() {
         return player.getPosition();
     }

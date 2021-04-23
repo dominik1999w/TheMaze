@@ -1,30 +1,40 @@
-
+import entity.bullet.BulletConfig;
 import entity.bullet.BulletController;
+import entity.player.Player;
 import entity.player.controller.AuthoritativePlayerController;
-import physics.mapcollision.IterativeMapCollisionDetector;
-import physics.mapcollision.MapCollisionDetector;
+import lib.connection.BulletState;
+import lib.connection.ConnectReply;
+import lib.connection.ConnectRequest;
+import lib.connection.GameStateRequest;
+import lib.connection.GameStateResponse;
+import lib.connection.PlayerState;
 import server.GameServer;
 import server.GrpcServer;
 import service.GameService;
 import time.Timer;
+import util.Point2D;
 import world.World;
 
 public class Main {
 
     public static void main(String[] args) throws Exception {
         // openjdk hack
-//        ConnectReply.newBuilder();
-//        ConnectRequest.newBuilder();
-//        GameStateRequest.newBuilder();
-//        GameStateResponse.newBuilder();
-//        PlayerState.newBuilder();
-//        new Player();
+        if (System.getProperty("java.runtime.name").startsWith("OpenJDK")) {
+            ConnectReply.newBuilder();
+            ConnectRequest.newBuilder();
+            GameStateRequest.newBuilder();
+            GameStateResponse.newBuilder();
+            PlayerState.newBuilder();
+            BulletState.newBuilder();
+            new Player();
+            new Point2D();
+            new BulletConfig();
+        }
 
 
-        MapCollisionDetector mapCollisionDetector = new IterativeMapCollisionDetector(null);
         World<AuthoritativePlayerController> world = new World<>(
                 AuthoritativePlayerController::new,
-                bullet -> new BulletController(bullet, mapCollisionDetector));
+                BulletController::new);
         GameService gameService = new GameService(world);
         GameServer server = new GrpcServer(50051, gameService);
         server.start();

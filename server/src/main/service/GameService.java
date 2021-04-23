@@ -10,6 +10,7 @@ import entity.player.controller.AuthoritativePlayerController;
 import entity.player.controller.PlayerController;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
+import lib.connection.BulletState;
 import lib.connection.ConnectReply;
 import lib.connection.ConnectRequest;
 import lib.connection.GameStateRequest;
@@ -67,6 +68,7 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
                 AuthoritativePlayerController playerController = world.getPlayerController(source.getId());
                 playerController.setNextPosition(source.getPositionX(), source.getPositionY());
                 playerController.setNextRotation(source.getRotation());
+                playerController.setNextFireBullet(source.getBullet().getFired());
 
                 GameStateResponse.Builder response = GameStateResponse.newBuilder();
                 for (Map.Entry<String, ? extends PlayerController> connectedPlayer : world.getConnectedPlayers()) {
@@ -75,6 +77,9 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
                             .setPositionX(connectedPlayer.getValue().getPlayerPosition().x())
                             .setPositionY(connectedPlayer.getValue().getPlayerPosition().y())
                             .setRotation(connectedPlayer.getValue().getPlayerRotation())
+                            .setBullet(BulletState.newBuilder()
+                                    .setFired(world.getBulletController(connectedPlayer.getValue().getPlayer()) != null)
+                                    .build())
                             .build());
                 }
                 responseObserver.onNext(response.build());

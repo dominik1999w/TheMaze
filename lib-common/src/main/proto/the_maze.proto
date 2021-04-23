@@ -27,6 +27,11 @@ message PlayerState {
   float positionX = 2;
   float positionY = 3;
   float rotation = 4;
+  BulletState bullet = 5;
+}
+
+message BulletState {
+  bool fired = 1;
 }
 
 message GameStateRequest {

@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -20,13 +22,13 @@ public class World<TController extends PlayerController> {
     private final Map<Player, BulletController> bullets = new ConcurrentHashMap<>();
 
     private final List<Consumer<Player>> onPlayerAddedSubscribers = new ArrayList<>();
-    private final List<Consumer<Bullet>> onBulletAddedSubscribers = new ArrayList<>();
+    private final List<BiConsumer<Player, Bullet>> onBulletAddedSubscribers = new ArrayList<>();
     private final List<Consumer<UUID>> onBulletRemovedSubscribers = new ArrayList<>();
 
-    private final Function<Player, TController> controllerConstructor;
+    private final BiFunction<Player, World<?>, TController> controllerConstructor;
     private final Function<Bullet, BulletController> bulletControllerConstructor;
 
-    public World(Function<Player, TController> playerControllerConstructor,
+    public World(BiFunction<Player, World<?>, TController> playerControllerConstructor,
                  Function<Bullet, BulletController> bulletControllerConstructor) {
         this.controllerConstructor = playerControllerConstructor;
         this.bulletControllerConstructor = bulletControllerConstructor;
@@ -36,7 +38,7 @@ public class World<TController extends PlayerController> {
         onPlayerAddedSubscribers.add(callback);
     }
 
-    public void subscribeOnBulletAdded(Consumer<Bullet> callback) {
+    public void subscribeOnBulletAdded(BiConsumer<Player, Bullet> callback) {
         onBulletAddedSubscribers.add(callback);
     }
 
@@ -48,15 +50,19 @@ public class World<TController extends PlayerController> {
         return players.computeIfAbsent(id, k -> {
             Player player = new Player(new Point2D(3, 2));
             onPlayerAddedSubscribers.forEach(subscriber -> subscriber.accept(player));
-            return controllerConstructor.apply(player);
+            return controllerConstructor.apply(player, this);
         });
+    }
+
+    public BulletController getBulletController(Player player) {
+        return bullets.get(player);
     }
 
     public void onBulletFired(Player player) {
         bullets.computeIfAbsent(player, p ->
         {
             Bullet bullet = new Bullet(p.getPosition(), p.getRotation());
-            onBulletAddedSubscribers.forEach(subscriber -> subscriber.accept(bullet));
+            onBulletAddedSubscribers.forEach(subscriber -> subscriber.accept(player, bullet));
             return bulletControllerConstructor.apply(bullet);
         });
     }

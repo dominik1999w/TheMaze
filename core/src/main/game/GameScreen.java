@@ -59,7 +59,7 @@ public class GameScreen extends ScreenAdapter {
         this.playerController = new InputPlayerController(player, gameUI.getPlayerInput(), world);
         this.collisionWorld = new CollisionWorld(map);
         world.subscribeOnPlayerAdded(newPlayer -> collisionWorld.addHitbox(new PlayerHitbox(newPlayer)));
-        world.subscribeOnBulletAdded(newBullet -> collisionWorld.addHitbox(new BulletHitbox(newBullet, world)));
+        world.subscribeOnBulletAdded((player, newBullet) -> collisionWorld.addHitbox(new BulletHitbox(newBullet, world)));
         world.subscribeOnBulletRemoved(collisionWorld::removeHitbox);
         collisionWorld.addHitbox(new PlayerHitbox(player));
 
