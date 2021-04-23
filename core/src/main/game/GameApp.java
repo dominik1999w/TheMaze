@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 
+import connection.GameClientFactory;
 import io.grpc.netty.shaded.io.netty.util.internal.logging.InternalLoggerFactory;
 import io.grpc.netty.shaded.io.netty.util.internal.logging.JdkLoggerFactory;
 import types.SkinType;
@@ -16,6 +17,16 @@ public class GameApp extends Game {
     private SpriteBatch batch;
     private ScreenAdapter screen;
     private AssetManager assetManager;
+    private static final String HOST =
+            "10.0.2.2"
+//            "localhost"
+//            "10.232.0.13"
+            ;
+
+    private static final int PORT =
+            50051
+            //8080
+            ;
 
     @Override
     public void create() {
@@ -30,7 +41,8 @@ public class GameApp extends Game {
         }
 
         assetManager.finishLoading();
-        screen = new MenuScreen(this, batch, assetManager);
+        screen = new GameScreen(batch,new GameClientFactory(HOST, PORT).getClient(), assetManager);
+//        screen = new MenuScreen(this, batch, assetManager);
 
         setScreen(screen);
     }
