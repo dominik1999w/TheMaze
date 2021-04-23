@@ -42,7 +42,7 @@ public class ClampMapCollisionDetector extends MapCollisionDetector {
         Point2Di collisionAreaMax = new Point2Di(currentTile)
                 .max(targetTile)
                 .add(new Point2Di(2, 2))
-                .min(new Point2Di(MapConfig.MAP_LENGTH, MapConfig.MAP_LENGTH));
+                .min(new Point2Di(map.getMapLength(), map.getMapLength()));
 
         boolean hasCollided = false;
         for (WallType.WallShape wallShape : map.getWallsInArea(collisionAreaMin, collisionAreaMax)) {

@@ -25,6 +25,10 @@ public class Map {
         return map;
     }
 
+    public int getMapLength() {
+        return map.length;
+    }
+
     public Iterable<? extends WallType.WallShape> getWallsInArea(Point2Di areaMin, Point2Di areaMax) {
         List<WallType.WallShape> walls = new ArrayList<>();
         for (int x = areaMin.x(); x < areaMax.x(); x++) {

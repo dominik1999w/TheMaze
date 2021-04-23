@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Random;
 
 import map.Map;
-import map.MapConfig;
 import types.WallType;
 
 import static types.WallType.DOWN_WALL;
@@ -18,26 +17,27 @@ import static types.WallType.UP_WALL;
 
 public class MapGenerator {
     private final Map.Node[][] graph;
-    private final Random random;
+    private Random random;
     private final float walls_to_remove = 0.5f;
+    private final int length;
 
-
-    public MapGenerator(int seed) {
-        graph = new Map.Node[MapConfig.MAP_LENGTH][MapConfig.MAP_LENGTH];
-        this.random = new Random(seed);
+    public MapGenerator(int length) {
+        this.length = length;
+        graph = new Map.Node[length][length];
     }
 
-    public Map generateMap() {
-        for (int i = 0; i < MapConfig.MAP_LENGTH; i++) {
-            for (int j = 0; j < MapConfig.MAP_LENGTH; j++) {
+    public Map generateMap(int seed) {
+        this.random = new Random(seed);
+        for (int i = 0; i < length; i++) {
+            for (int j = 0; j < length; j++) {
                 graph[i][j] = new Map.Node(i, j, new ArrayList<>(Arrays.asList(WallType.values())));
             }
         }
-        boolean[][] visited = new boolean[MapConfig.MAP_LENGTH][MapConfig.MAP_LENGTH];
+        boolean[][] visited = new boolean[length][length];
         dfs(graph, visited, 0, 0);
 
-        for (int i = 1; i < MapConfig.MAP_LENGTH; i++) {
-            for (int j = 1; j < MapConfig.MAP_LENGTH; j++) {
+        for (int i = 1; i < length; i++) {
+            for (int j = 1; j < length; j++) {
                 if (random.nextDouble() < walls_to_remove) {
                     graph[i][j].removeWall(DOWN_WALL);
                     graph[i][j - 1].removeWall(UP_WALL);
@@ -64,7 +64,7 @@ public class MapGenerator {
 
             int newI = i + wall.getRelativePositionX();
             int newJ = j + wall.getRelativePositionY();
-            if (newI < 0 || newI >= MapConfig.MAP_LENGTH || newJ < 0 || newJ >= MapConfig.MAP_LENGTH || visited[newI][newJ]) {
+            if (newI < 0 || newI >= length || newJ < 0 || newJ >= length || visited[newI][newJ]) {
                 continue;
             }
 

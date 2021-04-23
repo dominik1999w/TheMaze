@@ -4,14 +4,11 @@ import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 
 import entity.player.Player;
-import entity.player.PlayerConfig;
 import map.Map;
 import map.MapConfig;
-import types.WallType;
 import util.Point2D;
 import util.Point2Di;
 
-import static util.MathUtils.clamp;
 import static util.MathUtils.floor;
 
 final class DebugDrawer {
@@ -57,7 +54,7 @@ final class DebugDrawer {
         Point2Di collisionAreaMax = new Point2Di(currentTile)
                 .max(targetTile)
                 .add(new Point2Di(2, 2))
-                .min(new Point2Di(MapConfig.MAP_LENGTH, MapConfig.MAP_LENGTH));
+                .min(new Point2Di(map.getMapLength(), map.getMapLength()));
 
         shapeRenderer.rect(collisionAreaMin.x() * MapConfig.BOX_SIZE,
                 collisionAreaMin.y() * MapConfig.BOX_SIZE,

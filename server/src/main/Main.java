@@ -24,7 +24,7 @@ public class Main {
         MapCollisionDetector mapCollisionDetector = new IterativeMapCollisionDetector(null);
         World<AuthoritativePlayerController> world = new World<>(
                 AuthoritativePlayerController::new,
-                bullet -> new BulletController(bullet, mapCollisionDetector));
+                BulletController::new);
         GameService gameService = new GameService(world);
         GameServer server = new GrpcServer(50051, gameService);
         server.start();

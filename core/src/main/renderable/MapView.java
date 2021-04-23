@@ -5,7 +5,6 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.maps.MapRenderer;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
@@ -19,26 +18,40 @@ import types.WallType;
 public class MapView implements Renderable {
 
     private final AssetManager assetManager;
-    private final MapRenderer render;
+    private final OrthogonalTiledMapRenderer render;
 
     public MapView(Map map, AssetManager assetManager) {
         this.assetManager = assetManager;
-        render = new OrthogonalTiledMapRenderer(convertTileMapGdxMap(map));
+        this.render = new OrthogonalTiledMapRenderer(convertTileMapGdxMap(map));
+    }
+
+    @Override
+    public void render(SpriteBatch spriteBatch) {
+        render.render();
+    }
+
+    public void setView(OrthographicCamera camera) {
+        render.setView(camera);
+    }
+
+    public void setMap(Map map) {
+        this.render.setMap(convertTileMapGdxMap(map));
     }
 
     private TiledMap convertTileMapGdxMap(Map map) {
         Map.Node[][] tiles = map.getMapArray();
         TiledMap tiledMap = new TiledMap();
+        int mapLength = map.getMapLength();
 
         TiledMapTileLayer tileLayer =
-                new TiledMapTileLayer(MapConfig.MAP_LENGTH + 1, MapConfig.MAP_LENGTH + 1, MapConfig.BOX_SIZE, MapConfig.BOX_SIZE);
+                new TiledMapTileLayer(mapLength + 1, mapLength + 1, MapConfig.BOX_SIZE, MapConfig.BOX_SIZE);
         TiledMapTileLayer horizontalWallLayer =
-                new TiledMapTileLayer(MapConfig.MAP_LENGTH + 1, MapConfig.MAP_LENGTH + 1, MapConfig.BOX_SIZE, MapConfig.BOX_SIZE);
+                new TiledMapTileLayer(mapLength + 1, mapLength + 1, MapConfig.BOX_SIZE, MapConfig.BOX_SIZE);
         TiledMapTileLayer verticalWallLayer =
-                new TiledMapTileLayer(MapConfig.MAP_LENGTH + 1, MapConfig.MAP_LENGTH + 1, MapConfig.BOX_SIZE, MapConfig.BOX_SIZE);
+                new TiledMapTileLayer(mapLength + 1, mapLength + 1, MapConfig.BOX_SIZE, MapConfig.BOX_SIZE);
 
-        for (int i = 0; i < MapConfig.MAP_LENGTH; i++) {
-            for (int j = 0; j < MapConfig.MAP_LENGTH; j++) {
+        for (int i = 0; i < mapLength; i++) {
+            for (int j = 0; j < mapLength; j++) {
                 TiledMapTileLayer.Cell tileCell = new TiledMapTileLayer.Cell();
 
                 Texture tileTexture = assetManager.get(TextureType.GROUND.getName());
@@ -72,15 +85,6 @@ public class MapView implements Renderable {
         tiledMap.getLayers().add(verticalWallLayer);
 
         return tiledMap;
-    }
-
-    @Override
-    public void render(SpriteBatch spriteBatch) {
-        render.render();
-    }
-
-    public void setView(OrthographicCamera camera) {
-        render.setView(camera);
     }
 }
 

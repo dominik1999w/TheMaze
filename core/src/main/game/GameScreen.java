@@ -47,8 +47,8 @@ public class GameScreen extends ScreenAdapter {
         this.client = client;
         int seed = this.client.connect();
 
-        MapGenerator mapGenerator = new MapGenerator(seed);
-        Map map = mapGenerator.generateMap();
+        MapGenerator mapGenerator = new MapGenerator(50);
+        Map map = mapGenerator.generateMap(seed);
 
         this.camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
