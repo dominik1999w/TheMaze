@@ -1,6 +1,7 @@
 import entity.bullet.BulletConfig;
 import entity.bullet.BulletController;
 import entity.player.Player;
+import entity.player.PlayerHitbox;
 import entity.player.controller.AuthoritativePlayerController;
 import lib.connection.BulletState;
 import lib.connection.ConnectReply;
@@ -8,6 +9,9 @@ import lib.connection.ConnectRequest;
 import lib.connection.GameStateRequest;
 import lib.connection.GameStateResponse;
 import lib.connection.PlayerState;
+import map.Map;
+import map.generator.MapGenerator;
+import physics.CollisionWorld;
 import server.GameServer;
 import server.GrpcServer;
 import service.GameService;
@@ -16,7 +20,6 @@ import util.Point2D;
 import world.World;
 
 public class Main {
-
     public static void main(String[] args) throws Exception {
         // openjdk hack
         if (System.getProperty("java.runtime.name").startsWith("OpenJDK")) {
@@ -31,15 +34,24 @@ public class Main {
             new BulletConfig();
         }
 
+        MapGenerator mapGenerator = new MapGenerator(50);
+        Map map = mapGenerator.generateMap(GameService.SEED);
+        CollisionWorld collisionWorld = new CollisionWorld(map);
 
         World<AuthoritativePlayerController> world = new World<>(
                 AuthoritativePlayerController::new,
                 BulletController::new);
+        world.subscribeOnPlayerAdded(newPlayer -> collisionWorld.addHitbox(new PlayerHitbox(newPlayer)));
+
         GameService gameService = new GameService(world);
         GameServer server = new GrpcServer(50051, gameService);
         server.start();
 
-        new Thread(() -> Timer.executeAtFixedRate(world::update, 0.025f)).start(); // 40 fps
+        new Thread(() -> Timer.executeAtFixedRate(delta ->
+        {
+            world.update(delta);
+            collisionWorld.update();
+        }, 0.025f)).start(); // 40 fps
 
         // start new Thread with
         // clientResponseObservers.forEach(::onNext(GameStateResponse))

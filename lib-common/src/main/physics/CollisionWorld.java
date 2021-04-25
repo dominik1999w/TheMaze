@@ -13,13 +13,11 @@ import util.Point2D;
 
 public class CollisionWorld {
 
-    private final Map map;
     private final Collection<HitboxHistory> hitboxHistories = new ArrayList<>();
 
     private final EnumMap<HitboxType, MapCollisionDetector> mapCollisionDetector = new EnumMap<>(HitboxType.class);
 
     public CollisionWorld(Map map) {
-        this.map = map;
         mapCollisionDetector.put(HitboxType.SLOW, new ClampMapCollisionDetector(map));
         mapCollisionDetector.put(HitboxType.FAST, new LineMapCollisionDetector(map));
     }
@@ -46,6 +44,6 @@ public class CollisionWorld {
     }
 
     public void removeHitbox(UUID hitboxID) {
-        hitboxHistories.removeIf(hitboxHistory ->hitboxHistory.getHitbox().getId().equals(hitboxID));
+        hitboxHistories.removeIf(hitboxHistory -> hitboxHistory.getHitbox().getId().equals(hitboxID));
     }
 }

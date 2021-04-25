@@ -22,6 +22,8 @@ import world.World;
 public class GameService extends TheMazeGrpc.TheMazeImplBase {
     private static final Logger logger = Logger.getLogger(GameService.class.getName());
 
+    public static final int SEED = 17;
+
     private final World<AuthoritativePlayerController> world;
 
     public GameService(World<AuthoritativePlayerController> world) {
@@ -50,10 +52,10 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
         */
 
         // update the simulation world
-        world.getPlayerController(request.getId());
+        //world.getPlayerController(request.getId());
         // reply with current game state
         ConnectReply reply = ConnectReply.newBuilder()
-                .setSeed(17)
+                .setSeed(SEED)
                 .build();
         responseObserver.onNext(reply);
         responseObserver.onCompleted();

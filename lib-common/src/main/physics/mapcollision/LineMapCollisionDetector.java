@@ -60,9 +60,8 @@ public class LineMapCollisionDetector extends MapCollisionDetector {
             float dydx = dy / dx;
             for (int i = 0; i < tileAreaSize.x(); i++) {
                 if (map.hasWall(xWallType, (int) x, floor(y))) {
-                    System.out.println(String.format(Locale.ENGLISH,
-                            "With (%s,%s): Bullet %s collision at (%f,%f)",
-                            currentPosition, targetPosition, xWallType, x, y));
+                    System.out.format("With (%s,%s): Bullet %s collision at (%f,%f)",
+                            currentPosition, targetPosition, xWallType, x, y);
                     return new MapCollisionInfo(new Point2D(x, floor(y)), true);
                 }
                 x += xStep;
@@ -75,9 +74,8 @@ public class LineMapCollisionDetector extends MapCollisionDetector {
             float dxdy = dx / dy;
             for (int i = 0; i < tileAreaSize.y(); i++) {
                 if (map.hasWall(yWallType, floor(x), (int) y)) {
-                    System.out.println(String.format(Locale.ENGLISH,
-                            "With (%s,%s): Bullet %s collision at (%f,%f)",
-                            currentPosition, targetPosition, yWallType, x, y));
+                    System.out.format("With (%s,%s): Bullet %s collision at (%f,%f)",
+                            currentPosition, targetPosition, yWallType, x, y);
                     return new MapCollisionInfo(new Point2D(floor(x), y), true);
                 }
                 y += yStep;
