@@ -40,25 +40,6 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
     @Override
     public void connect(ConnectRequest request, StreamObserver<ConnectReply> responseObserver) {
         logger.info("Connect from " + request.getId());
-
-        /* idk if this is necessary
-        if (StreamSupport.stream(world.getConnectedPlayers().spliterator(), false)
-                .anyMatch(e -> e.getKey().equals(request.getId()))) {
-            logger.warning(String.format(Locale.ENGLISH,
-                    "Player %s has already connected", request.getId()));
-            responseObserver.onError(new RuntimeException("Cannot connect() twice"));
-            return;
-        }
-        */
-
-        // update the simulation world
-        //world.getPlayerController(request.getId());
-        // reply with current game state
-        ConnectReply reply = ConnectReply.newBuilder()
-                .setSeed(SEED)
-                .build();
-        responseObserver.onNext(reply);
-        responseObserver.onCompleted();
     }
 
     @Override

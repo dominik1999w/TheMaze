@@ -15,6 +15,7 @@ import physics.CollisionWorld;
 import server.GameServer;
 import server.GrpcServer;
 import service.GameService;
+import service.MapService;
 import time.Timer;
 import util.Point2D;
 import world.World;
@@ -44,7 +45,8 @@ public class Main {
         world.subscribeOnPlayerAdded(newPlayer -> collisionWorld.addHitbox(new PlayerHitbox(newPlayer)));
 
         GameService gameService = new GameService(world);
-        GameServer server = new GrpcServer(50051, gameService);
+        MapService mapService = new MapService();
+        GameServer server = new GrpcServer(50051, gameService, mapService);
         server.start();
 
         new Thread(() -> Timer.executeAtFixedRate(delta ->

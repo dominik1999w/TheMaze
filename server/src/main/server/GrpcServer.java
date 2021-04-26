@@ -7,15 +7,17 @@ import java.util.logging.Logger;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import service.GameService;
+import service.MapService;
 
 public class GrpcServer implements GameServer {
     private static final Logger logger = Logger.getLogger(GrpcServer.class.getName());
 
     private final Server server;
 
-    public GrpcServer(int port, GameService gameService) {
+    public GrpcServer(int port, GameService gameService, MapService mapService) {
         server = ServerBuilder.forPort(port)
                 .addService(gameService)
+                .addService(mapService)
                 .build();
     }
 

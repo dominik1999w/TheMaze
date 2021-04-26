@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import connection.GameClient;
+import connection.MapClient;
 import entity.bullet.BulletController;
 import entity.bullet.BulletHitbox;
 import entity.player.PlayerHitbox;
@@ -41,14 +42,14 @@ public class GameScreen extends ScreenAdapter {
 
     private final DebugDrawer debugDrawer;
 
-    public GameScreen(SpriteBatch batch, GameClient client, AssetManager assetManager) {
+    public GameScreen(SpriteBatch batch, GameClient client, MapClient mapClient, AssetManager assetManager) {
         this.batch = batch;
 
         this.client = client;
-        int seed = this.client.connect();
+        this.client.connect();
 
-        MapGenerator mapGenerator = new MapGenerator(50);
-        Map map = mapGenerator.generateMap(seed);
+        MapGenerator mapGenerator = new MapGenerator(mapClient.getMapLength());
+        Map map = mapGenerator.generateMap(mapClient.getSeed());
 
         this.camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
@@ -103,7 +104,7 @@ public class GameScreen extends ScreenAdapter {
 
         gameUI.render(delta);
 
-        if (frameCounter % 5 == 0) client.syncGameState();
+        if (frameCounter % 5 == 0) client.syncState();
         frameCounter++;
     }
 

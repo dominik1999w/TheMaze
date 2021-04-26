@@ -23,8 +23,9 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 
 import java.util.Random;
 
+import connection.ClientFactory;
 import connection.GameClient;
-import connection.GameClientFactory;
+import connection.MapClient;
 import map.Map;
 import map.MapConfig;
 import map.generator.MapGenerator;
@@ -49,14 +50,25 @@ public class MenuScreen extends ScreenAdapter {
     private final Skin skin;
     private final Stage stage;
 
+    private Container<Table> menuContainer;
+    private Container<Actor> mapContainer;
+    private Label status;
 
     private GameScreen gameScreen;
-    private GameClient client;
+
+    private MapClient mapClient;
+    private GameClient gameClient;
+
     private final AsyncExecutor asyncExecutor;
     private AsyncResult<Void> task;
+
     private MapView mapView;
     private OrthographicCamera camera;
-    private Label status;
+
+    private final Random random = new Random();
+
+    private final float initialZoom = 0.166f;
+    private final int defaultHeight = 1080;
 
     public MenuScreen(GameApp game, SpriteBatch batch, AssetManager assetManager) {
         this.game = game;
@@ -65,42 +77,50 @@ public class MenuScreen extends ScreenAdapter {
         this.skin = assetManager.get(SkinType.GLASSY.getName());
         this.asyncExecutor = new AsyncExecutor(1);
         this.stage = new Stage(new FitViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
-        connect();
         buildUI();
+        connect();
     }
 
     void connect() {
         task = asyncExecutor.submit(() -> {
-            client = new GameClientFactory(HOST, PORT).getClient();
+            gameClient = ClientFactory.newGameClient(HOST, PORT);
+            mapClient = ClientFactory.newMapClient(HOST, PORT);
+            mapClient.connect();
+
+            if (mapClient.isHost()) {
+                Gdx.app.postRunnable(() -> mapContainer.setVisible(true));
+            }
+
+            Gdx.app.postRunnable(() -> status.setText("server status: connected"));
+
             return null;
         });
+
     }
 
     void buildUI() {
-        int defaultHeight = 1080;
-
-        Container<Table> leftContainer = buildInfo(defaultHeight);
-        Container<Table> rightContainer = buildConfig(leftContainer, defaultHeight);
+        buildMenuContainer();
+        buildMapContainer();
 
         status = new Label("server status: connecting", skin, "big");
         status.setPosition(10, 0);
 
         stage.addActor(status);
-        stage.addActor(leftContainer);
-        stage.addActor(rightContainer);
+        stage.addActor(menuContainer);
+        stage.addActor(mapContainer);
 
         Gdx.input.setInputProcessor(stage);
     }
 
-    private Container<Table> buildInfo(int defaultHeight) {
+    private void buildMenuContainer() {
         float leftContainerWidth = Gdx.graphics.getWidth() * 0.45f;
         float leftContainerHeight = Gdx.graphics.getHeight() * 0.95f;
 
-        Container<Table> leftContainer = new Container<>();
-        leftContainer.setSize(leftContainerWidth, leftContainerHeight);
-        leftContainer.setPosition(0, (Gdx.graphics.getHeight() - leftContainerHeight) / 2);
-        leftContainer.fillX();
-        leftContainer.setDebug(true);
+        menuContainer = new Container<>();
+        menuContainer.setSize(leftContainerWidth, leftContainerHeight);
+        menuContainer.setPosition(0, (Gdx.graphics.getHeight() - leftContainerHeight) / 2);
+        menuContainer.fillX();
+        menuContainer.setDebug(true);
 
         Table info = new Table();
         info.setFillParent(true);
@@ -117,8 +137,8 @@ public class MenuScreen extends ScreenAdapter {
         startGame.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                if (task.isDone()) { // TODO: check for server's connection
-                    gameScreen = new GameScreen(batch, client, assetManager);
+                if (task.isDone()) {
+                    gameScreen = new GameScreen(batch, gameClient, mapClient, assetManager);
                     game.setScreen(gameScreen);
                 }
             }
@@ -131,37 +151,34 @@ public class MenuScreen extends ScreenAdapter {
         quitGame.getLabel().setFontScale(1.5f * Gdx.graphics.getHeight() / defaultHeight);
         info.add(quitGame).fillX();
 
-        leftContainer.setActor(info);
-        return leftContainer;
+        menuContainer.setActor(info);
     }
 
-    private Container<Table> buildConfig(Container<Table> leftContainer, int defaultHeight) {
-        float initialZoom = 0.166f;
-
+    private void buildMapContainer() {
         camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         camera.zoom = initialZoom * defaultHeight / Gdx.graphics.getHeight();
         camera.position.set(
-                camera.zoom * (0.5f * Gdx.graphics.getWidth() - leftContainer.getWidth()) + (float) MapConfig.WALL_THICKNESS / 2,
-                camera.zoom * leftContainer.getHeight() / 2,
+                camera.zoom * (0.5f * Gdx.graphics.getWidth() - menuContainer.getWidth()) + (float) MapConfig.WALL_THICKNESS / 2,
+                camera.zoom * menuContainer.getHeight() / 2,
                 0);
         camera.update();
 
         final Slider slider = new Slider(5, 50, 1, false, skin);
 
         float rightContainerWidth = ((MapConfig.BOX_SIZE) * slider.getMinValue()) / camera.zoom;
-        float rightContainerHeight = leftContainer.getHeight();
+        float rightContainerHeight = menuContainer.getHeight();
 
-        Container<Table> rightContainer = new Container<>();
-        rightContainer.setSize(rightContainerWidth, rightContainerHeight);
-        rightContainer.setPosition(leftContainer.getWidth(), (Gdx.graphics.getHeight() - rightContainerHeight) / 2);
-        rightContainer.fillX();
-        rightContainer.setDebug(true);
-
+        mapContainer = new Container<>();
+        mapContainer.setSize(rightContainerWidth, rightContainerHeight);
+        mapContainer.setPosition(menuContainer.getWidth(), (Gdx.graphics.getHeight() - rightContainerHeight) / 2);
+        mapContainer.fillX();
+        mapContainer.setDebug(true);
+        mapContainer.setVisible(false);
         Table config = new Table();
         config.setFillParent(true);
 
         MapGenerator mapGenerator = new MapGenerator((int) slider.getMinValue());
-        Map map = mapGenerator.generateMap(new Random().nextInt());
+        Map map = mapGenerator.generateMap(0);
         mapView = new MapView(map, assetManager);
         mapView.setView(camera);
 
@@ -171,25 +188,32 @@ public class MenuScreen extends ScreenAdapter {
                 if (!slider.isDragging()) {
                     return;
                 }
-
-                int value = (int) slider.getValue();
-                MapGenerator mapGenerator1 = new MapGenerator(value);
-                mapView.setMap(mapGenerator1.generateMap(new Random().nextInt()));
-                camera.zoom = initialZoom * defaultHeight / Gdx.graphics.getHeight() * value / slider.getMinValue();
-                camera.position.set(
-                        camera.zoom * (0.5f * Gdx.graphics.getWidth() - leftContainer.getWidth()) + (float) MapConfig.WALL_THICKNESS / 2,
-                        camera.zoom * leftContainer.getHeight() / 2,
-                        0);
-                camera.update();
-                mapView.setView(camera);
+                updateMap((int) slider.getValue(), random.nextInt());
             }
         });
 
         config.add(slider).growX();
 
-        rightContainer.setActor(config);
-        return rightContainer;
+        mapContainer.setActor(config);
     }
+
+    private void updateMap(int length, int seed) {
+        mapClient.setMapLength(length);
+        mapClient.setSeed(seed);
+
+        MapGenerator mapGenerator1 = new MapGenerator(length);
+        mapView.setMap(mapGenerator1.generateMap(seed));
+        camera.zoom = initialZoom * defaultHeight / Gdx.graphics.getHeight() * length / 5;
+        camera.position.set(
+                camera.zoom * (0.5f * Gdx.graphics.getWidth() - menuContainer.getWidth()) + (float) MapConfig.WALL_THICKNESS / 2,
+                camera.zoom * menuContainer.getHeight() / 2,
+                0);
+        camera.update();
+        mapView.setView(camera);
+    }
+
+    int prevLength = 5;
+    int prevSeed = 0;
 
     @Override
     public void render(float delta) {
@@ -197,8 +221,14 @@ public class MenuScreen extends ScreenAdapter {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         if (task.isDone()) {
-            status.setText("server status: connected");
+            mapClient.syncState();
+            if (!mapClient.isHost() && (prevLength != mapClient.getMapLength() || prevSeed != mapClient.getSeed())) {
+                prevLength = mapClient.getMapLength();
+                prevSeed = mapClient.getSeed();
+                updateMap(prevLength, prevSeed);
+            }
         }
+
         batch.begin();
         mapView.render(batch);
         batch.end();

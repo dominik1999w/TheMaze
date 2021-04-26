@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package map;
+
+option java_multiple_files = true;
+option java_package = "lib.map";
+option java_outer_classname = "MapGrpcGdx";
+
+import "google/protobuf/empty.proto";
+
+service Map {
+  rpc Handshake (google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc Connect (StateRequest) returns (ConnectReply) {}
+  rpc SyncGameState (stream StateRequest) returns (stream StateResponse) {}
+}
+
+message StateRequest {
+  string id = 1;
+  int32 length = 2;
+  int32 seed = 3;
+}
+
+message ConnectReply {
+  bool isHost = 1;
+}
+
+message StateResponse {
+  int32 length = 1;
+  int32 seed = 2;
+}

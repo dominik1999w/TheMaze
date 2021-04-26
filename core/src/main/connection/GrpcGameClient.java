@@ -14,7 +14,7 @@ import lib.connection.PlayerState;
 import lib.connection.TheMazeGrpc;
 import world.World;
 
-public class GrpcClient implements GameClient {
+public class GrpcGameClient implements GameClient {
 
     private final TheMazeGrpc.TheMazeBlockingStub blockingStub;
     private final TheMazeGrpc.TheMazeStub asyncStub;
@@ -27,7 +27,7 @@ public class GrpcClient implements GameClient {
 
     private StreamObserver<GameStateRequest> gameStateRequestStream;
 
-    public GrpcClient(ManagedChannel channel) {
+    public GrpcGameClient(ManagedChannel channel) {
         this.id = UUID.randomUUID();
 
         this.blockingStub = TheMazeGrpc.newBlockingStub(channel);
@@ -35,14 +35,14 @@ public class GrpcClient implements GameClient {
     }
 
     @Override
-    public int connect() {
+    public void connect() {
         ConnectRequest request = ConnectRequest.newBuilder().setId(id.toString()).build();
 
         gameStateRequestStream = asyncStub.syncGameState(new StreamObserver<GameStateResponse>() {
             @Override
             public void onNext(GameStateResponse value) {
                 //for (PlayerState playerState : value.getPlayersList()) {
-                    //System.out.format("Player %s has position (%f,%f)\n", playerState.getId(), playerState.getX(), playerState.getY());
+                //System.out.format("Player %s has position (%f,%f)\n", playerState.getId(), playerState.getX(), playerState.getY());
                 //    if (!playerState.getId().equals(id.toString())) world.getPlayer(playerState.getId())
                 //            .setPosition(playerState.getX(), playerState.getY());
                 //}
@@ -66,12 +66,10 @@ public class GrpcClient implements GameClient {
 
             }
         });
-
-        return blockingStub.connect(request).getSeed();
     }
 
     @Override
-    public void syncGameState() {
+    public void syncState() {
         GameStateRequest request = GameStateRequest.newBuilder()
                 .setPlayer(PlayerState.newBuilder()
                         .setId(id.toString())
@@ -90,7 +88,7 @@ public class GrpcClient implements GameClient {
         this.player = player;
         this.world = world;
         world.subscribeOnBulletAdded((player1, bullet) -> {
-            if(player1.getId().equals(player.getId())) bulletFired = true;
+            if (player1.getId().equals(player.getId())) bulletFired = true;
         });
     }
 }
