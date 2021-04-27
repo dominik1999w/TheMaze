@@ -57,9 +57,11 @@ public class GameScreen extends ScreenAdapter {
 
         this.world = new World<>(AuthoritativePlayerController::new, BulletController::new);
         this.player = new Player(new Point2D(3.5f * MapConfig.BOX_SIZE, 2.5f * MapConfig.BOX_SIZE));
-        this.playerController = new InputPlayerController(player, gameUI.getPlayerInput(), world);
+        this.playerController = new InputPlayerController(player, world);
+        gameUI.subscribeOnGameInput(playerController);
         this.collisionWorld = new CollisionWorld(map);
-        world.subscribeOnPlayerAdded(newPlayer -> collisionWorld.addHitbox(new PlayerHitbox(newPlayer)));
+        // Uncomment this for CLIENT-SIDE PLAYER-MAP COLLISION HANDLING
+        //world.subscribeOnPlayerAdded(newPlayer -> collisionWorld.addHitbox(new PlayerHitbox(newPlayer)));
         world.subscribeOnBulletAdded((player, newBullet) -> collisionWorld.addHitbox(new BulletHitbox(newBullet, world)));
         world.subscribeOnBulletRemoved(collisionWorld::removeHitbox);
         collisionWorld.addHitbox(new PlayerHitbox(player));
@@ -72,7 +74,8 @@ public class GameScreen extends ScreenAdapter {
 
         gameUI.build();
 
-        client.enterGame(player, world);
+        client.enterGame(world);
+        gameUI.subscribeOnGameInput(client);
 
         this.debugDrawer = new DebugDrawer(camera, map, player);
     }
@@ -104,7 +107,8 @@ public class GameScreen extends ScreenAdapter {
 
         gameUI.render(delta);
 
-        if (frameCounter % 5 == 0) client.syncState();
+        // We probably need to syncState at a fixed rate (render() is not fixed rate)
+        if (frameCounter % 1 == 0) client.syncState();
         frameCounter++;
     }
 

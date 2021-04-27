@@ -1,3 +1,5 @@
+version = '0.1.0'
+
 sourceCompatibility = 1.8
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
@@ -5,6 +7,13 @@ sourceSets.main.java.srcDirs = [ "src/main/" ]
 sourceSets.test.java.srcDirs = ["src/test/"]
 
 eclipse.project.name = appName + "-lib-common"
+
+tasks.named('jar') {
+    manifest {
+        attributes('Implementation-Title': "lib-common",
+                'Implementation-Version': project.version)
+    }
+}
 
 protobuf {
     protoc {

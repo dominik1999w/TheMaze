@@ -21,7 +21,8 @@ public class AuthoritativePlayerController extends PlayerController {
     public void update(float delta) {
         player.setPosition(nextPosition);
         player.setRotation(nextRotation);
-        if(nextFireBullet) {
+        if (nextFireBullet) {
+            nextFireBullet = false;
             world.onBulletFired(player);
             //world.onBulletDied(world.getBulletController(player).getBulletId());
         }

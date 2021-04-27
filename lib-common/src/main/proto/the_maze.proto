@@ -22,6 +22,15 @@ message ConnectReply {
   int32 seed = 1;
 }
 
+
+message LocalPlayerInput {
+  string id = 1;
+  float inputX = 2;
+  float inputY = 3;
+  bool shootPressed = 4;
+}
+
+
 message PlayerState {
   string id = 1;
   float positionX = 2;
@@ -34,8 +43,9 @@ message BulletState {
   bool fired = 1;
 }
 
+
 message GameStateRequest {
-  PlayerState player = 1;
+  LocalPlayerInput player = 1;
 }
 
 message GameStateResponse {

@@ -13,7 +13,7 @@ import lib.map.StateRequest;
 import lib.map.StateResponse;
 
 public class MapService extends MapGrpc.MapImplBase {
-    private static final Logger logger = Logger.getLogger(GameService.class.getName());
+    private static final Logger logger = Logger.getLogger(MapService.class.getName());
 
     private String host = null;
     private int lastSeed;

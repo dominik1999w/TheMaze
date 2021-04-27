@@ -2,7 +2,6 @@ package physics.mapcollision;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 import map.Map;
 import map.MapConfig;
@@ -62,9 +61,9 @@ public class LineMapCollisionDetector extends MapCollisionDetector {
             float dydx = dy / dx;
             for (int i = 0; i < tileAreaSize.x(); i++) {
                 if (map.hasWall(xWallType, (int) x, floor(y))) {
-                    System.out.format("With (%s,%s): Bullet %s collision at (%f,%f)",
+                    System.out.format("With (%s,%s): Bullet %s collision at (%f,%f)\n",
                             currentPosition, targetPosition, xWallType, x, y);
-                    return new MapCollisionInfo(new Point2D(x, floor(y)), true);
+                    return new MapCollisionInfo(new Point2D(x, y), true);
                 }
                 x += xStep;
                 y += dydx;
@@ -76,9 +75,9 @@ public class LineMapCollisionDetector extends MapCollisionDetector {
             float dxdy = dx / dy;
             for (int i = 0; i < tileAreaSize.y(); i++) {
                 if (map.hasWall(yWallType, floor(x), (int) y)) {
-                    System.out.format("With (%s,%s): Bullet %s collision at (%f,%f)",
+                    System.out.format("With (%s,%s): Bullet %s collision at (%f,%f)\n",
                             currentPosition, targetPosition, yWallType, x, y);
-                    return new MapCollisionInfo(new Point2D(floor(x), y), true);
+                    return new MapCollisionInfo(new Point2D(x, y), true);
                 }
                 y += yStep;
                 x += dxdy;
@@ -94,7 +93,7 @@ public class LineMapCollisionDetector extends MapCollisionDetector {
             maxRange.add(detectLightingMapCollisions(playerPosition, i,viewRadius));
         }
 
-        List<float[]> triangles = new ArrayList<float[]>();
+        List<float[]> triangles = new ArrayList<>();
         for(int i=0; i<numberOfRays; i++){
             float[] arr = { playerPosition.x(), playerPosition.y(),
                             maxRange.get(i).x(), maxRange.get(i).y(),
@@ -145,7 +144,7 @@ public class LineMapCollisionDetector extends MapCollisionDetector {
             float dydx = dy / dx;
             for (int i = 0; i < tileAreaSize.x(); i++) {
                 if (map.hasWall(xWallType, (int) x, floor(y))) {
-                    System.out.format("With (%s,%s): Light ray %s collision at (%f,%f)",
+                    System.out.format("With (%s,%s): Light ray %s collision at (%f,%f)\n",
                             currentPosition, targetPosition, xWallType, x, y);
                     return new Point2D(x, y);
                 }
@@ -159,7 +158,7 @@ public class LineMapCollisionDetector extends MapCollisionDetector {
             float dxdy = dx / dy;
             for (int i = 0; i < tileAreaSize.y(); i++) {
                 if (map.hasWall(yWallType, floor(x), (int) y)) {
-                    System.out.format("With (%s,%s): Light ray %s collision at (%f,%f)",
+                    System.out.format("With (%s,%s): Light ray %s collision at (%f,%f)\n",
                             currentPosition, targetPosition, yWallType, x, y);
                     return new Point2D(x, y);
                 }

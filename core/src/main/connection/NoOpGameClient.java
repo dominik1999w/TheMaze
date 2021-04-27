@@ -17,4 +17,9 @@ public class NoOpGameClient implements GameClient {
     public void enterGame(Player player, World world) {
 
     }
+
+    @Override
+    public void notifyInput(float x, float y, boolean shootPressed) {
+
+    }
 }
