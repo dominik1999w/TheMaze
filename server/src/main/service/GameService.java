@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import entity.player.controller.AuthoritativePlayerController;
+import entity.player.controller.InputPlayerController;
 import entity.player.controller.PlayerController;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
@@ -15,6 +15,7 @@ import lib.connection.ConnectReply;
 import lib.connection.ConnectRequest;
 import lib.connection.GameStateRequest;
 import lib.connection.GameStateResponse;
+import lib.connection.LocalPlayerInput;
 import lib.connection.PlayerState;
 import lib.connection.TheMazeGrpc;
 import world.World;
@@ -22,11 +23,9 @@ import world.World;
 public class GameService extends TheMazeGrpc.TheMazeImplBase {
     private static final Logger logger = Logger.getLogger(GameService.class.getName());
 
-    public static final int SEED = 17;
+    private final World<InputPlayerController> world;
 
-    private final World<AuthoritativePlayerController> world;
-
-    public GameService(World<AuthoritativePlayerController> world) {
+    public GameService(World<InputPlayerController> world) {
         this.world = world;
     }
 
@@ -40,6 +39,8 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
     @Override
     public void connect(ConnectRequest request, StreamObserver<ConnectReply> responseObserver) {
         logger.info("Connect from " + request.getId());
+        responseObserver.onNext(ConnectReply.newBuilder().setSeed(0).build());
+        responseObserver.onCompleted();
     }
 
     @Override
@@ -47,12 +48,12 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
         return new StreamObserver<GameStateRequest>() {
             @Override
             public void onNext(GameStateRequest value) {
-                PlayerState source = value.getPlayer();
-                AuthoritativePlayerController playerController = world.getPlayerController(source.getId());
-                playerController.setNextPosition(source.getPositionX(), source.getPositionY());
-                playerController.setNextRotation(source.getRotation());
-                playerController.setNextFireBullet(source.getBullet().getFired());
+                // process input request
+                LocalPlayerInput source = value.getPlayer();
+                InputPlayerController playerController = world.getPlayerController(source.getId());
+                playerController.notifyInput(source.getInputX(), source.getInputY(), source.getShootPressed());
 
+                // reply with game state
                 GameStateResponse.Builder response = GameStateResponse.newBuilder();
                 for (Map.Entry<String, ? extends PlayerController> connectedPlayer : world.getConnectedPlayers()) {
                     response.addPlayers(PlayerState.newBuilder()

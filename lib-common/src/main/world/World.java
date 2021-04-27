@@ -14,6 +14,7 @@ import entity.bullet.Bullet;
 import entity.bullet.BulletController;
 import entity.player.Player;
 import entity.player.controller.PlayerController;
+import map.MapConfig;
 import util.Point2D;
 
 public class World<TController extends PlayerController> {
@@ -48,7 +49,7 @@ public class World<TController extends PlayerController> {
 
     public TController getPlayerController(String id) {
         return players.computeIfAbsent(id, k -> {
-            Player player = new Player(new Point2D(3, 2));
+            Player player = new Player(new Point2D(3.5f * MapConfig.BOX_SIZE, 2.5f * MapConfig.BOX_SIZE));
             onPlayerAddedSubscribers.forEach(subscriber -> subscriber.accept(player));
             return controllerConstructor.apply(player, this);
         });

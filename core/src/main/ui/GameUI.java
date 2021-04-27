@@ -8,8 +8,10 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 
-import input.IPlayerInput;
-import input.PlayerInput;
+import java.util.ArrayList;
+import java.util.List;
+
+import entity.player.GameInputListener;
 import types.SkinType;
 
 public class GameUI {
@@ -20,7 +22,7 @@ public class GameUI {
     private Touchpad movementTouchpad;
     private ImageTextButton shootButton;
 
-    private final PlayerInput playerInput = new PlayerInput();
+    private final List<GameInputListener> inputListeners = new ArrayList<>();
 
     public GameUI(AssetManager assetManager) {
         this.stage = new Stage();
@@ -40,10 +42,15 @@ public class GameUI {
         table.add(shootButton).width(200).height(200).expand().right().bottom().padRight(100).padBottom(100);
     }
 
+    public void subscribeOnGameInput(GameInputListener inputListener) {
+        inputListeners.add(inputListener);
+    }
+
     public void readInput() {
-        playerInput.setX(movementTouchpad.getKnobPercentX());
-        playerInput.setY(movementTouchpad.getKnobPercentY());
-        playerInput.setShootPressed(shootButton.isPressed());
+        float inputX = movementTouchpad.getKnobPercentX();
+        float inputY = movementTouchpad.getKnobPercentY();
+        boolean shootPressed = shootButton.isPressed();
+        inputListeners.forEach(inputListener -> inputListener.notifyInput(inputX, inputY, shootPressed));
     }
 
     public void render(float delta) {
@@ -58,9 +65,4 @@ public class GameUI {
     public void dispose() {
         stage.dispose();
     }
-
-    public IPlayerInput getPlayerInput() {
-        return playerInput;
-    }
-
 }
