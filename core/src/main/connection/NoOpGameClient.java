@@ -1,6 +1,5 @@
 package connection;
 
-import entity.player.Player;
 import world.World;
 
 public class NoOpGameClient implements GameClient {
@@ -14,7 +13,7 @@ public class NoOpGameClient implements GameClient {
     }
 
     @Override
-    public void enterGame(Player player, World world) {
+    public void enterGame(World world) {
 
     }
 

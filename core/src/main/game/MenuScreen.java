@@ -26,7 +26,6 @@ import java.util.Random;
 import connection.ClientFactory;
 import connection.GameClient;
 import connection.MapClient;
-import map.Map;
 import map.MapConfig;
 import map.generator.MapGenerator;
 import renderable.MapView;
@@ -51,7 +50,7 @@ public class MenuScreen extends ScreenAdapter {
     private final Stage stage;
 
     private Container<Table> menuContainer;
-    private Container<Actor> mapContainer;
+    private Container<Actor> sliderContainer;
     private Label status;
 
     private GameScreen gameScreen;
@@ -69,6 +68,10 @@ public class MenuScreen extends ScreenAdapter {
 
     private final float initialZoom = 0.166f;
     private final int defaultHeight = 1080;
+
+    private final int minMapLength = 5;
+    private final int maxMapLength = 50;
+    private final int defaultSeed = 0;
 
     public MenuScreen(GameApp game, SpriteBatch batch, AssetManager assetManager) {
         this.game = game;
@@ -88,7 +91,7 @@ public class MenuScreen extends ScreenAdapter {
             mapClient.connect();
 
             if (mapClient.isHost()) {
-                Gdx.app.postRunnable(() -> mapContainer.setVisible(true));
+                Gdx.app.postRunnable(() -> sliderContainer.setVisible(true));
             }
 
             Gdx.app.postRunnable(() -> status.setText("server status: connected"));
@@ -100,14 +103,15 @@ public class MenuScreen extends ScreenAdapter {
 
     void buildUI() {
         buildMenuContainer();
-        buildMapContainer();
+        buildSliderContainer();
+        buildMap();
 
         status = new Label("server status: connecting", skin, "big");
         status.setPosition(10, 0);
 
         stage.addActor(status);
         stage.addActor(menuContainer);
-        stage.addActor(mapContainer);
+        stage.addActor(sliderContainer);
 
         Gdx.input.setInputProcessor(stage);
     }
@@ -115,6 +119,9 @@ public class MenuScreen extends ScreenAdapter {
     private void buildMenuContainer() {
         float leftContainerWidth = Gdx.graphics.getWidth() * 0.45f;
         float leftContainerHeight = Gdx.graphics.getHeight() * 0.95f;
+
+        float titleFontScale = 2.5f;
+        float optionFontScale = 1.5f;
 
         menuContainer = new Container<>();
         menuContainer.setSize(leftContainerWidth, leftContainerHeight);
@@ -127,13 +134,13 @@ public class MenuScreen extends ScreenAdapter {
         info.defaults().pad(10.0f);
 
         Label title = new Label("The Maze", skin, "big");
-        title.setFontScale(2.5f * Gdx.graphics.getHeight() / defaultHeight);
+        title.setFontScale(titleFontScale * Gdx.graphics.getHeight() / defaultHeight);
         info.add(title);
 
         info.row().padTop(50.0f);
 
         TextButton startGame = new TextButton("Start Game", skin);
-        startGame.getLabel().setFontScale(1.5f * Gdx.graphics.getHeight() / defaultHeight);
+        startGame.getLabel().setFontScale(optionFontScale * Gdx.graphics.getHeight() / defaultHeight);
         startGame.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -148,40 +155,27 @@ public class MenuScreen extends ScreenAdapter {
         info.row();
 
         TextButton quitGame = new TextButton("Quit", skin);
-        quitGame.getLabel().setFontScale(1.5f * Gdx.graphics.getHeight() / defaultHeight);
+        quitGame.getLabel().setFontScale(optionFontScale * Gdx.graphics.getHeight() / defaultHeight);
         info.add(quitGame).fillX();
 
         menuContainer.setActor(info);
     }
 
-    private void buildMapContainer() {
-        camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        camera.zoom = initialZoom * defaultHeight / Gdx.graphics.getHeight();
-        camera.position.set(
-                camera.zoom * (0.5f * Gdx.graphics.getWidth() - menuContainer.getWidth()) + (float) MapConfig.WALL_THICKNESS / 2,
-                camera.zoom * menuContainer.getHeight() / 2,
-                0);
-        camera.update();
-
-        final Slider slider = new Slider(5, 50, 1, false, skin);
-
-        float rightContainerWidth = ((MapConfig.BOX_SIZE) * slider.getMinValue()) / camera.zoom;
+    private void buildSliderContainer() {
+        float rightContainerWidth = (MapConfig.BOX_SIZE) * minMapLength / camera.zoom;
         float rightContainerHeight = menuContainer.getHeight();
 
-        mapContainer = new Container<>();
-        mapContainer.setSize(rightContainerWidth, rightContainerHeight);
-        mapContainer.setPosition(menuContainer.getWidth(), (Gdx.graphics.getHeight() - rightContainerHeight) / 2);
-        mapContainer.fillX();
-        mapContainer.setDebug(true);
-        mapContainer.setVisible(false);
+        sliderContainer = new Container<>();
+        sliderContainer.setSize(rightContainerWidth, rightContainerHeight);
+        sliderContainer.setPosition(menuContainer.getWidth(), (Gdx.graphics.getHeight() - rightContainerHeight) / 2);
+        sliderContainer.fillX();
+        sliderContainer.setDebug(true);
+        sliderContainer.setVisible(false);
+
         Table config = new Table();
         config.setFillParent(true);
 
-        MapGenerator mapGenerator = new MapGenerator((int) slider.getMinValue());
-        Map map = mapGenerator.generateMap(0);
-        mapView = new MapView(map, assetManager);
-        mapView.setView(camera);
-
+        final Slider slider = new Slider(minMapLength, maxMapLength, 1, false, skin);
         slider.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeListener.ChangeEvent event, Actor actor) {
@@ -191,29 +185,40 @@ public class MenuScreen extends ScreenAdapter {
                 updateMap((int) slider.getValue(), random.nextInt());
             }
         });
-
         config.add(slider).growX();
 
-        mapContainer.setActor(config);
+        sliderContainer.setActor(config);
+    }
+
+    private void buildMap() {
+        camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        mapView = new MapView(new MapGenerator(minMapLength).generateMap(defaultSeed), assetManager);
+        updateMap(minMapLength, defaultSeed);
     }
 
     private void updateMap(int length, int seed) {
-        mapClient.setMapLength(length);
-        mapClient.setSeed(seed);
+        if (task != null && task.isDone()) {
+            mapClient.setMapLength(length);
+            mapClient.setSeed(seed);
+        }
 
-        MapGenerator mapGenerator1 = new MapGenerator(length);
-        mapView.setMap(mapGenerator1.generateMap(seed));
-        camera.zoom = initialZoom * defaultHeight / Gdx.graphics.getHeight() * length / 5;
-        camera.position.set(
-                camera.zoom * (0.5f * Gdx.graphics.getWidth() - menuContainer.getWidth()) + (float) MapConfig.WALL_THICKNESS / 2,
-                camera.zoom * menuContainer.getHeight() / 2,
-                0);
-        camera.update();
+        updateCamera(length);
+
+        mapView.setMap(new MapGenerator(length).generateMap(seed));
         mapView.setView(camera);
     }
 
-    int prevLength = 5;
-    int prevSeed = 0;
+    private void updateCamera(int mapLength) {
+        camera.zoom = initialZoom * defaultHeight / Gdx.graphics.getHeight() * mapLength / minMapLength;
+        camera.position.set(
+                camera.zoom * (0.5f * Gdx.graphics.getWidth() - menuContainer.getWidth()) + 0.5f * MapConfig.WALL_THICKNESS,
+                camera.zoom * menuContainer.getHeight() * 0.5f,
+                0);
+        camera.update();
+    }
+
+    int prevLength = minMapLength;
+    int prevSeed = defaultSeed;
 
     @Override
     public void render(float delta) {
