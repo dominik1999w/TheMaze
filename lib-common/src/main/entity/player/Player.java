@@ -6,16 +6,17 @@ import entity.WorldEntity;
 import util.Point2D;
 
 public class Player implements WorldEntity {
-    private final UUID id = UUID.randomUUID();
+    private final UUID id;
 
     private final Point2D position = new Point2D();
     private float rotation = 0;
 
     public Player() {
-
+        this.id = UUID.randomUUID();
     }
 
-    public Player(Point2D position) {
+    public Player(UUID id, Point2D position) {
+        this.id = id;
         this.position.set(position);
     }
 

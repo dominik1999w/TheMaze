@@ -7,6 +7,8 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
+import java.util.UUID;
+
 import connection.GameClient;
 import connection.MapClient;
 import entity.bullet.BulletController;
@@ -56,7 +58,7 @@ public class GameScreen extends ScreenAdapter {
         this.gameUI = new GameUI(assetManager);
 
         this.world = new World<>(AuthoritativePlayerController::new, BulletController::new);
-        this.player = new Player(new Point2D(3.5f * MapConfig.BOX_SIZE, 2.5f * MapConfig.BOX_SIZE));
+        this.player = new Player(UUID.randomUUID(), new Point2D(3.5f * MapConfig.BOX_SIZE, 2.5f * MapConfig.BOX_SIZE));
         this.playerController = new InputPlayerController(player, world);
         gameUI.subscribeOnGameInput(playerController);
         this.collisionWorld = new CollisionWorld(map);

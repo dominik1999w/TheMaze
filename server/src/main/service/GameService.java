@@ -3,6 +3,7 @@ package service;
 import com.google.protobuf.Empty;
 
 import java.util.Map;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -18,15 +19,21 @@ import lib.connection.GameStateResponse;
 import lib.connection.LocalPlayerInput;
 import lib.connection.PlayerState;
 import lib.connection.TheMazeGrpc;
+import timeout.TimeoutManager;
 import world.World;
 
 public class GameService extends TheMazeGrpc.TheMazeImplBase {
     private static final Logger logger = Logger.getLogger(GameService.class.getName());
 
     private final World<InputPlayerController> world;
+    private final TimeoutManager timeoutManager;
 
     public GameService(World<InputPlayerController> world) {
         this.world = world;
+        this.timeoutManager = new TimeoutManager(playerId -> {
+            world.removePlayerController(playerId);
+            logger.info("Timed out " + playerId);
+        }, 1000);
     }
 
     @Override
@@ -50,14 +57,15 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
             public void onNext(GameStateRequest value) {
                 // process input request
                 LocalPlayerInput source = value.getPlayer();
-                InputPlayerController playerController = world.getPlayerController(source.getId());
+                timeoutManager.notify(UUID.fromString(source.getId()));
+                InputPlayerController playerController = world.getPlayerController(UUID.fromString(source.getId()));
                 playerController.notifyInput(source.getInputX(), source.getInputY(), source.getShootPressed());
 
                 // reply with game state
                 GameStateResponse.Builder response = GameStateResponse.newBuilder();
-                for (Map.Entry<String, ? extends PlayerController> connectedPlayer : world.getConnectedPlayers()) {
+                for (Map.Entry<UUID, ? extends PlayerController> connectedPlayer : world.getConnectedPlayers()) {
                     response.addPlayers(PlayerState.newBuilder()
-                            .setId(connectedPlayer.getKey())
+                            .setId(connectedPlayer.getKey().toString())
                             .setPositionX(connectedPlayer.getValue().getPlayerPosition().x())
                             .setPositionY(connectedPlayer.getValue().getPlayerPosition().y())
                             .setRotation(connectedPlayer.getValue().getPlayerRotation())

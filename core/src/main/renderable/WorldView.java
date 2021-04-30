@@ -7,12 +7,12 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import map.Map;
+import entity.WorldEntity;
 import entity.bullet.Bullet;
 import entity.player.Player;
+import map.Map;
 import types.TextureType;
 import world.World;
-import entity.WorldEntity;
 
 public class WorldView implements Renderable {
 
@@ -26,6 +26,7 @@ public class WorldView implements Renderable {
         views.add(new SimpleView<>(localPlayer, assetManager.get(TextureType.PLAYER.getName())));
 
         world.subscribeOnPlayerAdded(newPlayer -> views.add(new SimpleView<Player>(newPlayer, assetManager.get(TextureType.PLAYER.getName()))));
+        world.subscribeOnPlayerRemoved(playerID -> views.removeIf(view -> view.getId().equals(playerID)));
         world.subscribeOnBulletAdded((player, newBullet) -> views.add(new SimpleView<Bullet>(newBullet, assetManager.get(TextureType.BULLET.getName()))));
         world.subscribeOnBulletRemoved(bulletID -> views.removeIf(view -> view.getId().equals(bulletID)));
     }
