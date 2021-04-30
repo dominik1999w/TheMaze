@@ -19,6 +19,11 @@ public class Player implements WorldEntity {
         this.position.set(position);
     }
 
+    public Player(Point2D position, float rotation) {
+        this(position);
+        this.rotation = rotation;
+    }
+
     public void setPosition(Point2D position) {
         this.position.set(position);
     }

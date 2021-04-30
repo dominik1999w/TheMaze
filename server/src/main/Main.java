@@ -8,6 +8,7 @@ import physics.CollisionWorld;
 import physics.mapcollision.MapCollisionDetector;
 import server.GameServer;
 import server.GrpcServer;
+import service.GameReplyService;
 import service.GameService;
 import service.MapService;
 import time.Timer;
@@ -41,6 +42,7 @@ public class Main {
                     lib.map.StateRequest.class,
                     lib.map.StateResponse.class,
                     entity.player.Player.class,
+                    entity.player.PlayerInput.class,
                     entity.player.PlayerConfig.class,
                     entity.player.PlayerHitbox.class,
                     entity.bullet.BulletConfig.class,
@@ -72,20 +74,19 @@ public class Main {
         world.subscribeOnBulletAdded((player, newBullet) -> collisionWorld.addHitbox(new BulletHitbox(newBullet, world)));
         world.subscribeOnBulletRemoved(collisionWorld::removeHitbox);
 
-        GameService gameService = new GameService(world);
+        GameReplyService gameReplyService = new GameReplyService(world);
+        GameService gameService = new GameService(world, gameReplyService);
         MapService mapService = new MapService();
         GameServer server = new GrpcServer(50051, gameService, mapService);
         server.start();
 
         new Thread(() -> Timer.executeAtFixedRate(delta ->
         {
+            // TODO: lock so that GameService does not modify input queues
             world.update(delta);
             collisionWorld.update();
+            gameReplyService.broadcastGameState();
         }, 0.025f)).start(); // 40 fps
-
-        // start new Thread with
-        // clientResponseObservers.forEach(::onNext(GameStateResponse))
-        // every <x> seconds
 
         server.blockUntilShutdown();
     }

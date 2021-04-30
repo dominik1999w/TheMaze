@@ -26,6 +26,7 @@ import java.util.Random;
 import connection.ClientFactory;
 import connection.GameClient;
 import connection.MapClient;
+import map.Map;
 import map.MapConfig;
 import map.generator.MapGenerator;
 import renderable.MapView;
@@ -145,7 +146,9 @@ public class MenuScreen extends ScreenAdapter {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 if (task.isDone()) {
-                    gameScreen = new GameScreen(batch, gameClient, mapClient, assetManager);
+                    MapGenerator mapGenerator = new MapGenerator(mapClient.getMapLength());
+                    Map map = mapGenerator.generateMap(mapClient.getSeed());
+                    gameScreen = new GameScreen(batch, gameClient, map, assetManager);
                     game.setScreen(gameScreen);
                 }
             }

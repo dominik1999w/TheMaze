@@ -1,5 +1,7 @@
 package connection;
 
+import entity.player.PlayerInput;
+import entity.player.controller.LocalPlayerController;
 import world.World;
 
 public class NoOpGameClient implements GameClient {
@@ -13,12 +15,12 @@ public class NoOpGameClient implements GameClient {
     }
 
     @Override
-    public void enterGame(World world) {
+    public void enterGame(LocalPlayerController localPlayerController, World world) {
 
     }
 
     @Override
-    public void notifyInput(float x, float y, boolean shootPressed) {
+    public void notifyInput(PlayerInput playerInput) {
 
     }
 }

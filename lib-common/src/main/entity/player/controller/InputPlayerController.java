@@ -1,8 +1,12 @@
 package entity.player.controller;
 
+import java.util.ArrayDeque;
+import java.util.Queue;
+
 import entity.player.GameInputListener;
 import entity.player.Player;
 import entity.player.PlayerConfig;
+import entity.player.PlayerInput;
 import map.MapConfig;
 import util.Point2D;
 import world.World;
@@ -18,34 +22,31 @@ public class InputPlayerController extends PlayerController implements GameInput
         this.world = world;
     }
 
+    @Override
     public void update(float delta) {
-        if (bulletTimeout <= 0 && isShootPressed) {
-            world.onBulletFired(player);
-            bulletTimeout = 1;
-        }
-        if (bulletTimeout > 0) {
-            bulletTimeout -= delta;
-        }
+        while (!inputQueue.isEmpty()) {
+            PlayerInput playerInput = inputQueue.poll();
 
-        Point2D deltaPosition = new Point2D(inputX, inputY)
-                .multiply(MapConfig.BOX_SIZE * PlayerConfig.INITIAL_SPEED * delta);
+            if (bulletTimeout <= 0 && playerInput.isShootPressed()) {
+                world.onBulletFired(player);
+                bulletTimeout = 1;
+            }
 
-        player.getPosition().add(deltaPosition);
+            Point2D deltaPosition = new Point2D(playerInput.getX(), playerInput.getY())
+                    .multiply(MapConfig.BOX_SIZE * PlayerConfig.INITIAL_SPEED * playerInput.getDelta());
 
-        if (inputX != 0 || inputY != 0) {
-            player.setRotation((float)Math.toDegrees(Math.atan2(inputY, inputX)));
+            player.getPosition().add(deltaPosition);
+
+            if (playerInput.getX() != 0 || playerInput.getY() != 0) {
+                player.setRotation((float) Math.toDegrees(Math.atan2(playerInput.getY(), playerInput.getX())));
+            }
         }
     }
 
-    // NOTE: temporary
-    private boolean isShootPressed = false;
-    private float inputX = 0;
-    private float inputY = 0;
+    private final Queue<PlayerInput> inputQueue = new ArrayDeque<>();
 
     @Override
-    public void notifyInput(float x, float y, boolean shootPressed) {
-        this.inputX = x;
-        this.inputY = y;
-        this.isShootPressed = shootPressed;
+    public void notifyInput(PlayerInput playerInput) {
+        inputQueue.add(playerInput);
     }
 }

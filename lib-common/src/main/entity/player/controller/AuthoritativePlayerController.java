@@ -1,10 +1,11 @@
 package entity.player.controller;
 
+import entity.player.GameAuthoritativeListener;
 import entity.player.Player;
 import util.Point2D;
 import world.World;
 
-public class AuthoritativePlayerController extends PlayerController {
+public class AuthoritativePlayerController extends PlayerController implements GameAuthoritativeListener {
 
     private final World<?> world;
 
@@ -28,15 +29,14 @@ public class AuthoritativePlayerController extends PlayerController {
         }
     }
 
-    public void setNextPosition(float positionX, float positionY) {
-        nextPosition.set(positionX, positionY);
+    // NOTE: probably not the best way to represent state
+    @Override
+    public void setNextState(Player player) {
+        nextPosition.set(player.getPosition());
+        this.nextRotation = player.getRotation();
     }
 
-    public void setNextRotation(float rotation) {
-        this.nextRotation = rotation;
-    }
-
-    public void setNextFireBullet(boolean fireBullet) {
-        nextFireBullet = fireBullet;
-    }
+//    public void setNextFireBullet(boolean fireBullet) {
+//        nextFireBullet = fireBullet;
+//    }
 }

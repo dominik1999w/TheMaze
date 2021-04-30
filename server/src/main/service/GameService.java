@@ -2,21 +2,18 @@ package service;
 
 import com.google.protobuf.Empty;
 
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import entity.player.PlayerInput;
 import entity.player.controller.InputPlayerController;
-import entity.player.controller.PlayerController;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
-import lib.connection.BulletState;
 import lib.connection.ConnectReply;
 import lib.connection.ConnectRequest;
 import lib.connection.GameStateRequest;
 import lib.connection.GameStateResponse;
 import lib.connection.LocalPlayerInput;
-import lib.connection.PlayerState;
 import lib.connection.TheMazeGrpc;
 import world.World;
 
@@ -24,9 +21,11 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
     private static final Logger logger = Logger.getLogger(GameService.class.getName());
 
     private final World<InputPlayerController> world;
+    private final GameReplyService replyService;
 
-    public GameService(World<InputPlayerController> world) {
+    public GameService(World<InputPlayerController> world, GameReplyService replyService) {
         this.world = world;
+        this.replyService = replyService;
     }
 
     @Override
@@ -45,28 +44,15 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
 
     @Override
     public StreamObserver<GameStateRequest> syncGameState(StreamObserver<GameStateResponse> responseObserver) {
+        replyService.addResponseObserver(responseObserver);
         return new StreamObserver<GameStateRequest>() {
             @Override
             public void onNext(GameStateRequest value) {
-                // process input request
+                // process received PlayerInput
                 LocalPlayerInput source = value.getPlayer();
                 InputPlayerController playerController = world.getPlayerController(source.getId());
-                playerController.notifyInput(source.getInputX(), source.getInputY(), source.getShootPressed());
-
-                // reply with game state
-                GameStateResponse.Builder response = GameStateResponse.newBuilder();
-                for (Map.Entry<String, ? extends PlayerController> connectedPlayer : world.getConnectedPlayers()) {
-                    response.addPlayers(PlayerState.newBuilder()
-                            .setId(connectedPlayer.getKey())
-                            .setPositionX(connectedPlayer.getValue().getPlayerPosition().x())
-                            .setPositionY(connectedPlayer.getValue().getPlayerPosition().y())
-                            .setRotation(connectedPlayer.getValue().getPlayerRotation())
-                            .setBullet(BulletState.newBuilder()
-                                    .setFired(world.getBulletController(connectedPlayer.getValue().getPlayer()) != null)
-                                    .build())
-                            .build());
-                }
-                responseObserver.onNext(response.build());
+                playerController.notifyInput(new PlayerInput(source.getDelta(),
+                        source.getInputX(), source.getInputY(), source.getShootPressed()));
             }
 
             @Override

@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import entity.player.GameInputListener;
+import entity.player.PlayerInput;
 import types.SkinType;
 
 public class GameUI {
@@ -21,8 +22,6 @@ public class GameUI {
     private final Skin skin;
     private Touchpad movementTouchpad;
     private ImageTextButton shootButton;
-
-    private final List<GameInputListener> inputListeners = new ArrayList<>();
 
     public GameUI(AssetManager assetManager) {
         this.stage = new Stage();
@@ -42,15 +41,8 @@ public class GameUI {
         table.add(shootButton).width(200).height(200).expand().right().bottom().padRight(100).padBottom(100);
     }
 
-    public void subscribeOnGameInput(GameInputListener inputListener) {
-        inputListeners.add(inputListener);
-    }
-
-    public void readInput() {
-        float inputX = movementTouchpad.getKnobPercentX();
-        float inputY = movementTouchpad.getKnobPercentY();
-        boolean shootPressed = shootButton.isPressed();
-        inputListeners.forEach(inputListener -> inputListener.notifyInput(inputX, inputY, shootPressed));
+    public PlayerInput readInput() {
+        return new PlayerInput(movementTouchpad.getKnobPercentX(), movementTouchpad.getKnobPercentY(), shootButton.isPressed());
     }
 
     public void render(float delta) {

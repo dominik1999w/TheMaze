@@ -1,8 +1,14 @@
 package connection;
 
+import java.util.ArrayDeque;
+import java.util.Queue;
 import java.util.UUID;
 
+import entity.player.GameAuthoritativeListener;
+import entity.player.Player;
+import entity.player.PlayerInput;
 import entity.player.controller.AuthoritativePlayerController;
+import entity.player.controller.LocalPlayerController;
 import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
 import lib.connection.ConnectRequest;
@@ -10,6 +16,7 @@ import lib.connection.GameStateRequest;
 import lib.connection.GameStateResponse;
 import lib.connection.LocalPlayerInput;
 import lib.connection.TheMazeGrpc;
+import util.Point2D;
 import world.World;
 
 public class GrpcGameClient implements GameClient {
@@ -18,6 +25,7 @@ public class GrpcGameClient implements GameClient {
     private final TheMazeGrpc.TheMazeStub asyncStub;
 
     private World<AuthoritativePlayerController> world;
+    private LocalPlayerController localPlayerController;
 
     private final UUID id;
 
@@ -38,14 +46,17 @@ public class GrpcGameClient implements GameClient {
             @Override
             public void onNext(GameStateResponse value) {
                 value.getPlayersList().forEach(playerState -> {
+                    GameAuthoritativeListener playerController;
                     if (playerState.getId().equals(id.toString())) {
-                        // transfer playerState values to localPlayerController for interpolation
+                        playerController = localPlayerController;
                     } else {
-                        AuthoritativePlayerController playerController = world.getPlayerController(playerState.getId());
-                        playerController.setNextPosition(playerState.getPositionX(), playerState.getPositionY());
-                        playerController.setNextRotation(playerState.getRotation());
-                        playerController.setNextFireBullet(playerState.getBullet().getFired());
+                        playerController = world.getPlayerController(playerState.getId());
+                        //playerController.setNextFireBullet(playerState.getBullet().getFired());
                     }
+                    playerController.setNextState(new Player(
+                            new Point2D(playerState.getPositionX(), playerState.getPositionY()),
+                            playerState.getRotation()
+                    ));
                 });
             }
 
@@ -63,35 +74,35 @@ public class GrpcGameClient implements GameClient {
         blockingStub.connect(request);
     }
 
-    // NOTE: temporary
-    private boolean isShootPressed = false;
-    private float inputX = 0;
-    private float inputY = 0;
+    // NOTE: probably just single PlayerInput variable will be sufficient
+    private final Queue<PlayerInput> inputQueue = new ArrayDeque<>();
 
     @Override
-    public void notifyInput(float x, float y, boolean shootPressed) {
-        this.inputX = x;
-        this.inputY = y;
-        if (shootPressed) this.isShootPressed = true;
+    public void notifyInput(PlayerInput playerInput) {
+        inputQueue.add(playerInput);
     }
 
     @Override
     public void syncState() {
-        GameStateRequest request = GameStateRequest.newBuilder()
-                .setPlayer(LocalPlayerInput.newBuilder()
-                        .setId(id.toString())
-                        .setInputX(inputX)
-                        .setInputY(inputY)
-                        .setShootPressed(isShootPressed)
-                        .build())
-                .build();
+        while (!inputQueue.isEmpty()) {
+            PlayerInput playerInput = inputQueue.poll();
+            GameStateRequest request = GameStateRequest.newBuilder()
+                    .setPlayer(LocalPlayerInput.newBuilder()
+                            .setId(id.toString())
+                            .setDelta(playerInput.getDelta())
+                            .setInputX(playerInput.getX())
+                            .setInputY(playerInput.getY())
+                            .setShootPressed(playerInput.isShootPressed())
+                            .build())
+                    .build();
 
-        isShootPressed = false;
-        gameStateRequestStream.onNext(request);
+            gameStateRequestStream.onNext(request);
+        }
     }
 
     @Override
-    public void enterGame(World<AuthoritativePlayerController> world) {
+    public void enterGame(LocalPlayerController localPlayerController, World<AuthoritativePlayerController> world) {
+        this.localPlayerController = localPlayerController;
         this.world = world;
     }
 }

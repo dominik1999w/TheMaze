@@ -8,19 +8,18 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import connection.GameClient;
-import connection.MapClient;
 import entity.bullet.BulletController;
 import entity.bullet.BulletHitbox;
 import entity.player.PlayerHitbox;
+import entity.player.PlayerInput;
 import entity.player.controller.AuthoritativePlayerController;
+import entity.player.controller.LocalPlayerController;
 import physics.CollisionWorld;
 import world.World;
 import renderable.WorldView;
 import entity.player.Player;
-import entity.player.controller.InputPlayerController;
 import map.Map;
 import map.MapConfig;
-import map.generator.MapGenerator;
 import ui.GameUI;
 import util.Point2D;
 
@@ -30,7 +29,7 @@ public class GameScreen extends ScreenAdapter {
     private final SpriteBatch batch;
 
     private final Player player;
-    private final InputPlayerController playerController;
+    private final LocalPlayerController playerController;
     private final CollisionWorld collisionWorld;
 
     private final GameUI gameUI;
@@ -42,14 +41,11 @@ public class GameScreen extends ScreenAdapter {
 
     private final DebugDrawer debugDrawer;
 
-    public GameScreen(SpriteBatch batch, GameClient client, MapClient mapClient, AssetManager assetManager) {
+    public GameScreen(SpriteBatch batch, GameClient client, Map map, AssetManager assetManager) {
         this.batch = batch;
 
         this.client = client;
         this.client.connect();
-
-        MapGenerator mapGenerator = new MapGenerator(mapClient.getMapLength());
-        Map map = mapGenerator.generateMap(mapClient.getSeed());
 
         this.camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
@@ -57,8 +53,7 @@ public class GameScreen extends ScreenAdapter {
 
         this.world = new World<>(AuthoritativePlayerController::new, BulletController::new);
         this.player = new Player(new Point2D(3.5f * MapConfig.BOX_SIZE, 2.5f * MapConfig.BOX_SIZE));
-        this.playerController = new InputPlayerController(player, world);
-        gameUI.subscribeOnGameInput(playerController);
+        this.playerController = new LocalPlayerController(player, world);
         this.collisionWorld = new CollisionWorld(map);
         // Uncomment this for CLIENT-SIDE PLAYER-MAP COLLISION HANDLING
         //world.subscribeOnPlayerAdded(newPlayer -> collisionWorld.addHitbox(new PlayerHitbox(newPlayer)));
@@ -74,8 +69,7 @@ public class GameScreen extends ScreenAdapter {
 
         gameUI.build();
 
-        client.enterGame(world);
-        gameUI.subscribeOnGameInput(client);
+        client.enterGame(playerController, world);
 
         this.debugDrawer = new DebugDrawer(camera, map, player);
     }
@@ -83,7 +77,10 @@ public class GameScreen extends ScreenAdapter {
     @Override
     public void render(float delta) {
         // read player input
-        gameUI.readInput();
+        PlayerInput playerInput = gameUI.readInput();
+        playerInput.setDelta(delta);
+        playerController.notifyInput(playerInput);
+        client.notifyInput(playerInput);
 
         // update the world according to player input
         playerController.update(delta);

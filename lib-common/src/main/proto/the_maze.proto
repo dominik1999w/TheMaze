@@ -25,9 +25,10 @@ message ConnectReply {
 
 message LocalPlayerInput {
   string id = 1;
-  float inputX = 2;
-  float inputY = 3;
-  bool shootPressed = 4;
+  float delta = 2;
+  float inputX = 3;
+  float inputY = 4;
+  bool shootPressed = 5;
 }
 
 
