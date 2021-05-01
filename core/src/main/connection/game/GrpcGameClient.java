@@ -1,4 +1,4 @@
-package connection;
+package connection.game;
 
 import java.util.ArrayDeque;
 import java.util.Queue;
@@ -88,12 +88,7 @@ public class GrpcGameClient implements GameClient {
     }
 
     @Override
-    public boolean syncState(long sequenceNumber, PlayerInput playerInput) {
-        // if AFK (no reasonable input), then don't send it
-        if (Math.abs(playerInput.getX()) < Float.MIN_VALUE &&
-                Math.abs(playerInput.getY()) < Float.MIN_VALUE &&
-                !playerInput.isShootPressed()) return false;
-
+    public void syncState(long sequenceNumber, PlayerInput playerInput) {
         GameStateRequest request = GameStateRequest.newBuilder()
                 .setSequenceNumber(sequenceNumber)
                 .setPlayer(LocalPlayerInput.newBuilder()
@@ -106,7 +101,6 @@ public class GrpcGameClient implements GameClient {
                 .build();
 
         gameStateRequestStream.onNext(request);
-        return true;
     }
 
     @Override

@@ -3,7 +3,10 @@ package service;
 import com.google.protobuf.Empty;
 
 import java.util.ArrayDeque;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
@@ -11,25 +14,33 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import entity.player.PlayerInput;
-import entity.player.controller.InputPlayerController;
+import entity.player.controller.PlayerController;
 import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
+import lib.connection.BulletState;
 import lib.connection.ConnectReply;
 import lib.connection.ConnectRequest;
 import lib.connection.GameStateRequest;
 import lib.connection.GameStateResponse;
 import lib.connection.LocalPlayerInput;
+import lib.connection.PlayerState;
 import lib.connection.TheMazeGrpc;
+import util.ClientsInputLog;
+import util.GRpcMapper;
 import world.World;
 
 public class GameService extends TheMazeGrpc.TheMazeImplBase {
     private static final Logger logger = Logger.getLogger(GameService.class.getName());
 
-    private final GameReplyService replyService;
+    private final World<?> world;
+    private final ClientsInputLog inputLog;
 
-    public GameService(GameReplyService replyService) {
-        this.replyService = replyService;
+    private final Map<String, StreamObserver<GameStateResponse>> responseObservers = new HashMap<>();
+
+    public GameService(World<?> world) {
+        this.world = world;
+        this.inputLog = new ClientsInputLog();
     }
 
     @Override
@@ -57,14 +68,9 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
             requestHandler.onClientRequest(
                     request.getSequenceNumber(),
                     UUID.fromString(source.getId()),
-                    new PlayerInput(
-                            source.getDelta(),
-                            source.getInputX(),
-                            source.getInputY(),
-                            source.getShootPressed()
-                    )
+                    GRpcMapper.playerInput(source)
             );
-            replyService.onInputProcessed(source.getId(), request.getSequenceNumber());
+            inputLog.onInputProcessed(source.getId(), request.getSequenceNumber());
             logger.info(String.format(Locale.ENGLISH,
                     "Last acknowledged input for %s: %d", source.getId(), request.getSequenceNumber()));
         }
@@ -76,7 +82,7 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
         return new StreamObserver<GameStateRequest>() {
             @Override
             public void onNext(GameStateRequest value) {
-                replyService.addResponseObserver(value.getPlayer().getId(), responseObserver);
+                responseObservers.putIfAbsent(value.getPlayer().getId(), responseObserver);
                 queueLock.lock();
                 requestQueue.add(value);
                 queueLock.unlock();
@@ -93,5 +99,38 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
                 responseObserver.onCompleted();
             }
         };
+    }
+
+    public void broadcastGameState() {
+        GameStateResponse.Builder response = GameStateResponse.newBuilder();
+        for (java.util.Map.Entry<String, ? extends PlayerController> connectedPlayer : world.getConnectedPlayers()) {
+            String id = connectedPlayer.getKey();
+            PlayerController controller = connectedPlayer.getValue();
+            response.addPlayers(PlayerState.newBuilder()
+                    .setSequenceNumber(inputLog.getLastProcessedInput(id))
+                    .setId(id)
+                    .setPositionX(controller.getPlayerPosition().x())
+                    .setPositionY(controller.getPlayerPosition().y())
+                    .setRotation(controller.getPlayerRotation())
+                    .setBullet(BulletState.newBuilder()
+                            .setFired(world.getBulletController(controller.getPlayer()) != null)
+                            .build())
+                    .build());
+        }
+        GameStateResponse stateResponse = response.build();
+
+        Iterator<Map.Entry<String, StreamObserver<GameStateResponse>>> iterator = responseObservers.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<String, StreamObserver<GameStateResponse>> entry = iterator.next();
+            StreamObserver<GameStateResponse> responseObserver = entry.getValue();
+            try {
+                responseObserver.onNext(stateResponse);
+            } catch (StatusRuntimeException e) {
+                System.err.println(String.format(Locale.ENGLISH,
+                        "Player %s disconnected", entry.getKey()));
+                iterator.remove();
+                // remove player from world
+            }
+        }
     }
 }

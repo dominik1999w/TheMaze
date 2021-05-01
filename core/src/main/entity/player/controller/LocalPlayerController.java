@@ -1,6 +1,5 @@
 package entity.player.controller;
 
-import entity.player.GameAuthoritativeListener;
 import entity.player.Player;
 import world.World;
 

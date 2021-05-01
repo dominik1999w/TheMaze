@@ -1,4 +1,6 @@
-package connection;
+package connection.map;
+
+import connection.Client;
 
 public interface MapClient extends Client {
     void syncState();

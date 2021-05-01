@@ -1,4 +1,4 @@
-package connection;
+package connection.game;
 
 import java.util.UUID;
 
@@ -20,7 +20,7 @@ public class NoOpGameClient implements GameClient {
     }
 
     @Override
-    public boolean syncState(long sequenceNumber, PlayerInput playerInput) {
-        return true;
+    public void syncState(long sequenceNumber, PlayerInput playerInput) {
+
     }
 }

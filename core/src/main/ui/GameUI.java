@@ -8,10 +8,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import entity.player.GameInputListener;
 import entity.player.PlayerInput;
 import types.SkinType;
 

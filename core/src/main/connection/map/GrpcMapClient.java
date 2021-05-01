@@ -1,4 +1,4 @@
-package connection;
+package connection.map;
 
 import java.util.UUID;
 

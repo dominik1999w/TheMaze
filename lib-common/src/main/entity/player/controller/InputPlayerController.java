@@ -10,21 +10,22 @@ import world.World;
 public class InputPlayerController extends PlayerController {
 
     private final World<?> world;
-    private PlayerInput playerInput;
+    private final PlayerInput playerInput;
 
     private float bulletTimeout = 0;
 
     public InputPlayerController(Player player, World<?> world) {
         super(player);
+        this.playerInput = new PlayerInput();
         this.world = world;
     }
 
-    public void notifyInput(PlayerInput playerInput) {
-        this.playerInput = playerInput;
+    public void updateInput(PlayerInput playerInput) {
+        this.playerInput.set(playerInput);
     }
 
     public void update() {
-        if (playerInput == null) return;
+        if (playerInput.isEmpty()) return;
 
         if (bulletTimeout <= 0 && playerInput.isShootPressed()) {
             world.onBulletFired(player);
@@ -40,6 +41,6 @@ public class InputPlayerController extends PlayerController {
             player.setRotation((float) Math.toDegrees(Math.atan2(playerInput.getY(), playerInput.getX())));
         }
 
-        playerInput = null;
+        playerInput.clear();
     }
 }

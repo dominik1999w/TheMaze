@@ -1,4 +1,4 @@
-package connection;
+package connection.map;
 
 public class NoOpMapClient implements MapClient {
     @Override

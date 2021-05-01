@@ -24,8 +24,8 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import java.util.Random;
 
 import connection.ClientFactory;
-import connection.GameClient;
-import connection.MapClient;
+import connection.game.GameClient;
+import connection.map.MapClient;
 import map.Map;
 import map.MapConfig;
 import map.generator.MapGenerator;

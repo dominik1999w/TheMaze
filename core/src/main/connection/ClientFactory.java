@@ -5,6 +5,12 @@ import com.google.protobuf.Empty;
 import java.util.Locale;
 import java.util.logging.Logger;
 
+import connection.game.GameClient;
+import connection.game.GrpcGameClient;
+import connection.game.NoOpGameClient;
+import connection.map.GrpcMapClient;
+import connection.map.MapClient;
+import connection.map.NoOpMapClient;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;

@@ -7,11 +7,10 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
-import java.util.ArrayDeque;
-import java.util.Queue;
+import java.util.Locale;
 
-import connection.GameClient;
-import connection.PlayerInputLog;
+import connection.game.GameClient;
+import connection.util.PlayerInputLog;
 import entity.bullet.BulletController;
 import entity.bullet.BulletHitbox;
 import entity.player.Player;
@@ -79,25 +78,25 @@ public class GameScreen extends ScreenAdapter {
         this.debugDrawer = new DebugDrawer(camera, map, player);
     }
 
-    private final Queue<PlayerInput> inputQueue = new ArrayDeque<>();
-
     @Override
     public void render(float delta) {
         // dispatch server messages
         client.dispatchMessages(((sequenceNumber, playerState) ->
         {
             if (player.getId().equals(playerState.getId())) {
+                System.out.println(String.format(Locale.ENGLISH,
+                        "Client: (%s, %d)    Server: (%s, %d)",
+                        playerController.getPlayerPosition(), playerInputLog.getCurrentSequenceNumber(),
+                        playerState.getPosition(), sequenceNumber));
+
                 playerInputLog.discardLogUntil(sequenceNumber);
-                System.out.print("Client: " + playerController.getPlayer().getPosition() + playerInputLog.getCurrentSequenceNumber());
-                System.out.println("    Server: " + playerState.getPosition() + sequenceNumber);
                 playerController.setNextState(playerState);
                 for (PlayerInput playerInput : playerInputLog.getInputLog()) {
-                    playerController.notifyInput(playerInput);
+                    playerController.updateInput(playerInput);
                     playerController.update();
                     collisionWorld.update();
                 }
             } else {
-                System.out.println("WTF");
                 world.getPlayerController(playerState.getId().toString())
                         .setNextState(playerState);
             }
@@ -107,18 +106,16 @@ public class GameScreen extends ScreenAdapter {
         PlayerInput playerInput = gameUI.readInput();
         playerInput.setDelta(delta);
 
-        // TODO: validate PlayerInput NOT inside syncState
-        if (client.syncState(playerInputLog.getCurrentSequenceNumber(), playerInput)) {
+        // check for AFK (no reasonable input)
+        if (!playerInput.isEmpty()) {
+            client.syncState(playerInputLog.getCurrentSequenceNumber(), playerInput);
             playerInputLog.log(playerInput);
-            inputQueue.add(playerInput);
+            // update the player according to user input
+            playerController.updateInput(playerInput);
+            playerController.update();
         }
 
-        // update the world according to player input
-        while (!inputQueue.isEmpty()) {
-            playerController.notifyInput(inputQueue.poll());
-            playerController.update();
-            collisionWorld.update();
-        }
+        // update the world
         world.update(delta);
         collisionWorld.update();
 

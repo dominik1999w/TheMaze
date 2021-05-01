@@ -1,6 +1,5 @@
 package entity.player.controller;
 
-import entity.player.GameAuthoritativeListener;
 import entity.player.Player;
 import util.Point2D;
 import world.World;
@@ -31,7 +30,7 @@ public class AuthoritativePlayerController extends PlayerController implements G
     // NOTE: probably not the best way to represent state
     @Override
     public void setNextState(Player player) {
-        nextPosition.set(player.getPosition());
+        this.nextPosition.set(player.getPosition());
         this.nextRotation = player.getRotation();
     }
 

@@ -8,11 +8,11 @@ import physics.CollisionWorld;
 import physics.mapcollision.MapCollisionDetector;
 import server.GameServer;
 import server.GrpcServer;
-import service.GameReplyService;
 import service.GameService;
 import service.MapService;
 import time.Timer;
 import types.WallType;
+import util.ClientsInputLog;
 import world.World;
 
 public class Main {
@@ -74,8 +74,7 @@ public class Main {
         world.subscribeOnBulletAdded((player, newBullet) -> collisionWorld.addHitbox(new BulletHitbox(newBullet, world)));
         world.subscribeOnBulletRemoved(collisionWorld::removeHitbox);
 
-        GameReplyService gameReplyService = new GameReplyService(world);
-        GameService gameService = new GameService(gameReplyService);
+        GameService gameService = new GameService(world);
         MapService mapService = new MapService();
         GameServer server = new GrpcServer(50051, gameService, mapService);
         server.start();
@@ -85,13 +84,13 @@ public class Main {
             gameService.dispatchMessages((sequenceNumber, id, playerInput) ->
             {
                 InputPlayerController playerController = world.getPlayerController(id.toString());
-                playerController.notifyInput(playerInput);
+                playerController.updateInput(playerInput);
                 playerController.update();
                 collisionWorld.update();
             });
             world.update(delta);
             collisionWorld.update();
-            gameReplyService.broadcastGameState();
+            gameService.broadcastGameState();
         }, 0.0125f)).start(); // 20 fps
 
         server.blockUntilShutdown();

@@ -1,4 +1,4 @@
-package connection;
+package connection.game;
 
 import entity.player.Player;
 
