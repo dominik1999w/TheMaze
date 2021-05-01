@@ -14,6 +14,8 @@ import time.Timer;
 import types.WallType;
 import world.World;
 
+import static util.ServerConfig.SERVER_UPDATE_RATE;
+
 public class Main {
     private static void loadClasses(Class<?>... classes) {
         try {
@@ -91,7 +93,7 @@ public class Main {
             world.update(delta);
             collisionWorld.update();
             gameService.broadcastGameState();
-        }, 0.0125f)).start(); // 20 fps
+        }, 1.0f / SERVER_UPDATE_RATE)).start();
 
         server.blockUntilShutdown();
     }

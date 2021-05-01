@@ -1,25 +1,26 @@
 package entity.player.controller;
 
 import entity.player.Player;
-import util.Point2D;
+import entity.player.PlayerInterpolator;
 import world.World;
+
+import static util.ServerConfig.SERVER_UPDATE_RATE;
 
 public class AuthoritativePlayerController extends PlayerController implements GameAuthoritativeListener {
 
     private final World<?> world;
 
-    private final Point2D nextPosition = new Point2D();
-    private float nextRotation = 0;
+    private final PlayerInterpolator playerInterpolator;
     private boolean nextFireBullet;
 
     public AuthoritativePlayerController(Player player, World<?> world) {
         super(player);
         this.world = world;
+        this.playerInterpolator = new PlayerInterpolator(SERVER_UPDATE_RATE);
     }
 
     public void update() {
-        player.setPosition(nextPosition);
-        player.setRotation(nextRotation);
+        playerInterpolator.computeCurrentState(player);
         if (nextFireBullet) {
             nextFireBullet = false;
             world.onBulletFired(player);
@@ -29,9 +30,8 @@ public class AuthoritativePlayerController extends PlayerController implements G
 
     // NOTE: probably not the best way to represent state
     @Override
-    public void setNextState(Player player) {
-        this.nextPosition.set(player.getPosition());
-        this.nextRotation = player.getRotation();
+    public void setNextState(Player playerState) {
+        playerInterpolator.addState(playerState);
     }
 
 //    public void setNextFireBullet(boolean fireBullet) {
