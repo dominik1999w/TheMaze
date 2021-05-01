@@ -1,5 +1,8 @@
 package connection;
 
+import com.google.common.collect.Lists;
+
+import java.util.List;
 import java.util.UUID;
 
 import entity.player.controller.AuthoritativePlayerController;
@@ -10,7 +13,6 @@ import lib.connection.GameStateRequest;
 import lib.connection.GameStateResponse;
 import lib.connection.LocalPlayerInput;
 import lib.connection.TheMazeGrpc;
-import timeout.TimeoutManager;
 import world.World;
 
 public class GrpcGameClient implements GameClient {
@@ -19,7 +21,6 @@ public class GrpcGameClient implements GameClient {
     private final TheMazeGrpc.TheMazeStub asyncStub;
 
     private World<AuthoritativePlayerController> world;
-    private TimeoutManager timeoutManager;
 
     private final UUID id;
 
@@ -39,8 +40,13 @@ public class GrpcGameClient implements GameClient {
         gameStateRequestStream = asyncStub.syncGameState(new StreamObserver<GameStateResponse>() {
             @Override
             public void onNext(GameStateResponse value) {
+                List<UUID> ids = Lists.transform(value.getPlayersList(), input -> UUID.fromString(input.getId()));
+                world.getConnectedPlayers().forEach(playerEntry -> {
+                    if(!ids.contains(playerEntry.getKey())) {
+                        world.removePlayerController(playerEntry.getKey());
+                    }
+                });
                 value.getPlayersList().forEach(playerState -> {
-                    timeoutManager.notify(UUID.fromString(playerState.getId()));
                     if (playerState.getId().equals(id.toString())) {
                         // transfer playerState values to localPlayerController for interpolation
                     } else {
@@ -96,9 +102,5 @@ public class GrpcGameClient implements GameClient {
     @Override
     public void enterGame(World<AuthoritativePlayerController> world) {
         this.world = world;
-        this.timeoutManager = new TimeoutManager(playerId -> {
-            world.removePlayerController(playerId);
-            System.out.println("Timed out " + playerId);
-        },1000);
     }
 }
