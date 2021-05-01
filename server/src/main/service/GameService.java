@@ -150,7 +150,8 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
     private void handleDisconnectedObservers() {
         for (StreamObserver<GameStateResponse> observer : disconnectedObservers) {
             UUID playerID = responseObservers.remove(observer);
-            world.removePlayerController(playerID);
+            if (playerID != null)
+                world.removePlayerController(playerID);
             logger.log(Level.INFO,
                     "Player {0} removed from the world", playerID);
         }

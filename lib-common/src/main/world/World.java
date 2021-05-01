@@ -54,9 +54,7 @@ public class World<TController extends PlayerController> {
 
     public void onPlayerJoined(UUID id) {
         // TODO: check if has already been in map
-        Player player = new Player(id, new Point2D(3.5f * MapConfig.BOX_SIZE, 2.5f * MapConfig.BOX_SIZE));
-        onPlayerAddedSubscribers.forEach(subscriber -> subscriber.accept(player));
-        players.put(id, controllerConstructor.apply(player, this));
+        getPlayerController(id);
     }
 
     public void removePlayerController(UUID playerID) {
@@ -65,7 +63,12 @@ public class World<TController extends PlayerController> {
     }
 
     public TController getPlayerController(UUID id) {
-        return players.get(id);
+        return players.computeIfAbsent(id, k ->
+        {
+            Player player = new Player(id, new Point2D(3.5f * MapConfig.BOX_SIZE, 2.5f * MapConfig.BOX_SIZE));
+            onPlayerAddedSubscribers.forEach(subscriber -> subscriber.accept(player));
+            return controllerConstructor.apply(player, this);
+        });
     }
 
     public void onBulletFired(Player player) {

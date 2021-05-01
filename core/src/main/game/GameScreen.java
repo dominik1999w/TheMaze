@@ -109,7 +109,6 @@ public class GameScreen extends ScreenAdapter {
                         collisionWorld.update();
                     }
                 } else {
-
                     world.getPlayerController(playerState.getId())
                             .setNextState(playerState);
                 }
