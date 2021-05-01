@@ -54,6 +54,7 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
     @Override
     public void connect(ConnectRequest request, StreamObserver<ConnectReply> responseObserver) {
         logger.log(Level.INFO, "Connect from {0}", request.getId());
+        world.onPlayerJoined(UUID.fromString(request.getId()));
         responseObserver.onNext(ConnectReply.newBuilder().setSeed(0).build());
         responseObserver.onCompleted();
     }

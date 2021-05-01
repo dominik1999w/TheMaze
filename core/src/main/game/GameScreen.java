@@ -49,19 +49,18 @@ public class GameScreen extends ScreenAdapter {
 
     private final DebugDrawer debugDrawer;
 
-    public GameScreen(SpriteBatch batch, GameClient client, Map map, AssetManager assetManager) {
+    public GameScreen(UUID playerID, SpriteBatch batch, GameClient client, Map map, AssetManager assetManager) {
         this.batch = batch;
-
         this.playerInputLog = new PlayerInputLog();
         this.client = client;
-        this.client.connect();
+        client.connect(playerID);
 
         this.camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
         this.gameUI = new GameUI(assetManager);
 
         this.world = new World<>(AuthoritativePlayerController::new, BulletController::new);
-        this.player = new Player(new Point2D(3.5f * MapConfig.BOX_SIZE, 2.5f * MapConfig.BOX_SIZE));
+        this.player = new Player(playerID, new Point2D(3.5f * MapConfig.BOX_SIZE, 2.5f * MapConfig.BOX_SIZE));
         this.playerController = new LocalPlayerController(player, world);
         this.collisionWorld = new CollisionWorld(map);
         // Uncomment this for CLIENT-SIDE PLAYER-MAP COLLISION HANDLING
@@ -77,8 +76,6 @@ public class GameScreen extends ScreenAdapter {
         camera.update();
 
         gameUI.build();
-
-        client.enterGame(player.getId());
 
         this.debugDrawer = new DebugDrawer(camera, map, player);
     }

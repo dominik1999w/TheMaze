@@ -6,21 +6,17 @@ import entity.player.PlayerInput;
 
 public class NoOpGameClient implements GameClient {
     @Override
-    public void connect() {
-    }
-
-    @Override
     public void dispatchMessages(ServerResponseHandler responseHandler) {
 
     }
 
     @Override
-    public void enterGame(UUID id) {
+    public void syncState(long sequenceNumber, PlayerInput playerInput) {
 
     }
 
     @Override
-    public void syncState(long sequenceNumber, PlayerInput playerInput) {
+    public void connect(UUID id) {
 
     }
 }

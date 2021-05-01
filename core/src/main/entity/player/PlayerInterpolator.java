@@ -29,6 +29,8 @@ public class PlayerInterpolator {
                 playerStateHistory.get(lastStateIndex).timestamp <= renderTimestamp)
             lastStateIndex++;
 
+        System.out.println(renderTimestamp + " " + lastStateIndex + "/" + playerStateHistory.size());
+
         if (lastStateIndex < playerStateHistory.size()) {
             if (lastStateIndex > 0) {
                 // now stateHistory[lastStateIndex - 1] <= renderTimestamp <= stateHistory[lastStateIndex]
@@ -46,6 +48,11 @@ public class PlayerInterpolator {
                 out.setPosition(playerStateHistory.get(0).playerState.getPosition());
                 out.setRotation(playerStateHistory.get(0).playerState.getRotation());
             }
+        }
+
+        while (lastStateIndex > 1) {
+            playerStateHistory.remove(0);
+            lastStateIndex--;
         }
     }
 

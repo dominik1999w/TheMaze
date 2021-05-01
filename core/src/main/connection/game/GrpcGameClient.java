@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import entity.player.PlayerInput;
 import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
+import lib.connection.ConnectRequest;
 import lib.connection.GameStateRequest;
 import lib.connection.GameStateResponse;
 import lib.connection.LocalPlayerInput;
@@ -71,8 +72,11 @@ public class GrpcGameClient implements GameClient {
         queueLock.unlock();
     }
 
+    @SuppressWarnings("CheckResult")
     @Override
-    public void connect() {
+    public void connect(UUID id) {
+        this.id = id;
+
         gameStateRequestStream = asyncStub.syncGameState(new StreamObserver<GameStateResponse>() {
             @Override
             public void onNext(GameStateResponse value) {
@@ -91,6 +95,8 @@ public class GrpcGameClient implements GameClient {
 
             }
         });
+
+        blockingStub.connect(ConnectRequest.newBuilder().setId(id.toString()).build());
     }
 
     @Override
@@ -107,10 +113,5 @@ public class GrpcGameClient implements GameClient {
                 .build();
 
         gameStateRequestStream.onNext(request);
-    }
-
-    @Override
-    public void enterGame(UUID id) {
-        this.id = id;
     }
 }

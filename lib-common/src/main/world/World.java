@@ -52,12 +52,11 @@ public class World<TController extends PlayerController> {
         onBulletRemovedSubscribers.add(callback);
     }
 
-    public TController getPlayerController(UUID id) {
-        return players.computeIfAbsent(id, k -> {
-            Player player = new Player(id, new Point2D(3.5f * MapConfig.BOX_SIZE, 2.5f * MapConfig.BOX_SIZE));
-            onPlayerAddedSubscribers.forEach(subscriber -> subscriber.accept(player));
-            return controllerConstructor.apply(player, this);
-        });
+    public void onPlayerJoined(UUID id) {
+        // TODO: check if has already been in map
+        Player player = new Player(id, new Point2D(3.5f * MapConfig.BOX_SIZE, 2.5f * MapConfig.BOX_SIZE));
+        onPlayerAddedSubscribers.forEach(subscriber -> subscriber.accept(player));
+        players.put(id, controllerConstructor.apply(player, this));
     }
 
     public void removePlayerController(UUID playerID) {
@@ -65,8 +64,8 @@ public class World<TController extends PlayerController> {
         players.remove(playerID);
     }
 
-    public BulletController getBulletController(Player player) {
-        return bullets.get(player);
+    public TController getPlayerController(UUID id) {
+        return players.get(id);
     }
 
     public void onBulletFired(Player player) {
@@ -78,6 +77,15 @@ public class World<TController extends PlayerController> {
         });
     }
 
+    public void onBulletDied(UUID bulletID) {
+        onBulletRemovedSubscribers.forEach(subscriber -> subscriber.accept(bulletID));
+        bullets.values().removeIf(bullet -> bullet.getBulletId().equals(bulletID));
+    }
+
+    public BulletController getBulletController(Player player) {
+        return bullets.get(player);
+    }
+
     public void update(float delta) {
         players.values().forEach(PlayerController::update);
         bullets.values().forEach(bulletController -> bulletController.update(delta));
@@ -85,10 +93,5 @@ public class World<TController extends PlayerController> {
 
     public Iterable<Map.Entry<UUID, TController>> getConnectedPlayers() {
         return players.entrySet();
-    }
-
-    public void onBulletDied(UUID bulletID) {
-        onBulletRemovedSubscribers.forEach(subscriber -> subscriber.accept(bulletID));
-        bullets.values().removeIf(bullet -> bullet.getBulletId().equals(bulletID));
     }
 }

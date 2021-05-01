@@ -7,6 +7,8 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 
+import java.util.UUID;
+
 import connection.ClientFactory;
 import io.grpc.netty.shaded.io.netty.util.internal.logging.InternalLoggerFactory;
 import io.grpc.netty.shaded.io.netty.util.internal.logging.JdkLoggerFactory;
@@ -31,6 +33,8 @@ public class GameApp extends Game {
     @Override
     public void create() {
         InternalLoggerFactory.setDefaultFactory(JdkLoggerFactory.INSTANCE);
+
+        UUID playerID = UUID.randomUUID();
         batch = new SpriteBatch();
         assetManager = new AssetManager();
         for (TextureType textureType : TextureType.values()) {
@@ -44,8 +48,8 @@ public class GameApp extends Game {
 
         MapGenerator mapGenerator = new MapGenerator(5);
         Map map = mapGenerator.generateMap(0);
-        screen = new GameScreen(batch, ClientFactory.newGameClient(HOST, PORT), map, assetManager);
-//        screen = new MenuScreen(this, batch, assetManager); // commented for faster iteration
+        screen = new GameScreen(playerID, batch, ClientFactory.newGameClient(HOST, PORT), map, assetManager);
+//        screen = new MenuScreen(playerID, this, batch, assetManager); // commented for faster iteration
 
         setScreen(screen);
     }
