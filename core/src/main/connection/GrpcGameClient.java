@@ -36,7 +36,7 @@ public class GrpcGameClient implements GameClient {
     @Override
     public void dispatchMessages(ServerResponseHandler responseHandler) {
         queueLock.lock();
-        System.out.println("Dispatching messages: " + responseQueue.size());
+        /*System.out.println("Dispatching messages: " + responseQueue.size());
         while (!responseQueue.isEmpty()) {
             GameStateResponse response = responseQueue.poll();
             response.getPlayersList().forEach(playerState -> {
@@ -48,6 +48,19 @@ public class GrpcGameClient implements GameClient {
                         )
                 );
             });
+        }*/
+        if (!responseQueue.isEmpty()) {
+            GameStateResponse response = responseQueue.poll();
+            response.getPlayersList().forEach(playerState -> {
+                responseHandler.onPlayerState(
+                        playerState.getSequenceNumber(),
+                        new Player(UUID.fromString(playerState.getId()),
+                                new Point2D(playerState.getPositionX(), playerState.getPositionY()),
+                                playerState.getRotation()
+                        )
+                );
+            });
+            responseQueue.clear();
         }
         queueLock.unlock();
     }

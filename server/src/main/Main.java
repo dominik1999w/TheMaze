@@ -75,14 +75,20 @@ public class Main {
         world.subscribeOnBulletRemoved(collisionWorld::removeHitbox);
 
         GameReplyService gameReplyService = new GameReplyService(world);
-        GameService gameService = new GameService(world, gameReplyService);
+        GameService gameService = new GameService(gameReplyService);
         MapService mapService = new MapService();
         GameServer server = new GrpcServer(50051, gameService, mapService);
         server.start();
 
         new Thread(() -> Timer.executeAtFixedRate(delta ->
         {
-            // TODO: lock so that GameService does not modify input queues
+            gameService.dispatchMessages((sequenceNumber, id, playerInput) ->
+            {
+                InputPlayerController playerController = world.getPlayerController(id.toString());
+                playerController.notifyInput(playerInput);
+                playerController.update();
+                collisionWorld.update();
+            });
             world.update(delta);
             collisionWorld.update();
             gameReplyService.broadcastGameState();

@@ -1,8 +1,7 @@
 package service;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -17,7 +16,7 @@ import world.World;
 
 public class GameReplyService {
 
-    private final List<ResponseObserver> responseObservers = new ArrayList<>();
+    private final Map<String, StreamObserver<GameStateResponse>> responseObservers = new HashMap<>();
 
     private final World<?> world;
 
@@ -46,14 +45,15 @@ public class GameReplyService {
         }
         GameStateResponse stateResponse = response.build();
 
-        Iterator<ResponseObserver> iterator = responseObservers.iterator();
+        Iterator<Map.Entry<String, StreamObserver<GameStateResponse>>> iterator = responseObservers.entrySet().iterator();
         while (iterator.hasNext()) {
-            ResponseObserver responseObserver = iterator.next();
+            Map.Entry<String, StreamObserver<GameStateResponse>> entry = iterator.next();
+            StreamObserver<GameStateResponse> responseObserver = entry.getValue();
             try {
-                responseObserver.observer.onNext(stateResponse);
+                responseObserver.onNext(stateResponse);
             } catch (StatusRuntimeException e) {
                 System.err.println(String.format(Locale.ENGLISH,
-                        "Player %s disconnected", responseObserver.id));
+                        "Player %s disconnected", entry.getKey()));
                 iterator.remove();
                 // remove player from world
             }
@@ -66,23 +66,7 @@ public class GameReplyService {
             lastProcessedInput.put(playerID, sequenceNumber);
     }
 
-    // NOTE: maybe merge these 2 methods in a single call?
-    void addResponseObserver(StreamObserver<GameStateResponse> responseObserver) {
-        responseObservers.add(new ResponseObserver(responseObserver));
-    }
-
-    void associateResponseObserverWith(StreamObserver<GameStateResponse> observer, String id) {
-        responseObservers.stream()
-                .filter(responseObserver -> responseObserver.observer == observer)
-                .findAny()
-                .ifPresent(responseObserver -> responseObserver.id = id);
-    }
-
-    private static class ResponseObserver {
-        private final StreamObserver<GameStateResponse> observer;
-        private String id;
-        public ResponseObserver(StreamObserver<GameStateResponse> observer) {
-            this.observer = observer;
-        }
+    void addResponseObserver(String id, StreamObserver<GameStateResponse> responseObserver) {
+        responseObservers.putIfAbsent(id, responseObserver);
     }
 }
