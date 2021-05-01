@@ -38,4 +38,14 @@ public class PlayerInput {
     public boolean isShootPressed() {
         return shootPressed;
     }
+
+    @Override
+    public String toString() {
+        return "PlayerInput{" +
+                "delta=" + delta +
+                ", x=" + x +
+                ", y=" + y +
+                ", shootPressed=" + shootPressed +
+                '}';
+    }
 }

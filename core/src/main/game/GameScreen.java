@@ -9,7 +9,6 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import java.util.ArrayDeque;
 import java.util.Queue;
-import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -94,7 +93,11 @@ public class GameScreen extends ScreenAdapter implements ServerResponseListener 
         playerInput.setDelta(delta);
 
         lock.lock();
-        inputQueue.add(playerInput);
+        // TODO: validate PlayerInput NOT inside syncState
+        if (client.syncState(playerInputLog.getCurrentSequenceNumber(), playerInput)) {
+            playerInputLog.log(playerInput);
+            inputQueue.add(playerInput);
+        }
 
         // update the world according to player input
         while (!inputQueue.isEmpty()) {
@@ -118,14 +121,11 @@ public class GameScreen extends ScreenAdapter implements ServerResponseListener 
         worldView.render(batch);
         batch.end();
 
+        lock.unlock();
+
         //debugDrawer.draw();
 
         gameUI.render(delta);
-
-        if (client.syncState(playerInputLog.getCurrentSequenceNumber(), playerInput)) {
-            playerInputLog.log(playerInput);
-        }
-        lock.unlock();
     }
 
     @Override

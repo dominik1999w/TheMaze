@@ -86,7 +86,7 @@ public class Main {
             world.update(delta);
             collisionWorld.update();
             gameReplyService.broadcastGameState();
-        }, 0.025f)).start(); // 40 fps
+        }, 0.0125f)).start(); // 20 fps
 
         server.blockUntilShutdown();
     }

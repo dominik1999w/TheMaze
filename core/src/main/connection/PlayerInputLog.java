@@ -3,6 +3,7 @@ package connection;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 import entity.player.GameInputListener;
@@ -20,10 +21,11 @@ public class PlayerInputLog {
         inputLog.add(new LogEntry(currentSequenceNumber, playerInput));
         currentSequenceNumber++;
 
-        System.out.println("Non-acknowledged inputs: " + inputLog.size());
+        //System.out.println("Non-acknowledged inputs: " + inputLog.size());
     }
 
     public Collection<PlayerInput> getInputLog() {
+        //System.out.println(String.format(Locale.ENGLISH, "Get Log (%d,%d)", inputLog.size(), currentSequenceNumber));
         return inputLog.stream().map(logEntry -> logEntry.playerInput).collect(Collectors.toList());
     }
 
@@ -32,6 +34,7 @@ public class PlayerInputLog {
     }
 
     public void discardLogUntil(long sequenceNumber) {
+        //System.out.println("Discard until " + sequenceNumber);
         inputLog.removeIf(logEntry -> logEntry.sequenceNumber <= sequenceNumber);
     }
 

@@ -24,6 +24,8 @@ public class InputPlayerController extends PlayerController {
     }
 
     public void update() {
+        if (playerInput == null) return;
+
         if (bulletTimeout <= 0 && playerInput.isShootPressed()) {
             world.onBulletFired(player);
             bulletTimeout = 1;
@@ -37,5 +39,7 @@ public class InputPlayerController extends PlayerController {
         if (playerInput.getX() != 0 || playerInput.getY() != 0) {
             player.setRotation((float) Math.toDegrees(Math.atan2(playerInput.getY(), playerInput.getX())));
         }
+
+        playerInput = null;
     }
 }
