@@ -69,7 +69,7 @@ public class World<TController extends PlayerController> {
     }
 
     public void update(float delta) {
-        players.values().forEach(playerController -> playerController.update(delta));
+        players.values().forEach(PlayerController::update);
         bullets.values().forEach(bulletController -> bulletController.update(delta));
     }
 

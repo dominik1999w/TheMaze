@@ -1,9 +1,5 @@
 package entity.player.controller;
 
-import java.util.ArrayDeque;
-import java.util.Queue;
-
-import entity.player.GameInputListener;
 import entity.player.Player;
 import entity.player.PlayerConfig;
 import entity.player.PlayerInput;
@@ -11,9 +7,10 @@ import map.MapConfig;
 import util.Point2D;
 import world.World;
 
-public class InputPlayerController extends PlayerController implements GameInputListener {
+public class InputPlayerController extends PlayerController {
 
     private final World<?> world;
+    private PlayerInput playerInput;
 
     private float bulletTimeout = 0;
 
@@ -22,31 +19,23 @@ public class InputPlayerController extends PlayerController implements GameInput
         this.world = world;
     }
 
-    @Override
-    public void update(float delta) {
-        while (!inputQueue.isEmpty()) {
-            PlayerInput playerInput = inputQueue.poll();
-
-            if (bulletTimeout <= 0 && playerInput.isShootPressed()) {
-                world.onBulletFired(player);
-                bulletTimeout = 1;
-            }
-
-            Point2D deltaPosition = new Point2D(playerInput.getX(), playerInput.getY())
-                    .multiply(MapConfig.BOX_SIZE * PlayerConfig.INITIAL_SPEED * playerInput.getDelta());
-
-            player.getPosition().add(deltaPosition);
-
-            if (playerInput.getX() != 0 || playerInput.getY() != 0) {
-                player.setRotation((float) Math.toDegrees(Math.atan2(playerInput.getY(), playerInput.getX())));
-            }
-        }
+    public void notifyInput(PlayerInput playerInput) {
+        this.playerInput = playerInput;
     }
 
-    private final Queue<PlayerInput> inputQueue = new ArrayDeque<>();
+    public void update() {
+        if (bulletTimeout <= 0 && playerInput.isShootPressed()) {
+            world.onBulletFired(player);
+            bulletTimeout = 1;
+        }
 
-    @Override
-    public void notifyInput(PlayerInput playerInput) {
-        inputQueue.add(playerInput);
+        Point2D deltaPosition = new Point2D(playerInput.getX(), playerInput.getY())
+                .multiply(MapConfig.BOX_SIZE * PlayerConfig.INITIAL_SPEED * playerInput.getDelta());
+
+        player.getPosition().add(deltaPosition);
+
+        if (playerInput.getX() != 0 || playerInput.getY() != 0) {
+            player.setRotation((float) Math.toDegrees(Math.atan2(playerInput.getY(), playerInput.getX())));
+        }
     }
 }

@@ -18,8 +18,7 @@ public class AuthoritativePlayerController extends PlayerController implements G
         this.world = world;
     }
 
-    @Override
-    public void update(float delta) {
+    public void update() {
         player.setPosition(nextPosition);
         player.setRotation(nextRotation);
         if (nextFireBullet) {

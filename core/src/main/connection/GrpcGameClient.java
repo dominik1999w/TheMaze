@@ -34,10 +34,13 @@ public class GrpcGameClient implements GameClient {
             @Override
             public void onNext(GameStateResponse value) {
                 value.getPlayersList().forEach(playerState -> {
-                    responseListener.onSequenceNumber(playerState.getSequenceNumber(), UUID.fromString(playerState.getId()));
-                    responseListener.onPlayerState(new Player(UUID.fromString(playerState.getId()),
-                            new Point2D(playerState.getPositionX(), playerState.getPositionY()),
-                            playerState.getRotation()));
+                    responseListener.onPlayerState(
+                            playerState.getSequenceNumber(),
+                            new Player(UUID.fromString(playerState.getId()),
+                                new Point2D(playerState.getPositionX(), playerState.getPositionY()),
+                                playerState.getRotation()
+                            )
+                    );
                 });
             }
 

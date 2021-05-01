@@ -7,14 +7,14 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
+import java.util.ArrayDeque;
+import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import connection.GameClient;
-import connection.ServerReconciler;
+import connection.PlayerInputLog;
 import connection.ServerResponseListener;
 import entity.bullet.BulletController;
 import entity.bullet.BulletHitbox;
@@ -45,7 +45,7 @@ public class GameScreen extends ScreenAdapter implements ServerResponseListener 
     private final WorldView worldView;
 
     private final GameClient client;
-    private final ServerReconciler serverReconciler;
+    private final PlayerInputLog playerInputLog;
 
     private final DebugDrawer debugDrawer;
 
@@ -54,7 +54,7 @@ public class GameScreen extends ScreenAdapter implements ServerResponseListener 
     public GameScreen(SpriteBatch batch, GameClient client, Map map, AssetManager assetManager) {
         this.batch = batch;
 
-        this.serverReconciler = new ServerReconciler();
+        this.playerInputLog = new PlayerInputLog();
         this.client = client;
         this.client.connect();
 
@@ -85,16 +85,23 @@ public class GameScreen extends ScreenAdapter implements ServerResponseListener 
         this.debugDrawer = new DebugDrawer(camera, map, player);
     }
 
+    private final Queue<PlayerInput> inputQueue = new ArrayDeque<>();
+
     @Override
     public void render(float delta) {
         // read player input
         PlayerInput playerInput = gameUI.readInput();
         playerInput.setDelta(delta);
-        playerController.notifyInput(playerInput);
 
         lock.lock();
+        inputQueue.add(playerInput);
+
         // update the world according to player input
-        playerController.update(delta);
+        while (!inputQueue.isEmpty()) {
+            playerController.notifyInput(inputQueue.poll());
+            playerController.update();
+            collisionWorld.update();
+        }
         world.update(delta);
         collisionWorld.update();
 
@@ -115,27 +122,19 @@ public class GameScreen extends ScreenAdapter implements ServerResponseListener 
 
         gameUI.render(delta);
 
-        if (client.syncState(serverReconciler.getCurrentSequenceNumber(), playerInput)) {
-            serverReconciler.log(playerInput);
+        if (client.syncState(playerInputLog.getCurrentSequenceNumber(), playerInput)) {
+            playerInputLog.log(playerInput);
         }
         lock.unlock();
     }
 
     @Override
-    public void onSequenceNumber(long sequenceNumber, UUID playerID) {
-        if (player.getId().equals(playerID)) {
-            lock.lock();
-            serverReconciler.discardLogUntil(sequenceNumber);
-            lock.unlock();
-        }
-    }
-
-    @Override
-    public void onPlayerState(Player playerState) {
+    public void onPlayerState(long sequenceNumber, Player playerState) {
         lock.lock();
         if (player.getId().equals(playerState.getId())) {
+            playerInputLog.discardLogUntil(sequenceNumber);
             playerController.setNextState(playerState);
-            serverReconciler.reconcile(playerController);
+            inputQueue.addAll(playerInputLog.getInputLog());
         } else {
             world.getPlayerController(playerState.getId().toString())
                     .setNextState(playerState);
