@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.google.common.collect.Lists;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -86,11 +87,15 @@ public class GameScreen extends ScreenAdapter {
         client.dispatchMessages(new ServerResponseHandler() {
             @Override
             public void onActivePlayers(Collection<UUID> playerIDs) {
-                world.getConnectedPlayers().forEach(playerEntry -> {
-                    if (!playerIDs.contains(playerEntry.getKey())) {
-                        world.removePlayerController(playerEntry.getKey());
+                // NOTE: need iterator to avoid ConcurrentModificationException
+                Iterator<java.util.Map.Entry<UUID, AuthoritativePlayerController>> iterator =
+                        world.getConnectedPlayers().iterator();
+                while (iterator.hasNext()) {
+                    UUID playerID = iterator.next().getKey();
+                    if (!playerIDs.contains(playerID)) {
+                        world.removePlayerController(playerID);
                     }
-                });
+                }
             }
 
             @Override

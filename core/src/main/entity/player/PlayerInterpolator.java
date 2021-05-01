@@ -23,7 +23,6 @@ public class PlayerInterpolator {
 
     public void computeCurrentState(Player out) {
         long renderTimestamp = System.currentTimeMillis() - serverDeltaMillis;
-        System.out.println(renderTimestamp + " " + playerStateHistory);
 
         int lastStateIndex = 0;
         while (lastStateIndex < playerStateHistory.size() &&
@@ -32,7 +31,7 @@ public class PlayerInterpolator {
 
         if (lastStateIndex < playerStateHistory.size()) {
             if (lastStateIndex > 0) {
-                // now stateHistory[lastStateIndex - 1] <= renderTimestamp <= stateHistory[lastStateIndex]
+                // now timestamp[lastStateIndex - 1] <= renderTimestamp <= timestamp[lastStateIndex]
                 PlayerStateTimeStamp playerStateTimeStampA = playerStateHistory.get(lastStateIndex - 1);
                 PlayerStateTimeStamp playerStateTimeStampB = playerStateHistory.get(lastStateIndex);
                 long timestampA = playerStateTimeStampA.timestamp;
@@ -41,11 +40,12 @@ public class PlayerInterpolator {
                 Point2D positionB = playerStateTimeStampB.playerState.getPosition();
                 float rotationA = playerStateTimeStampA.playerState.getRotation();
                 float rotationB = playerStateTimeStampB.playerState.getRotation();
-                out.setPosition(interpolate(positionA, positionB, ((float)renderTimestamp - timestampA) / (timestampB - timestampA)));
-                out.setRotation(interpolate(rotationA, rotationB, ((float)renderTimestamp - timestampA) / (timestampB - timestampA)));
+                float smoothFactor = ((float)(renderTimestamp - timestampA)) / ((float)(timestampB - timestampA));
+                out.setPosition(interpolate(positionA, positionB, smoothFactor));
+                out.setRotation(interpolate(rotationA, rotationB, smoothFactor));
             } else {
-                out.setPosition(playerStateHistory.get(0).playerState.getPosition());
-                out.setRotation(playerStateHistory.get(0).playerState.getRotation());
+                //out.setPosition(playerStateHistory.get(0).playerState.getPosition());
+                //out.setRotation(playerStateHistory.get(0).playerState.getRotation());
             }
         }
 
