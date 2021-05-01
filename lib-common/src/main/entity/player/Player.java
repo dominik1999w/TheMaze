@@ -23,6 +23,10 @@ public class Player implements WorldEntity {
         this(UUID.randomUUID(), position, rotation);
     }
 
+    public Player(UUID id, Point2D position) {
+        this(id, position, 0);
+    }
+
     public Player(UUID id, Point2D position, float rotation) {
         this.id = id;
         this.position.set(position);

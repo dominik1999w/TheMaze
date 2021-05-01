@@ -6,10 +6,15 @@ import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.google.common.collect.Lists;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 
 import connection.game.GameClient;
+import connection.game.ServerResponseHandler;
 import connection.util.PlayerInputLog;
 import entity.bullet.BulletController;
 import entity.bullet.BulletHitbox;
@@ -81,26 +86,38 @@ public class GameScreen extends ScreenAdapter {
     @Override
     public void render(float delta) {
         // dispatch server messages
-        client.dispatchMessages(((sequenceNumber, playerState) ->
-        {
-            if (player.getId().equals(playerState.getId())) {
-                System.out.println(String.format(Locale.ENGLISH,
-                        "Client: (%s, %d)    Server: (%s, %d)",
-                        playerController.getPlayerPosition(), playerInputLog.getCurrentSequenceNumber(),
-                        playerState.getPosition(), sequenceNumber));
-
-                playerInputLog.discardLogUntil(sequenceNumber);
-                playerController.setNextState(playerState);
-                for (PlayerInput playerInput : playerInputLog.getInputLog()) {
-                    playerController.updateInput(playerInput);
-                    playerController.update();
-                    collisionWorld.update();
-                }
-            } else {
-                world.getPlayerController(playerState.getId().toString())
-                        .setNextState(playerState);
+        client.dispatchMessages(new ServerResponseHandler() {
+            @Override
+            public void onActivePlayers(Collection<UUID> playerIDs) {
+                world.getConnectedPlayers().forEach(playerEntry -> {
+                    if (!playerIDs.contains(playerEntry.getKey())) {
+                        world.removePlayerController(playerEntry.getKey());
+                    }
+                });
             }
-        }));
+
+            @Override
+            public void onPlayerState(long sequenceNumber, Player playerState) {
+                if (player.getId().equals(playerState.getId())) {
+                    System.out.println(String.format(Locale.ENGLISH,
+                            "Client: (%s, %d)    Server: (%s, %d)",
+                            playerController.getPlayerPosition(), playerInputLog.getCurrentSequenceNumber(),
+                            playerState.getPosition(), sequenceNumber));
+
+                    playerInputLog.discardLogUntil(sequenceNumber);
+                    playerController.setNextState(playerState);
+                    for (PlayerInput playerInput : playerInputLog.getInputLog()) {
+                        playerController.updateInput(playerInput);
+                        playerController.update();
+                        collisionWorld.update();
+                    }
+                } else {
+
+                    world.getPlayerController(playerState.getId())
+                            .setNextState(playerState);
+                }
+            }
+        });
 
         // read player input
         PlayerInput playerInput = gameUI.readInput();

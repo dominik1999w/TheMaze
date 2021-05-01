@@ -1,10 +1,15 @@
 package connection.game;
 
+import com.google.common.collect.Lists;
+
 import java.util.ArrayDeque;
+import java.util.Collection;
+import java.util.List;
 import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 import entity.player.Player;
 import entity.player.PlayerInput;
@@ -13,7 +18,9 @@ import io.grpc.stub.StreamObserver;
 import lib.connection.GameStateRequest;
 import lib.connection.GameStateResponse;
 import lib.connection.LocalPlayerInput;
+import lib.connection.PlayerState;
 import lib.connection.TheMazeGrpc;
+import util.GRpcMapper;
 import util.Point2D;
 
 public class GrpcGameClient implements GameClient {
@@ -51,15 +58,19 @@ public class GrpcGameClient implements GameClient {
         }*/
         if (!responseQueue.isEmpty()) {
             GameStateResponse response = responseQueue.poll();
-            response.getPlayersList().forEach(playerState -> {
-                responseHandler.onPlayerState(
-                        playerState.getSequenceNumber(),
-                        new Player(UUID.fromString(playerState.getId()),
-                                new Point2D(playerState.getPositionX(), playerState.getPositionY()),
-                                playerState.getRotation()
-                        )
-                );
-            });
+
+            Collection<UUID> activePlayers = response.getPlayersList().stream()
+                    .map(PlayerState::getId)
+                    .map(UUID::fromString)
+                    .collect(Collectors.toSet());
+            responseHandler.onActivePlayers(activePlayers);
+
+            response.getPlayersList().forEach(playerState ->
+                    responseHandler.onPlayerState(
+                            playerState.getSequenceNumber(),
+                            GRpcMapper.playerState(playerState)
+                    )
+            );
             responseQueue.clear();
         }
         queueLock.unlock();

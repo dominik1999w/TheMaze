@@ -12,7 +12,6 @@ import service.GameService;
 import service.MapService;
 import time.Timer;
 import types.WallType;
-import util.ClientsInputLog;
 import world.World;
 
 public class Main {
@@ -83,7 +82,7 @@ public class Main {
         {
             gameService.dispatchMessages((sequenceNumber, id, playerInput) ->
             {
-                InputPlayerController playerController = world.getPlayerController(id.toString());
+                InputPlayerController playerController = world.getPlayerController(id);
                 playerController.updateInput(playerInput);
                 playerController.update();
                 collisionWorld.update();

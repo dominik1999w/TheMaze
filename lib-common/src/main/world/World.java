@@ -19,10 +19,11 @@ import util.Point2D;
 
 public class World<TController extends PlayerController> {
 
-    private final Map<String, TController> players = new ConcurrentHashMap<>();
+    private final Map<UUID, TController> players = new ConcurrentHashMap<>();
     private final Map<Player, BulletController> bullets = new ConcurrentHashMap<>();
 
     private final List<Consumer<Player>> onPlayerAddedSubscribers = new ArrayList<>();
+    private final List<Consumer<UUID>> onPlayerRemovedSubscribers = new ArrayList<>();
     private final List<BiConsumer<Player, Bullet>> onBulletAddedSubscribers = new ArrayList<>();
     private final List<Consumer<UUID>> onBulletRemovedSubscribers = new ArrayList<>();
 
@@ -39,6 +40,10 @@ public class World<TController extends PlayerController> {
         onPlayerAddedSubscribers.add(callback);
     }
 
+    public void subscribeOnPlayerRemoved(Consumer<UUID> callback) {
+        onPlayerRemovedSubscribers.add(callback);
+    }
+
     public void subscribeOnBulletAdded(BiConsumer<Player, Bullet> callback) {
         onBulletAddedSubscribers.add(callback);
     }
@@ -47,12 +52,17 @@ public class World<TController extends PlayerController> {
         onBulletRemovedSubscribers.add(callback);
     }
 
-    public TController getPlayerController(String id) {
+    public TController getPlayerController(UUID id) {
         return players.computeIfAbsent(id, k -> {
-            Player player = new Player(new Point2D(3.5f * MapConfig.BOX_SIZE, 2.5f * MapConfig.BOX_SIZE));
+            Player player = new Player(id, new Point2D(3.5f * MapConfig.BOX_SIZE, 2.5f * MapConfig.BOX_SIZE));
             onPlayerAddedSubscribers.forEach(subscriber -> subscriber.accept(player));
             return controllerConstructor.apply(player, this);
         });
+    }
+
+    public void removePlayerController(UUID playerID) {
+        onPlayerRemovedSubscribers.forEach(subscriber -> subscriber.accept(playerID));
+        players.remove(playerID);
     }
 
     public BulletController getBulletController(Player player) {
@@ -73,7 +83,7 @@ public class World<TController extends PlayerController> {
         bullets.values().forEach(bulletController -> bulletController.update(delta));
     }
 
-    public Iterable<Map.Entry<String, TController>> getConnectedPlayers() {
+    public Iterable<Map.Entry<UUID, TController>> getConnectedPlayers() {
         return players.entrySet();
     }
 
