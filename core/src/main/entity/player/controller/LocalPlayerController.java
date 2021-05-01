@@ -12,9 +12,10 @@ public class LocalPlayerController extends InputPlayerController implements Game
 
     @Override
     public void setNextState(Player player) {
-        System.out.print("Client: " + this.player.getPosition());
-        System.out.println("    Server: " + player.getPosition());
-        // TODO: synchronize with reads in render()
+        // SPAM
+        //System.out.print("Client: " + this.player.getPosition());
+        //System.out.println("    Server: " + player.getPosition());
+
         this.player.setPosition(player.getPosition());
         this.player.setRotation(player.getRotation());
     }

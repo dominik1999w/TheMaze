@@ -4,8 +4,8 @@ import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import map.Map;
 import entity.bullet.Bullet;
@@ -17,7 +17,7 @@ import entity.WorldEntity;
 public class WorldView implements Renderable {
 
     private final MapView mapView;
-    private final List<SimpleView<? extends WorldEntity>> views = new CopyOnWriteArrayList<>();
+    private final List<SimpleView<? extends WorldEntity>> views = new ArrayList<>();
     private final OrthographicCamera camera;
 
     public WorldView(World<?> world, Map map, OrthographicCamera camera, Player localPlayer, AssetManager assetManager) {

@@ -1,5 +1,7 @@
 package connection;
 
+import java.util.UUID;
+
 import entity.player.PlayerInput;
 import entity.player.controller.LocalPlayerController;
 import world.World;
@@ -10,17 +12,12 @@ public class NoOpGameClient implements GameClient {
     }
 
     @Override
-    public void syncState() {
+    public void enterGame(UUID id, ServerResponseListener responseListener) {
 
     }
 
     @Override
-    public void enterGame(LocalPlayerController localPlayerController, World world) {
-
-    }
-
-    @Override
-    public void notifyInput(PlayerInput playerInput) {
-
+    public boolean syncState(long sequenceNumber, PlayerInput playerInput) {
+        return false;
     }
 }

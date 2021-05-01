@@ -33,11 +33,12 @@ message LocalPlayerInput {
 
 
 message PlayerState {
-  string id = 1;
-  float positionX = 2;
-  float positionY = 3;
-  float rotation = 4;
-  BulletState bullet = 5;
+  uint64 sequenceNumber = 1;
+  string id = 2;
+  float positionX = 3;
+  float positionY = 4;
+  float rotation = 5;
+  BulletState bullet = 6;
 }
 
 message BulletState {
@@ -46,7 +47,8 @@ message BulletState {
 
 
 message GameStateRequest {
-  LocalPlayerInput player = 1;
+  uint64 sequenceNumber = 1;
+  LocalPlayerInput player = 2;
 }
 
 message GameStateResponse {

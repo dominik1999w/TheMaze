@@ -2,6 +2,7 @@ package service;
 
 import com.google.protobuf.Empty;
 
+import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -48,11 +49,15 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
         return new StreamObserver<GameStateRequest>() {
             @Override
             public void onNext(GameStateRequest value) {
+                replyService.associateResponseObserverWith(responseObserver, value.getPlayer().getId());
                 // process received PlayerInput
                 LocalPlayerInput source = value.getPlayer();
                 InputPlayerController playerController = world.getPlayerController(source.getId());
                 playerController.notifyInput(new PlayerInput(source.getDelta(),
                         source.getInputX(), source.getInputY(), source.getShootPressed()));
+                replyService.onInputProcessed(source.getId(), value.getSequenceNumber());
+                logger.info(String.format(Locale.ENGLISH,
+                        "Last acknowledged input for %s: %d", source.getId(), value.getSequenceNumber()));
             }
 
             @Override

@@ -12,6 +12,8 @@ public class DesktopLauncher {
         config.title = "The Maze";
         config.width = 960;
         config.height = 540;
+        config.x = 200;
+        config.y = 200;
         new LwjglApplication(new GameApp(), config);
     }
 

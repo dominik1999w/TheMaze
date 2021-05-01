@@ -7,23 +7,31 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
+import java.util.UUID;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 import connection.GameClient;
+import connection.ServerReconciler;
+import connection.ServerResponseListener;
 import entity.bullet.BulletController;
 import entity.bullet.BulletHitbox;
+import entity.player.Player;
 import entity.player.PlayerHitbox;
 import entity.player.PlayerInput;
 import entity.player.controller.AuthoritativePlayerController;
 import entity.player.controller.LocalPlayerController;
-import physics.CollisionWorld;
-import world.World;
-import renderable.WorldView;
-import entity.player.Player;
 import map.Map;
 import map.MapConfig;
+import physics.CollisionWorld;
+import renderable.WorldView;
 import ui.GameUI;
 import util.Point2D;
+import world.World;
 
-public class GameScreen extends ScreenAdapter {
+public class GameScreen extends ScreenAdapter implements ServerResponseListener {
 
     private final OrthographicCamera camera;
     private final SpriteBatch batch;
@@ -37,13 +45,16 @@ public class GameScreen extends ScreenAdapter {
     private final WorldView worldView;
 
     private final GameClient client;
-    private int frameCounter = 0;
+    private final ServerReconciler serverReconciler;
 
     private final DebugDrawer debugDrawer;
+
+    private final Lock lock = new ReentrantLock();
 
     public GameScreen(SpriteBatch batch, GameClient client, Map map, AssetManager assetManager) {
         this.batch = batch;
 
+        this.serverReconciler = new ServerReconciler();
         this.client = client;
         this.client.connect();
 
@@ -69,7 +80,7 @@ public class GameScreen extends ScreenAdapter {
 
         gameUI.build();
 
-        client.enterGame(playerController, world);
+        client.enterGame(player.getId(), this);
 
         this.debugDrawer = new DebugDrawer(camera, map, player);
     }
@@ -80,8 +91,8 @@ public class GameScreen extends ScreenAdapter {
         PlayerInput playerInput = gameUI.readInput();
         playerInput.setDelta(delta);
         playerController.notifyInput(playerInput);
-        client.notifyInput(playerInput);
 
+        lock.lock();
         // update the world according to player input
         playerController.update(delta);
         world.update(delta);
@@ -104,9 +115,32 @@ public class GameScreen extends ScreenAdapter {
 
         gameUI.render(delta);
 
-        // We probably need to syncState at a fixed rate (render() is not fixed rate)
-        if (frameCounter % 1 == 0) client.syncState();
-        frameCounter++;
+        if (client.syncState(serverReconciler.getCurrentSequenceNumber(), playerInput)) {
+            serverReconciler.log(playerInput);
+        }
+        lock.unlock();
+    }
+
+    @Override
+    public void onSequenceNumber(long sequenceNumber, UUID playerID) {
+        if (player.getId().equals(playerID)) {
+            lock.lock();
+            serverReconciler.discardLogUntil(sequenceNumber);
+            lock.unlock();
+        }
+    }
+
+    @Override
+    public void onPlayerState(Player playerState) {
+        lock.lock();
+        if (player.getId().equals(playerState.getId())) {
+            playerController.setNextState(playerState);
+            serverReconciler.reconcile(playerController);
+        } else {
+            world.getPlayerController(playerState.getId().toString())
+                    .setNextState(playerState);
+        }
+        lock.unlock();
     }
 
     @Override

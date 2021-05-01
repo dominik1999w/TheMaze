@@ -1,10 +1,10 @@
 package connection;
 
-import entity.player.GameInputListener;
-import entity.player.controller.AuthoritativePlayerController;
-import entity.player.controller.LocalPlayerController;
-import world.World;
+import java.util.UUID;
 
-public interface GameClient extends Client, GameInputListener {
-    void enterGame(LocalPlayerController localPlayerController, World<AuthoritativePlayerController> world);
+import entity.player.PlayerInput;
+
+public interface GameClient extends Client {
+    void enterGame(UUID id, ServerResponseListener responseListener);
+    boolean syncState(long sequenceNumber, PlayerInput playerInput);
 }
