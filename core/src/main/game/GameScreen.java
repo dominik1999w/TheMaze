@@ -9,12 +9,9 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import java.util.ArrayDeque;
 import java.util.Queue;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import connection.GameClient;
 import connection.PlayerInputLog;
-import connection.ServerResponseListener;
 import entity.bullet.BulletController;
 import entity.bullet.BulletHitbox;
 import entity.player.Player;
@@ -30,7 +27,7 @@ import ui.GameUI;
 import util.Point2D;
 import world.World;
 
-public class GameScreen extends ScreenAdapter implements ServerResponseListener {
+public class GameScreen extends ScreenAdapter {
 
     private final OrthographicCamera camera;
     private final SpriteBatch batch;
@@ -47,8 +44,6 @@ public class GameScreen extends ScreenAdapter implements ServerResponseListener 
     private final PlayerInputLog playerInputLog;
 
     private final DebugDrawer debugDrawer;
-
-    private final Lock lock = new ReentrantLock();
 
     public GameScreen(SpriteBatch batch, GameClient client, Map map, AssetManager assetManager) {
         this.batch = batch;
@@ -79,7 +74,7 @@ public class GameScreen extends ScreenAdapter implements ServerResponseListener 
 
         gameUI.build();
 
-        client.enterGame(player.getId(), this);
+        client.enterGame(player.getId());
 
         this.debugDrawer = new DebugDrawer(camera, map, player);
     }
@@ -88,11 +83,30 @@ public class GameScreen extends ScreenAdapter implements ServerResponseListener 
 
     @Override
     public void render(float delta) {
+        // dispatch server messages
+        client.dispatchMessages(((sequenceNumber, playerState) ->
+        {
+            if (player.getId().equals(playerState.getId())) {
+                playerInputLog.discardLogUntil(sequenceNumber);
+                System.out.print("Client: " + playerController.getPlayer().getPosition() + playerInputLog.getCurrentSequenceNumber());
+                System.out.println("    Server: " + playerState.getPosition() + sequenceNumber);
+                playerController.setNextState(playerState);
+                for (PlayerInput playerInput : playerInputLog.getInputLog()) {
+                    playerController.notifyInput(playerInput);
+                    playerController.update();
+                    collisionWorld.update();
+                }
+            } else {
+                System.out.println("WTF");
+                world.getPlayerController(playerState.getId().toString())
+                        .setNextState(playerState);
+            }
+        }));
+
         // read player input
         PlayerInput playerInput = gameUI.readInput();
         playerInput.setDelta(delta);
 
-        lock.lock();
         // TODO: validate PlayerInput NOT inside syncState
         if (client.syncState(playerInputLog.getCurrentSequenceNumber(), playerInput)) {
             playerInputLog.log(playerInput);
@@ -108,6 +122,7 @@ public class GameScreen extends ScreenAdapter implements ServerResponseListener 
         world.update(delta);
         collisionWorld.update();
 
+        // update camera position
         Point2D playerPosition = player.getPosition();
         camera.position.set(playerPosition.x(), playerPosition.y(), 0);
         camera.update();
@@ -121,25 +136,8 @@ public class GameScreen extends ScreenAdapter implements ServerResponseListener 
         worldView.render(batch);
         batch.end();
 
-        lock.unlock();
-
         //debugDrawer.draw();
-
         gameUI.render(delta);
-    }
-
-    @Override
-    public void onPlayerState(long sequenceNumber, Player playerState) {
-        lock.lock();
-        if (player.getId().equals(playerState.getId())) {
-            playerInputLog.discardLogUntil(sequenceNumber);
-            playerController.setNextState(playerState);
-            inputQueue.addAll(playerInputLog.getInputLog());
-        } else {
-            world.getPlayerController(playerState.getId().toString())
-                    .setNextState(playerState);
-        }
-        lock.unlock();
     }
 
     @Override

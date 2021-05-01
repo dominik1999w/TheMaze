@@ -30,14 +30,17 @@ public class GameReplyService {
     public void broadcastGameState() {
         GameStateResponse.Builder response = GameStateResponse.newBuilder();
         for (java.util.Map.Entry<String, ? extends PlayerController> connectedPlayer : world.getConnectedPlayers()) {
+            String id = connectedPlayer.getKey();
+            PlayerController controller = connectedPlayer.getValue();
+            System.out.println("Acknowledging input " + lastProcessedInput.getOrDefault(id, 0L));
             response.addPlayers(PlayerState.newBuilder()
-                    .setSequenceNumber(lastProcessedInput.getOrDefault(connectedPlayer.getKey(), 0L))
-                    .setId(connectedPlayer.getKey())
-                    .setPositionX(connectedPlayer.getValue().getPlayerPosition().x())
-                    .setPositionY(connectedPlayer.getValue().getPlayerPosition().y())
-                    .setRotation(connectedPlayer.getValue().getPlayerRotation())
+                    .setSequenceNumber(lastProcessedInput.getOrDefault(id, 0L))
+                    .setId(id)
+                    .setPositionX(controller.getPlayerPosition().x())
+                    .setPositionY(controller.getPlayerPosition().y())
+                    .setRotation(controller.getPlayerRotation())
                     .setBullet(BulletState.newBuilder()
-                            .setFired(world.getBulletController(connectedPlayer.getValue().getPlayer()) != null)
+                            .setFired(world.getBulletController(controller.getPlayer()) != null)
                             .build())
                     .build());
         }

@@ -1,12 +1,15 @@
 package connection;
 
+import java.util.ArrayDeque;
+import java.util.Queue;
 import java.util.UUID;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import entity.player.Player;
 import entity.player.PlayerInput;
 import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
-import lib.connection.ConnectRequest;
 import lib.connection.GameStateRequest;
 import lib.connection.GameStateResponse;
 import lib.connection.LocalPlayerInput;
@@ -18,10 +21,12 @@ public class GrpcGameClient implements GameClient {
     private final TheMazeGrpc.TheMazeBlockingStub blockingStub;
     private final TheMazeGrpc.TheMazeStub asyncStub;
 
-    private ServerResponseListener responseListener;
     private UUID id;
 
     private StreamObserver<GameStateRequest> gameStateRequestStream;
+
+    private final Lock queueLock = new ReentrantLock();
+    private final Queue<GameStateResponse> responseQueue = new ArrayDeque<>();
 
     public GrpcGameClient(ManagedChannel channel) {
         this.blockingStub = TheMazeGrpc.newBlockingStub(channel);
@@ -29,19 +34,32 @@ public class GrpcGameClient implements GameClient {
     }
 
     @Override
+    public void dispatchMessages(ServerResponseHandler responseHandler) {
+        queueLock.lock();
+        System.out.println("Dispatching messages: " + responseQueue.size());
+        while (!responseQueue.isEmpty()) {
+            GameStateResponse response = responseQueue.poll();
+            response.getPlayersList().forEach(playerState -> {
+                responseHandler.onPlayerState(
+                        playerState.getSequenceNumber(),
+                        new Player(UUID.fromString(playerState.getId()),
+                                new Point2D(playerState.getPositionX(), playerState.getPositionY()),
+                                playerState.getRotation()
+                        )
+                );
+            });
+        }
+        queueLock.unlock();
+    }
+
+    @Override
     public void connect() {
         gameStateRequestStream = asyncStub.syncGameState(new StreamObserver<GameStateResponse>() {
             @Override
             public void onNext(GameStateResponse value) {
-                value.getPlayersList().forEach(playerState -> {
-                    responseListener.onPlayerState(
-                            playerState.getSequenceNumber(),
-                            new Player(UUID.fromString(playerState.getId()),
-                                new Point2D(playerState.getPositionX(), playerState.getPositionY()),
-                                playerState.getRotation()
-                            )
-                    );
-                });
+                queueLock.lock();
+                responseQueue.add(value);
+                queueLock.unlock();
             }
 
             @Override
@@ -79,8 +97,7 @@ public class GrpcGameClient implements GameClient {
     }
 
     @Override
-    public void enterGame(UUID id, ServerResponseListener responseListener) {
+    public void enterGame(UUID id) {
         this.id = id;
-        this.responseListener = responseListener;
     }
 }

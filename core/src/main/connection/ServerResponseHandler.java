@@ -2,6 +2,6 @@ package connection;
 
 import entity.player.Player;
 
-public interface ServerResponseListener {
+public interface ServerResponseHandler {
     void onPlayerState(long sequenceNumber, Player playerState);
 }

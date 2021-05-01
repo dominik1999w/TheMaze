@@ -5,6 +5,7 @@ import java.util.UUID;
 import entity.player.PlayerInput;
 
 public interface GameClient extends Client {
-    void enterGame(UUID id, ServerResponseListener responseListener);
+    void dispatchMessages(ServerResponseHandler responseHandler);
+    void enterGame(UUID id);
     boolean syncState(long sequenceNumber, PlayerInput playerInput);
 }
