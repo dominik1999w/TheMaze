@@ -96,10 +96,10 @@ public class GameScreen extends ScreenAdapter {
             @Override
             public void onPlayerState(long sequenceNumber, Player playerState) {
                 if (player.getId().equals(playerState.getId())) {
-                    System.out.println(String.format(Locale.ENGLISH,
+                    /*System.out.println(String.format(Locale.ENGLISH,
                             "Client: (%s, %d)    Server: (%s, %d)",
                             playerController.getPlayerPosition(), playerInputLog.getCurrentSequenceNumber(),
-                            playerState.getPosition(), sequenceNumber));
+                            playerState.getPosition(), sequenceNumber));*/
 
                     playerInputLog.discardLogUntil(sequenceNumber);
                     playerController.setNextState(playerState);

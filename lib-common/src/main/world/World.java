@@ -1,6 +1,7 @@
 package world;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -19,8 +20,8 @@ import util.Point2D;
 
 public class World<TController extends PlayerController> {
 
-    private final Map<UUID, TController> players = new ConcurrentHashMap<>();
-    private final Map<Player, BulletController> bullets = new ConcurrentHashMap<>();
+    private final Map<UUID, TController> players = new HashMap<>(); //new ConcurrentHashMap<>();
+    private final Map<Player, BulletController> bullets = new HashMap<>(); //new ConcurrentHashMap<>();
 
     private final List<Consumer<Player>> onPlayerAddedSubscribers = new ArrayList<>();
     private final List<Consumer<UUID>> onPlayerRemovedSubscribers = new ArrayList<>();

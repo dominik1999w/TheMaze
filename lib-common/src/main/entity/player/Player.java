@@ -53,4 +53,13 @@ public class Player implements WorldEntity {
     public UUID getId() {
         return id;
     }
+
+    @Override
+    public String toString() {
+        return "Player{" +
+                "id=" + id +
+                ", position=" + position +
+                ", rotation=" + rotation +
+                '}';
+    }
 }

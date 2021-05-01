@@ -11,10 +11,10 @@ public class PlayerInterpolator {
 
     private final List<PlayerStateTimeStamp> playerStateHistory = new ArrayList<>();
 
-    private final float serverDeltaMillis;
+    private final long serverDeltaMillis;
 
     public PlayerInterpolator(int serverUpdateRate) {
-        this.serverDeltaMillis = 1000.0f / serverUpdateRate;
+        this.serverDeltaMillis = (long)(1000.0f / serverUpdateRate);
     }
 
     public void addState(Player state) {
@@ -22,14 +22,13 @@ public class PlayerInterpolator {
     }
 
     public void computeCurrentState(Player out) {
-        float renderTimestamp = System.currentTimeMillis() - serverDeltaMillis;
+        long renderTimestamp = System.currentTimeMillis() - serverDeltaMillis;
+        System.out.println(renderTimestamp + " " + playerStateHistory);
 
         int lastStateIndex = 0;
         while (lastStateIndex < playerStateHistory.size() &&
                 playerStateHistory.get(lastStateIndex).timestamp <= renderTimestamp)
             lastStateIndex++;
-
-        System.out.println(renderTimestamp + " " + lastStateIndex + "/" + playerStateHistory.size());
 
         if (lastStateIndex < playerStateHistory.size()) {
             if (lastStateIndex > 0) {
@@ -42,8 +41,8 @@ public class PlayerInterpolator {
                 Point2D positionB = playerStateTimeStampB.playerState.getPosition();
                 float rotationA = playerStateTimeStampA.playerState.getRotation();
                 float rotationB = playerStateTimeStampB.playerState.getRotation();
-                out.setPosition(interpolate(positionA, positionB, (renderTimestamp - timestampA) / (timestampB - timestampA)));
-                out.setRotation(interpolate(rotationA, rotationB, (renderTimestamp - timestampA) / (timestampB - timestampA)));
+                out.setPosition(interpolate(positionA, positionB, ((float)renderTimestamp - timestampA) / (timestampB - timestampA)));
+                out.setRotation(interpolate(rotationA, rotationB, ((float)renderTimestamp - timestampA) / (timestampB - timestampA)));
             } else {
                 out.setPosition(playerStateHistory.get(0).playerState.getPosition());
                 out.setRotation(playerStateHistory.get(0).playerState.getRotation());
@@ -62,6 +61,14 @@ public class PlayerInterpolator {
         private PlayerStateTimeStamp(Player playerState, long timestamp) {
             this.playerState = playerState;
             this.timestamp = timestamp;
+        }
+
+        @Override
+        public String toString() {
+            return "PlayerStateTimeStamp{" +
+                    "playerState=" + playerState +
+                    ", timestamp=" + timestamp +
+                    '}';
         }
     }
 }
