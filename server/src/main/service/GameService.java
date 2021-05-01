@@ -4,10 +4,12 @@ import com.google.protobuf.Empty;
 
 import java.util.ArrayDeque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -17,6 +19,7 @@ import java.util.logging.Logger;
 import entity.player.controller.PlayerController;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
+import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import lib.connection.BulletState;
 import lib.connection.ConnectReply;
@@ -36,7 +39,7 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
     private final World<?> world;
     private final ClientsInputLog inputLog;
 
-    private final Map<String, StreamObserver<GameStateResponse>> responseObservers = new HashMap<>();
+    private final Map<StreamObserver<GameStateResponse>, UUID> responseObservers = new HashMap<>();
 
     public GameService(World<?> world) {
         this.world = world;
@@ -52,7 +55,7 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
 
     @Override
     public void connect(ConnectRequest request, StreamObserver<ConnectReply> responseObserver) {
-        logger.info("Connect from " + request.getId());
+        logger.log(Level.INFO, "Connect from {0}", request.getId());
         responseObserver.onNext(ConnectReply.newBuilder().setSeed(0).build());
         responseObserver.onCompleted();
     }
@@ -71,18 +74,31 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
                     GRpcMapper.playerInput(source)
             );
             inputLog.onInputProcessed(UUID.fromString(source.getId()), request.getSequenceNumber());
-            logger.info(String.format(Locale.ENGLISH,
-                    "Last acknowledged input for %s: %d", source.getId(), request.getSequenceNumber()));
+            logger.log(Level.INFO,
+                    "Last acknowledged input for {0}: {1}", new Object[]{
+                            source.getId(), request.getSequenceNumber()
+                    });
         }
         queueLock.unlock();
     }
 
+    private final Set<StreamObserver<GameStateResponse>> disconnectedObservers = new HashSet<>();
+
     @Override
     public StreamObserver<GameStateRequest> syncGameState(StreamObserver<GameStateResponse> responseObserver) {
+        {
+            ServerCallStreamObserver<GameStateResponse> serverCallStreamObserver =
+                    (ServerCallStreamObserver<GameStateResponse>) responseObserver;
+            serverCallStreamObserver.setOnCancelHandler(() ->
+            {
+                disconnectedObservers.add(responseObserver);
+            });
+        }
+
         return new StreamObserver<GameStateRequest>() {
             @Override
             public void onNext(GameStateRequest value) {
-                responseObservers.putIfAbsent(value.getPlayer().getId(), responseObserver);
+                responseObservers.putIfAbsent(responseObserver, UUID.fromString(value.getPlayer().getId()));
                 queueLock.lock();
                 requestQueue.add(value);
                 queueLock.unlock();
@@ -102,6 +118,8 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
     }
 
     public void broadcastGameState() {
+        handleDisconnectedObservers();
+
         GameStateResponse.Builder response = GameStateResponse.newBuilder();
         for (java.util.Map.Entry<UUID, ? extends PlayerController> connectedPlayer : world.getConnectedPlayers()) {
             UUID id = connectedPlayer.getKey();
@@ -119,19 +137,24 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
         }
         GameStateResponse stateResponse = response.build();
 
-        Iterator<Map.Entry<String, StreamObserver<GameStateResponse>>> observerIterator =
-                responseObservers.entrySet().iterator();
-        while (observerIterator.hasNext()) {
-            Map.Entry<String, StreamObserver<GameStateResponse>> entry = observerIterator.next();
-            StreamObserver<GameStateResponse> responseObserver = entry.getValue();
+        for (Map.Entry<StreamObserver<GameStateResponse>, UUID> entry : responseObservers.entrySet()) {
+            StreamObserver<GameStateResponse> responseObserver = entry.getKey();
             try {
                 responseObserver.onNext(stateResponse);
             } catch (StatusRuntimeException e) {
-                System.err.println(String.format(Locale.ENGLISH,
-                        "Player %s disconnected", entry.getKey()));
-                observerIterator.remove();
-                world.removePlayerController(UUID.fromString(entry.getKey()));
+                logger.log(Level.INFO,
+                        "Player {0} disconnected", entry.getValue());
             }
         }
+    }
+
+    private void handleDisconnectedObservers() {
+        for (StreamObserver<GameStateResponse> observer : disconnectedObservers) {
+            UUID playerID = responseObservers.remove(observer);
+            world.removePlayerController(playerID);
+            logger.log(Level.INFO,
+                    "Player {0} removed from the world", playerID);
+        }
+        disconnectedObservers.clear();
     }
 }

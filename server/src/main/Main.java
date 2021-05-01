@@ -58,7 +58,8 @@ public class Main {
                     physics.mapcollision.MapCollisionDetector.class,
                     MapCollisionDetector.MapCollisionInfo.class,
                     types.WallType.class,
-                    WallType.WallShape.class
+                    WallType.WallShape.class,
+                    util.GRpcMapper.class
             );
         }
 

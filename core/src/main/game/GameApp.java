@@ -21,9 +21,9 @@ public class GameApp extends Game {
     private AssetManager assetManager;
     private static final String HOST =
 //            "10.0.2.2"
-//            "localhost"
+            "localhost"
 //            "10.232.0.13"
-            "54.177.126.239"
+//            "54.177.126.239"
             ;
 
     private static final int PORT =
