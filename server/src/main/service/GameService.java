@@ -5,8 +5,6 @@ import com.google.protobuf.Empty;
 import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
@@ -98,8 +96,8 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
         return new StreamObserver<GameStateRequest>() {
             @Override
             public void onNext(GameStateRequest value) {
-                responseObservers.putIfAbsent(responseObserver, UUID.fromString(value.getPlayer().getId()));
                 queueLock.lock();
+                responseObservers.putIfAbsent(responseObserver, UUID.fromString(value.getPlayer().getId()));
                 requestQueue.add(value);
                 queueLock.unlock();
             }

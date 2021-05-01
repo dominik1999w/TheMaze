@@ -1,17 +1,13 @@
 package connection.game;
 
-import com.google.common.collect.Lists;
-
 import java.util.ArrayDeque;
 import java.util.Collection;
-import java.util.List;
 import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
-import entity.player.Player;
 import entity.player.PlayerInput;
 import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
@@ -21,7 +17,6 @@ import lib.connection.LocalPlayerInput;
 import lib.connection.PlayerState;
 import lib.connection.TheMazeGrpc;
 import util.GRpcMapper;
-import util.Point2D;
 
 public class GrpcGameClient implements GameClient {
 
