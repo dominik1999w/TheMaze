@@ -102,7 +102,7 @@ public class GameScreen extends ScreenAdapter {
                             playerState.getPosition(), sequenceNumber));*/
 
                     playerInputLog.discardLogUntil(sequenceNumber);
-                    playerController.setNextState(playerState);
+                    playerController.setNextState(playerState, 0);
                     for (PlayerInput playerInput : playerInputLog.getInputLog()) {
                         playerController.updateInput(playerInput);
                         playerController.update();

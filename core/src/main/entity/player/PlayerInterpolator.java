@@ -17,8 +17,8 @@ public class PlayerInterpolator {
         this.serverDeltaMillis = (long)(1000.0f / serverUpdateRate);
     }
 
-    public void addState(Player state, long timestamp) {
-        //long timestamp = System.currentTimeMillis();
+    public void addState(Player state, long timestamp1) {
+        long timestamp = System.currentTimeMillis();
         if (playerStateHistory.size() == 0 ||
                 (playerStateHistory.get(playerStateHistory.size() - 1).timestamp != timestamp))
             playerStateHistory.add(new PlayerStateTimeStamp(state, timestamp));
