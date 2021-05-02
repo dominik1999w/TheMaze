@@ -22,6 +22,9 @@ public class PlayerInterpolator {
     }
 
     public void computeCurrentState(Player out) {
+        // insufficient data
+        if (playerStateHistory.size() <= 1) return;
+
         long renderTimestamp = System.currentTimeMillis() - serverDeltaMillis;
 
         int lastStateIndex = 0;
@@ -29,25 +32,30 @@ public class PlayerInterpolator {
                 playerStateHistory.get(lastStateIndex).timestamp <= renderTimestamp)
             lastStateIndex++;
 
-        if (lastStateIndex < playerStateHistory.size()) {
-            if (lastStateIndex > 0) {
-                // now timestamp[lastStateIndex - 1] <= renderTimestamp <= timestamp[lastStateIndex]
-                PlayerStateTimeStamp playerStateTimeStampA = playerStateHistory.get(lastStateIndex - 1);
-                PlayerStateTimeStamp playerStateTimeStampB = playerStateHistory.get(lastStateIndex);
-                long timestampA = playerStateTimeStampA.timestamp;
-                long timestampB = playerStateTimeStampB.timestamp;
-                Point2D positionA = playerStateTimeStampA.playerState.getPosition();
-                Point2D positionB = playerStateTimeStampB.playerState.getPosition();
-                float rotationA = playerStateTimeStampA.playerState.getRotation();
-                float rotationB = playerStateTimeStampB.playerState.getRotation();
-                float smoothFactor = ((float)(renderTimestamp - timestampA)) / ((float)(timestampB - timestampA));
-                out.setPosition(interpolate(positionA, positionB, smoothFactor));
-                out.setRotation(interpolate(rotationA, rotationB, smoothFactor));
-            } else {
-                //out.setPosition(playerStateHistory.get(0).playerState.getPosition());
-                //out.setRotation(playerStateHistory.get(0).playerState.getRotation());
-            }
+        PlayerStateTimeStamp playerStateTimeStampA;
+        PlayerStateTimeStamp playerStateTimeStampB;
+        if (0 < lastStateIndex && lastStateIndex < playerStateHistory.size()) {
+            // interpolating
+            playerStateTimeStampA = playerStateHistory.get(lastStateIndex - 1);
+            playerStateTimeStampB = playerStateHistory.get(lastStateIndex);
+        } else if (lastStateIndex == playerStateHistory.size()) { // timestamp[last] <= renderTimestamp
+            // extrapolating
+            playerStateTimeStampA = playerStateHistory.get(lastStateIndex - 2);
+            playerStateTimeStampB = playerStateHistory.get(lastStateIndex - 1);
+        } else { // lastStateIndex == 0
+            return;
         }
+        long timestampA = playerStateTimeStampA.timestamp;
+        long timestampB = playerStateTimeStampB.timestamp;
+        Point2D positionA = playerStateTimeStampA.playerState.getPosition();
+        Point2D positionB = playerStateTimeStampB.playerState.getPosition();
+        float rotationA = playerStateTimeStampA.playerState.getRotation();
+        float rotationB = playerStateTimeStampB.playerState.getRotation();
+        float smoothFactor = ((float)(renderTimestamp - timestampA)) / ((float)(timestampB - timestampA));
+        out.setPosition(interpolate(positionA, positionB, smoothFactor));
+        out.setRotation(interpolate(rotationA, rotationB, smoothFactor));
+
+        System.out.println(renderTimestamp + " " + out.getPosition());
 
         while (lastStateIndex > 1) {
             playerStateHistory.remove(0);

@@ -8,7 +8,9 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
+import connection.CallKey;
 import entity.player.PlayerInput;
+import io.grpc.Context;
 import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
 import lib.connection.ConnectRequest;
@@ -39,7 +41,7 @@ public class GrpcGameClient implements GameClient {
     @Override
     public void dispatchMessages(ServerResponseHandler responseHandler) {
         queueLock.lock();
-        System.out.println("Dispatching messages: " + responseQueue.size());
+        //System.out.println("Dispatching messages: " + responseQueue.size());
         while (!responseQueue.isEmpty()) {
             GameStateResponse response = responseQueue.poll();
 
@@ -56,10 +58,6 @@ public class GrpcGameClient implements GameClient {
                 );
             });
         }
-        /*if (!responseQueue.isEmpty()) {
-            ...
-            responseQueue.clear();
-        }*/
         queueLock.unlock();
     }
 
@@ -68,23 +66,25 @@ public class GrpcGameClient implements GameClient {
     public void connect(UUID id) {
         this.id = id;
 
-        gameStateRequestStream = asyncStub.syncGameState(new StreamObserver<GameStateResponse>() {
-            @Override
-            public void onNext(GameStateResponse value) {
-                queueLock.lock();
-                responseQueue.add(value);
-                queueLock.unlock();
-            }
+        Context.current().withValue(CallKey.PLAYER_ID, id).run(() -> {
+            gameStateRequestStream = asyncStub.syncGameState(new StreamObserver<GameStateResponse>() {
+                @Override
+                public void onNext(GameStateResponse value) {
+                    queueLock.lock();
+                    responseQueue.add(value);
+                    queueLock.unlock();
+                }
 
-            @Override
-            public void onError(Throwable t) {
+                @Override
+                public void onError(Throwable t) {
 
-            }
+                }
 
-            @Override
-            public void onCompleted() {
+                @Override
+                public void onCompleted() {
 
-            }
+                }
+            });
         });
 
         blockingStub.connect(ConnectRequest.newBuilder().setId(id.toString()).build());

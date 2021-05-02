@@ -14,6 +14,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import connection.CallKey;
 import entity.player.controller.PlayerController;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
@@ -54,9 +55,6 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
     @Override
     public void connect(ConnectRequest request, StreamObserver<ConnectReply> responseObserver) {
         logger.log(Level.INFO, "Connect from {0}", request.getId());
-        queueLock.lock();
-        world.onPlayerJoined(UUID.fromString(request.getId()));
-        queueLock.unlock();
         responseObserver.onNext(ConnectReply.newBuilder().setSeed(0).build());
         responseObserver.onCompleted();
     }
@@ -87,21 +85,14 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
 
     @Override
     public StreamObserver<GameStateRequest> syncGameState(StreamObserver<GameStateResponse> responseObserver) {
-        responseObservers.put(responseObserver, null);
-        {
-            ServerCallStreamObserver<GameStateResponse> serverCallStreamObserver =
-                    (ServerCallStreamObserver<GameStateResponse>) responseObserver;
-            serverCallStreamObserver.setOnCancelHandler(() ->
-            {
-                disconnectedObservers.add(responseObserver);
-            });
-        }
+        onPlayerJoined(CallKey.PLAYER_ID.get(), responseObserver);
+        ((ServerCallStreamObserver<GameStateResponse>) responseObserver)
+                .setOnCancelHandler(() -> disconnectedObservers.add(responseObserver));
 
         return new StreamObserver<GameStateRequest>() {
             @Override
             public void onNext(GameStateRequest value) {
                 queueLock.lock();
-                responseObservers.putIfAbsent(responseObserver, UUID.fromString(value.getPlayer().getId()));
                 requestQueue.add(value);
                 queueLock.unlock();
             }
@@ -148,6 +139,13 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
                         "Player {0} disconnected", entry.getValue());
             }
         }
+    }
+
+    private void onPlayerJoined(UUID playerID, StreamObserver<GameStateResponse> responseObserver) {
+        queueLock.lock();
+        responseObservers.put(responseObserver, playerID);
+        world.onPlayerJoined(playerID);
+        queueLock.unlock();
     }
 
     private void handleDisconnectedObservers() {
