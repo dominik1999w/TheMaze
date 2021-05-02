@@ -96,14 +96,19 @@ public class GameScreen extends ScreenAdapter {
 
             @Override
             public void onActiveBullets(Collection<UUID> bulletIDs) {
+                if (bulletIDs.size() > 0)
+                    System.out.println(bulletIDs);
                 // NOTE: need iterator here to avoid ConcurrentModificationException
                 Iterator<java.util.Map.Entry<UUID, BulletController>> iterator =
                         world.getBullets().iterator();
                 while (iterator.hasNext()) {
                     java.util.Map.Entry<UUID, BulletController> playerBullet = iterator.next();
+                    UUID playerID = playerBullet.getKey();
+                    if (playerID.equals(player.getId())) continue;
+
                     UUID bulletID = playerBullet.getValue().getBullet().getId();
                     if (!bulletIDs.contains(bulletID)) {
-                        world.removeBulletController(playerBullet.getKey());
+                        world.removeBulletController(playerID);
                     }
                 }
             }
@@ -130,8 +135,9 @@ public class GameScreen extends ScreenAdapter {
             }
 
             @Override
-            public void onBulletState(UUID shooterID, Bullet bulletState) {
-                world.onBulletFired(shooterID, bulletState);
+            public void onBulletState(UUID playerID, Bullet bulletState) {
+                if (!playerID.equals(player.getId()))
+                    world.onBulletFired(playerID, bulletState);
             }
         });
 

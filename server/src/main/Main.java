@@ -73,6 +73,7 @@ public class Main {
                 InputPlayerController::new,
                 BulletController::new);
         world.subscribeOnPlayerAdded(newPlayer -> collisionWorld.addHitbox(new PlayerHitbox(newPlayer)));
+        world.subscribeOnPlayerRemoved(collisionWorld::removeHitbox);
         world.subscribeOnBulletAdded(newBullet -> collisionWorld.addHitbox(new BulletHitbox(newBullet, world)));
         world.subscribeOnBulletRemoved(collisionWorld::removeHitbox);
 

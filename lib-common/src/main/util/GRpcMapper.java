@@ -17,18 +17,18 @@ public final class GRpcMapper {
         );
     }
 
-    public static Player playerState(PlayerState playerState) {
-        return new Player(UUID.fromString(playerState.getId()),
-                new Point2D(playerState.getPositionX(), playerState.getPositionY()),
-                playerState.getRotation()
+    public static Player playerState(PlayerState message) {
+        return new Player(UUID.fromString(message.getId()),
+                new Point2D(message.getPositionX(), message.getPositionY()),
+                message.getRotation()
         );
     }
 
-    public static Bullet bulletState(BulletState bulletState) {
+    public static Bullet bulletState(BulletState message) {
         return new Bullet(
-                UUID.fromString(bulletState.getId()),
-                new Point2D(bulletState.getPositionX(), bulletState.getPositionY()),
-                bulletState.getRotation()
+                UUID.fromString(message.getId()),
+                new Point2D(message.getPositionX(), message.getPositionY()),
+                message.getRotation()
         );
     }
 

@@ -1,7 +1,5 @@
 package entity.bullet;
 
-import java.util.UUID;
-
 import map.MapConfig;
 import util.Point2D;
 

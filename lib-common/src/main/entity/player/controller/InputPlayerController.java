@@ -12,8 +12,6 @@ public class InputPlayerController extends PlayerController {
     private final World<?> world;
     private final PlayerInput playerInput;
 
-    private float bulletTimeout = 0;
-
     public InputPlayerController(Player player, World<?> world) {
         super(player);
         this.playerInput = new PlayerInput();
@@ -27,9 +25,8 @@ public class InputPlayerController extends PlayerController {
     public void update() {
         if (playerInput.isEmpty()) return;
 
-        if (bulletTimeout <= 0 && playerInput.isShootPressed()) {
+        if (playerInput.isShootPressed()) {
             world.onBulletFired(player);
-            bulletTimeout = 1;
         }
 
         Point2D deltaPosition = new Point2D(playerInput.getX(), playerInput.getY())
