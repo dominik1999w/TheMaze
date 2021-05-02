@@ -22,7 +22,7 @@ public class BulletController {
         bullet.getPosition().add(deltaPosition);
     }
 
-    public UUID getBulletId() {
-        return bullet.getId();
+    public Bullet getBullet() {
+        return bullet;
     }
 }

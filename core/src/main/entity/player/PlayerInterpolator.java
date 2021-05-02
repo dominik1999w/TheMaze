@@ -17,7 +17,8 @@ public class PlayerInterpolator {
         this.serverDeltaMillis = (long)(1000.0f / serverUpdateRate);
     }
 
-    public void addState(Player state, long timestamp1) {
+    // NOTE: using timestamp yields more recent snapshots of entities' states, but timestamp1 appears more smooth
+    public void addState(long timestamp1, Player state) {
         long timestamp = System.currentTimeMillis();
         if (playerStateHistory.size() == 0 ||
                 (playerStateHistory.get(playerStateHistory.size() - 1).timestamp != timestamp))
@@ -25,24 +26,24 @@ public class PlayerInterpolator {
     }
 
     public void computeCurrentState(Player out) {
-        StringBuilder log = new StringBuilder("computeCurrentState:\n");
+        //StringBuilder log = new StringBuilder("computeCurrentState:\n");
         // insufficient data
         if (playerStateHistory.size() <= 1) return;
 
         long renderTimestamp = System.currentTimeMillis() - serverDeltaMillis;
 
-        log.append("    renderTimestamp=").append(renderTimestamp).append('\n');
-        log.append("    playerStateHistory:").append('\n');
-        for (PlayerStateTimeStamp playerStateTimeStamp : playerStateHistory) {
-            log.append("        ").append(playerStateTimeStamp.timestamp).append(' ').append(playerStateTimeStamp.playerState.getPosition()).append('\n');
-        }
+        //log.append("    renderTimestamp=").append(renderTimestamp).append('\n');
+        //log.append("    playerStateHistory:").append('\n');
+        //for (PlayerStateTimeStamp playerStateTimeStamp : playerStateHistory) {
+        //    log.append("        ").append(playerStateTimeStamp.timestamp).append(' ').append(playerStateTimeStamp.playerState.getPosition()).append('\n');
+        //}
 
         int lastStateIndex = 0;
         while (lastStateIndex < playerStateHistory.size() &&
                 playerStateHistory.get(lastStateIndex).timestamp <= renderTimestamp)
             lastStateIndex++;
 
-        log.append("    lastStateIndex=").append(lastStateIndex).append('\n');
+        //log.append("    lastStateIndex=").append(lastStateIndex).append('\n');
 
         PlayerStateTimeStamp playerStateTimeStampA;
         PlayerStateTimeStamp playerStateTimeStampB;
@@ -64,17 +65,17 @@ public class PlayerInterpolator {
         float rotationA = playerStateTimeStampA.playerState.getRotation();
         float rotationB = playerStateTimeStampB.playerState.getRotation();
         float smoothFactor = ((float)(renderTimestamp - timestampA)) / ((float)(timestampB - timestampA));
-        out.setPosition(interpolate(positionA, positionB, smoothFactor));
-        out.setRotation(interpolate(rotationA, rotationB, smoothFactor));
+        out.setPosition(interpolate(out.getPosition(), interpolate(positionA, positionB, smoothFactor), 0.25f));
+        out.setRotation(interpolate(out.getRotation(), interpolate(rotationA, rotationB, smoothFactor), 0.25f));
 
-        log.append("    outPosition=").append(out.getPosition()).append('\n');
+        //log.append("    outPosition=").append(out.getPosition()).append('\n');
 
         while (lastStateIndex > 1) {
             playerStateHistory.remove(0);
             lastStateIndex--;
         }
 
-        log.append("    playerStateHistorySize=").append(playerStateHistory.size()).append('\n');
+        //log.append("    playerStateHistorySize=").append(playerStateHistory.size()).append('\n');
         //System.out.println(log);
     }
 

@@ -15,6 +15,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import connection.CallKey;
+import entity.bullet.Bullet;
+import entity.bullet.BulletController;
 import entity.player.controller.PlayerController;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
@@ -124,9 +126,17 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
                     .setPositionX(controller.getPlayerPosition().x())
                     .setPositionY(controller.getPlayerPosition().y())
                     .setRotation(controller.getPlayerRotation())
-                    .setBullet(BulletState.newBuilder()
-                            .setFired(world.getBulletController(controller.getPlayer()) != null)
-                            .build())
+                    .build());
+        }
+        for (Map.Entry<UUID, BulletController> bulletEntry : world.getBullets()) {
+            UUID playerID = bulletEntry.getKey();
+            Bullet bullet = bulletEntry.getValue().getBullet();
+            response.addBullets(BulletState.newBuilder()
+                    .setId(bullet.getId().toString())
+                    .setPlayerId(playerID.toString())
+                    .setPositionX(bullet.getPosition().x())
+                    .setPositionY(bullet.getPosition().y())
+                    .setRotation(bullet.getRotation())
                     .build());
         }
         GameStateResponse stateResponse = response.build();

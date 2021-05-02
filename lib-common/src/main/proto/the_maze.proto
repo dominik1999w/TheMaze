@@ -38,11 +38,14 @@ message PlayerState {
   float positionX = 3;
   float positionY = 4;
   float rotation = 5;
-  BulletState bullet = 6;
 }
 
 message BulletState {
-  bool fired = 1;
+  string id = 1;
+  string playerId = 2;
+  float positionX = 3;
+  float positionY = 4;
+  float rotation = 5;
 }
 
 
@@ -54,4 +57,5 @@ message GameStateRequest {
 message GameStateResponse {
   uint64 timestamp = 1;
   repeated PlayerState players = 2;
+  repeated BulletState bullets = 3;
 }

@@ -10,7 +10,7 @@ public class LocalPlayerController extends InputPlayerController implements Game
     }
 
     @Override
-    public void setNextState(Player player, long timestamp) {
+    public void setNextState(long timestamp, Player player) {
         // SPAM
         //System.out.print("Client: " + this.player.getPosition());
         //System.out.println("    Server: " + player.getPosition());

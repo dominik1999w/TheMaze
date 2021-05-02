@@ -21,20 +21,11 @@ public class AuthoritativePlayerController extends PlayerController implements G
 
     public void update() {
         playerInterpolator.computeCurrentState(player);
-        if (nextFireBullet) {
-            nextFireBullet = false;
-            world.onBulletFired(player);
-            //world.onBulletDied(world.getBulletController(player).getBulletId());
-        }
     }
 
     // NOTE: probably not the best way to represent state
     @Override
-    public void setNextState(Player playerState, long timestamp) {
-        playerInterpolator.addState(playerState, timestamp);
+    public void setNextState(long timestamp, Player playerState) {
+        playerInterpolator.addState(timestamp, playerState);
     }
-
-//    public void setNextFireBullet(boolean fireBullet) {
-//        nextFireBullet = fireBullet;
-//    }
 }

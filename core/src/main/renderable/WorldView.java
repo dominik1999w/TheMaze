@@ -27,7 +27,7 @@ public class WorldView implements Renderable {
 
         world.subscribeOnPlayerAdded(newPlayer -> views.add(new SimpleView<Player>(newPlayer, assetManager.get(TextureType.PLAYER.getName()))));
         world.subscribeOnPlayerRemoved(playerID -> views.removeIf(view -> view.getId().equals(playerID)));
-        world.subscribeOnBulletAdded((player, newBullet) -> views.add(new SimpleView<Bullet>(newBullet, assetManager.get(TextureType.BULLET.getName()))));
+        world.subscribeOnBulletAdded(newBullet -> views.add(new SimpleView<Bullet>(newBullet, assetManager.get(TextureType.BULLET.getName()))));
         world.subscribeOnBulletRemoved(bulletID -> views.removeIf(view -> view.getId().equals(bulletID)));
     }
 

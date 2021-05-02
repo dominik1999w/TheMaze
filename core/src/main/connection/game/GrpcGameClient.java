@@ -3,6 +3,7 @@ package connection.game;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Queue;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -13,6 +14,7 @@ import entity.player.PlayerInput;
 import io.grpc.Context;
 import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
+import lib.connection.BulletState;
 import lib.connection.GameStateRequest;
 import lib.connection.GameStateResponse;
 import lib.connection.LocalPlayerInput;
@@ -50,11 +52,25 @@ public class GrpcGameClient implements GameClient {
                     .collect(Collectors.toSet());
             responseHandler.onActivePlayers(activePlayers);
 
+            Collection<UUID> activeBullets = response.getBulletsList().stream()
+                    .map(BulletState::getId)
+                    .map(UUID::fromString)
+                    .collect(Collectors.toSet());
+            responseHandler.onActiveBullets(activeBullets);
+
             response.getPlayersList().forEach(playerState ->
                     responseHandler.onPlayerState(
                         playerState.getId().equals(id.toString()) ? playerState.getSequenceNumber() : response.getTimestamp(),
                         GRpcMapper.playerState(playerState)
-            ));
+                    )
+            );
+
+            response.getBulletsList().forEach(bulletState ->
+                    responseHandler.onBulletState(
+                            UUID.fromString(bulletState.getPlayerId()),
+                            GRpcMapper.bulletState(bulletState)
+                    )
+            );
         }
         queueLock.unlock();
     }

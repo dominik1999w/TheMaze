@@ -14,6 +14,7 @@ import java.util.UUID;
 import connection.game.GameClient;
 import connection.game.ServerResponseHandler;
 import connection.util.PlayerInputLog;
+import entity.bullet.Bullet;
 import entity.bullet.BulletController;
 import entity.bullet.BulletHitbox;
 import entity.player.Player;
@@ -59,7 +60,7 @@ public class GameScreen extends ScreenAdapter {
         this.collisionWorld = new CollisionWorld(map);
         // Uncomment this for CLIENT-SIDE PLAYER-MAP COLLISION HANDLING
         //world.subscribeOnPlayerAdded(newPlayer -> collisionWorld.addHitbox(new PlayerHitbox(newPlayer)));
-        world.subscribeOnBulletAdded((player, newBullet) -> collisionWorld.addHitbox(new BulletHitbox(newBullet, world)));
+        world.subscribeOnBulletAdded(newBullet -> collisionWorld.addHitbox(new BulletHitbox(newBullet, world)));
         world.subscribeOnBulletRemoved(collisionWorld::removeHitbox);
         collisionWorld.addHitbox(new PlayerHitbox(player));
 
@@ -82,13 +83,27 @@ public class GameScreen extends ScreenAdapter {
         client.dispatchMessages(new ServerResponseHandler() {
             @Override
             public void onActivePlayers(Collection<UUID> playerIDs) {
-                // NOTE: need iterator to avoid ConcurrentModificationException
+                // NOTE: need iterator here to avoid ConcurrentModificationException
                 Iterator<java.util.Map.Entry<UUID, AuthoritativePlayerController>> iterator =
                         world.getConnectedPlayers().iterator();
                 while (iterator.hasNext()) {
                     UUID playerID = iterator.next().getKey();
                     if (!playerIDs.contains(playerID)) {
                         world.removePlayerController(playerID);
+                    }
+                }
+            }
+
+            @Override
+            public void onActiveBullets(Collection<UUID> bulletIDs) {
+                // NOTE: need iterator here to avoid ConcurrentModificationException
+                Iterator<java.util.Map.Entry<UUID, BulletController>> iterator =
+                        world.getBullets().iterator();
+                while (iterator.hasNext()) {
+                    java.util.Map.Entry<UUID, BulletController> playerBullet = iterator.next();
+                    UUID bulletID = playerBullet.getValue().getBullet().getId();
+                    if (!bulletIDs.contains(bulletID)) {
+                        world.removeBulletController(playerBullet.getKey());
                     }
                 }
             }
@@ -102,7 +117,7 @@ public class GameScreen extends ScreenAdapter {
                             playerState.getPosition(), sequenceNumber));*/
 
                     playerInputLog.discardLogUntil(sequenceNumber);
-                    playerController.setNextState(playerState, 0);
+                    playerController.setNextState(0, playerState);
                     for (PlayerInput playerInput : playerInputLog.getInputLog()) {
                         playerController.updateInput(playerInput);
                         playerController.update();
@@ -110,8 +125,13 @@ public class GameScreen extends ScreenAdapter {
                     }
                 } else {
                     world.getPlayerController(playerState.getId())
-                            .setNextState(playerState, sequenceNumber);
+                            .setNextState(sequenceNumber, playerState);
                 }
+            }
+
+            @Override
+            public void onBulletState(UUID shooterID, Bullet bulletState) {
+                world.onBulletFired(shooterID, bulletState);
             }
         });
 
