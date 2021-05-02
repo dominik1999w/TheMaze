@@ -9,7 +9,7 @@ import entity.player.PlayerInput;
 
 public class PlayerInputLog {
 
-    // NOTE: maybe there is better data structure for our needs?
+    // TODO: circular buffer
     private final List<LogEntry> inputLog = new ArrayList<>();
 
     private long currentSequenceNumber = 0;

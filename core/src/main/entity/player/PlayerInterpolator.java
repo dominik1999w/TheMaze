@@ -9,6 +9,7 @@ import static util.Interpolation.interpolate;
 
 public class PlayerInterpolator {
 
+    // TODO: circular buffer
     private final List<PlayerStateTimeStamp> playerStateHistory = new ArrayList<>();
 
     private final long serverDeltaMillis;
