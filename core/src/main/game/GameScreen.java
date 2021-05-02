@@ -53,10 +53,6 @@ public class GameScreen extends ScreenAdapter {
         this.client = client;
         client.connect(playerID);
 
-        this.camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-
-        this.gameUI = new GameUI(assetManager);
-
         this.world = new World<>(AuthoritativePlayerController::new, BulletController::new);
         this.player = new Player(playerID, new Point2D(3.5f * MapConfig.BOX_SIZE, 2.5f * MapConfig.BOX_SIZE));
         this.playerController = new LocalPlayerController(player, world);
@@ -67,12 +63,14 @@ public class GameScreen extends ScreenAdapter {
         world.subscribeOnBulletRemoved(collisionWorld::removeHitbox);
         collisionWorld.addHitbox(new PlayerHitbox(player));
 
+        this.camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         this.worldView = new WorldView(world, map, camera, player, assetManager);
 
         int mapWidth = 10; // temporary: number of boxes horizontal-wise
         camera.zoom = mapWidth * MapConfig.BOX_SIZE / (float) Gdx.graphics.getWidth();
         camera.update();
 
+        this.gameUI = new GameUI(assetManager);
         gameUI.build();
 
         this.debugDrawer = new DebugDrawer(camera, map, player);
@@ -112,7 +110,7 @@ public class GameScreen extends ScreenAdapter {
                     }
                 } else {
                     world.getPlayerController(playerState.getId())
-                            .setNextState(playerState);
+                            .setNextState(playerState, sequenceNumber);
                 }
             }
         });

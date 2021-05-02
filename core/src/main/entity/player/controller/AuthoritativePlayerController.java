@@ -30,8 +30,8 @@ public class AuthoritativePlayerController extends PlayerController implements G
 
     // NOTE: probably not the best way to represent state
     @Override
-    public void setNextState(Player playerState) {
-        playerInterpolator.addState(playerState);
+    public void setNextState(Player playerState, long timestamp) {
+        playerInterpolator.addState(playerState, timestamp);
     }
 
 //    public void setNextFireBullet(boolean fireBullet) {

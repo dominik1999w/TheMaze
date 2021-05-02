@@ -52,5 +52,6 @@ message GameStateRequest {
 }
 
 message GameStateResponse {
-  repeated PlayerState players = 1;
+  uint64 timestamp = 1;
+  repeated PlayerState players = 2;
 }

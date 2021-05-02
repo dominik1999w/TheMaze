@@ -93,7 +93,7 @@ public class Main {
             // TODO: rewrite: in world.update only bullets will be actually updated
             world.update(delta);
             collisionWorld.update();
-            gameService.broadcastGameState();
+            gameService.broadcastGameState(System.currentTimeMillis());
         }, 1.0f / SERVER_UPDATE_RATE)).start();
 
         server.blockUntilShutdown();

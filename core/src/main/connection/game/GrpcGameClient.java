@@ -13,7 +13,6 @@ import entity.player.PlayerInput;
 import io.grpc.Context;
 import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
-import lib.connection.ConnectRequest;
 import lib.connection.GameStateRequest;
 import lib.connection.GameStateResponse;
 import lib.connection.LocalPlayerInput;
@@ -51,12 +50,11 @@ public class GrpcGameClient implements GameClient {
                     .collect(Collectors.toSet());
             responseHandler.onActivePlayers(activePlayers);
 
-            response.getPlayersList().forEach(playerState -> {
-                responseHandler.onPlayerState(
-                        playerState.getSequenceNumber(),
+            response.getPlayersList().forEach(playerState ->
+                    responseHandler.onPlayerState(
+                        playerState.getId().equals(id.toString()) ? playerState.getSequenceNumber() : response.getTimestamp(),
                         GRpcMapper.playerState(playerState)
-                );
-            });
+            ));
         }
         queueLock.unlock();
     }
@@ -86,8 +84,6 @@ public class GrpcGameClient implements GameClient {
                 }
             });
         });
-
-        blockingStub.connect(ConnectRequest.newBuilder().setId(id.toString()).build());
     }
 
     @Override

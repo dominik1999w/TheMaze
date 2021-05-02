@@ -17,20 +17,32 @@ public class PlayerInterpolator {
         this.serverDeltaMillis = (long)(1000.0f / serverUpdateRate);
     }
 
-    public void addState(Player state) {
-        playerStateHistory.add(new PlayerStateTimeStamp(state, System.currentTimeMillis()));
+    public void addState(Player state, long timestamp) {
+        //long timestamp = System.currentTimeMillis();
+        if (playerStateHistory.size() == 0 ||
+                (playerStateHistory.get(playerStateHistory.size() - 1).timestamp != timestamp))
+            playerStateHistory.add(new PlayerStateTimeStamp(state, timestamp));
     }
 
     public void computeCurrentState(Player out) {
+        StringBuilder log = new StringBuilder("computeCurrentState:\n");
         // insufficient data
         if (playerStateHistory.size() <= 1) return;
 
         long renderTimestamp = System.currentTimeMillis() - serverDeltaMillis;
 
+        log.append("    renderTimestamp=").append(renderTimestamp).append('\n');
+        log.append("    playerStateHistory:").append('\n');
+        for (PlayerStateTimeStamp playerStateTimeStamp : playerStateHistory) {
+            log.append("        ").append(playerStateTimeStamp.timestamp).append(' ').append(playerStateTimeStamp.playerState.getPosition()).append('\n');
+        }
+
         int lastStateIndex = 0;
         while (lastStateIndex < playerStateHistory.size() &&
                 playerStateHistory.get(lastStateIndex).timestamp <= renderTimestamp)
             lastStateIndex++;
+
+        log.append("    lastStateIndex=").append(lastStateIndex).append('\n');
 
         PlayerStateTimeStamp playerStateTimeStampA;
         PlayerStateTimeStamp playerStateTimeStampB;
@@ -55,12 +67,15 @@ public class PlayerInterpolator {
         out.setPosition(interpolate(positionA, positionB, smoothFactor));
         out.setRotation(interpolate(rotationA, rotationB, smoothFactor));
 
-        System.out.println(renderTimestamp + " " + out.getPosition());
+        log.append("    outPosition=").append(out.getPosition()).append('\n');
 
         while (lastStateIndex > 1) {
             playerStateHistory.remove(0);
             lastStateIndex--;
         }
+
+        log.append("    playerStateHistorySize=").append(playerStateHistory.size()).append('\n');
+        //System.out.println(log);
     }
 
     private static class PlayerStateTimeStamp {

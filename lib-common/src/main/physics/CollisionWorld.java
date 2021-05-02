@@ -5,11 +5,13 @@ import java.util.Collection;
 import java.util.EnumMap;
 import java.util.UUID;
 
+import entity.bullet.BulletHitbox;
 import map.Map;
 import physics.mapcollision.ClampMapCollisionDetector;
 import physics.mapcollision.LineMapCollisionDetector;
 import physics.mapcollision.MapCollisionDetector;
 import util.Point2D;
+import world.World;
 
 public class CollisionWorld {
 

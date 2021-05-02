@@ -110,10 +110,11 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
         };
     }
 
-    public void broadcastGameState() {
+    public void broadcastGameState(long timestamp) {
         handleDisconnectedObservers();
 
         GameStateResponse.Builder response = GameStateResponse.newBuilder();
+        response.setTimestamp(timestamp);
         for (java.util.Map.Entry<UUID, ? extends PlayerController> connectedPlayer : world.getConnectedPlayers()) {
             UUID id = connectedPlayer.getKey();
             PlayerController controller = connectedPlayer.getValue();
