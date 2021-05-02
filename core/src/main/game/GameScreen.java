@@ -6,12 +6,9 @@ import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.google.common.collect.Lists;
 
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
 import java.util.UUID;
 
 import connection.game.GameClient;

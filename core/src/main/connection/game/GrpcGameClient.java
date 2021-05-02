@@ -39,20 +39,8 @@ public class GrpcGameClient implements GameClient {
     @Override
     public void dispatchMessages(ServerResponseHandler responseHandler) {
         queueLock.lock();
-        /*System.out.println("Dispatching messages: " + responseQueue.size());
+        System.out.println("Dispatching messages: " + responseQueue.size());
         while (!responseQueue.isEmpty()) {
-            GameStateResponse response = responseQueue.poll();
-            response.getPlayersList().forEach(playerState -> {
-                responseHandler.onPlayerState(
-                        playerState.getSequenceNumber(),
-                        new Player(UUID.fromString(playerState.getId()),
-                                new Point2D(playerState.getPositionX(), playerState.getPositionY()),
-                                playerState.getRotation()
-                        )
-                );
-            });
-        }*/
-        if (!responseQueue.isEmpty()) {
             GameStateResponse response = responseQueue.poll();
 
             Collection<UUID> activePlayers = response.getPlayersList().stream()
@@ -61,14 +49,17 @@ public class GrpcGameClient implements GameClient {
                     .collect(Collectors.toSet());
             responseHandler.onActivePlayers(activePlayers);
 
-            response.getPlayersList().forEach(playerState ->
-                    responseHandler.onPlayerState(
-                            playerState.getSequenceNumber(),
-                            GRpcMapper.playerState(playerState)
-                    )
-            );
-            responseQueue.clear();
+            response.getPlayersList().forEach(playerState -> {
+                responseHandler.onPlayerState(
+                        playerState.getSequenceNumber(),
+                        GRpcMapper.playerState(playerState)
+                );
+            });
         }
+        /*if (!responseQueue.isEmpty()) {
+            ...
+            responseQueue.clear();
+        }*/
         queueLock.unlock();
     }
 

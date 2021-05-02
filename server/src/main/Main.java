@@ -90,6 +90,7 @@ public class Main {
                 playerController.update();
                 collisionWorld.update();
             });
+            // TODO: rewrite: in world.update only bullets will be actually updated
             world.update(delta);
             collisionWorld.update();
             gameService.broadcastGameState();
