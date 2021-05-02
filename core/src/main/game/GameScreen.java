@@ -96,8 +96,6 @@ public class GameScreen extends ScreenAdapter {
 
             @Override
             public void onActiveBullets(Collection<UUID> bulletIDs) {
-                if (bulletIDs.size() > 0)
-                    System.out.println(bulletIDs);
                 // NOTE: need iterator here to avoid ConcurrentModificationException
                 Iterator<java.util.Map.Entry<UUID, BulletController>> iterator =
                         world.getBullets().iterator();

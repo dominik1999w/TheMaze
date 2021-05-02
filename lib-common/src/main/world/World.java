@@ -85,7 +85,6 @@ public class World<TController extends PlayerController> {
     }
 
     public void onBulletFired(Player player) {
-        System.out.println("Bullet fired: " + player.getId());
         bullets.computeIfAbsent(player.getId(), k ->
         {
             Point2D bulletPosition = new Point2D(player.getPosition())
