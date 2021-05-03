@@ -11,7 +11,7 @@ public abstract class PlayerController {
         this.player = player;
     }
 
-    public abstract void update(float delta);
+    public abstract void update();
 
     public final Player getPlayer() {
         return player;

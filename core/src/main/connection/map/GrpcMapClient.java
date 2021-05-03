@@ -1,4 +1,4 @@
-package connection;
+package connection.map;
 
 import java.util.UUID;
 
@@ -13,7 +13,7 @@ public class GrpcMapClient implements MapClient {
     private final MapGrpc.MapBlockingStub blockingStub;
     private final MapGrpc.MapStub asyncStub;
 
-    private final UUID id;
+    private UUID id;
     private int length = 5;
     private int seed = 0;
     private boolean isHost = false;
@@ -21,14 +21,14 @@ public class GrpcMapClient implements MapClient {
     private StreamObserver<StateRequest> stateRequestStream;
 
     public GrpcMapClient(ManagedChannel channel) {
-        this.id = UUID.randomUUID();
-
         this.blockingStub = MapGrpc.newBlockingStub(channel);
         this.asyncStub = MapGrpc.newStub(channel);
     }
 
     @Override
-    public void connect() {
+    public void connect(UUID id) {
+        this.id = id;
+
         StateRequest request = StateRequest.newBuilder()
                 .setId(id.toString())
                 .setLength(length)

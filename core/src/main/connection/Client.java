@@ -1,6 +1,7 @@
 package connection;
 
+import java.util.UUID;
+
 public interface Client {
-    void connect();
-    void syncState();
+    void connect(UUID id);
 }

@@ -25,29 +25,37 @@ message ConnectReply {
 
 message LocalPlayerInput {
   string id = 1;
-  float inputX = 2;
-  float inputY = 3;
-  bool shootPressed = 4;
+  float delta = 2;
+  float inputX = 3;
+  float inputY = 4;
+  bool shootPressed = 5;
 }
 
 
 message PlayerState {
-  string id = 1;
-  float positionX = 2;
-  float positionY = 3;
-  float rotation = 4;
-  BulletState bullet = 5;
+  uint64 sequenceNumber = 1;
+  string id = 2;
+  float positionX = 3;
+  float positionY = 4;
+  float rotation = 5;
 }
 
 message BulletState {
-  bool fired = 1;
+  string id = 1;
+  string playerId = 2;
+  float positionX = 3;
+  float positionY = 4;
+  float rotation = 5;
 }
 
 
 message GameStateRequest {
-  LocalPlayerInput player = 1;
+  uint64 sequenceNumber = 1;
+  LocalPlayerInput player = 2;
 }
 
 message GameStateResponse {
-  repeated PlayerState players = 1;
+  uint64 timestamp = 1;
+  repeated PlayerState players = 2;
+  repeated BulletState bullets = 3;
 }

@@ -14,6 +14,8 @@ import time.Timer;
 import types.WallType;
 import world.World;
 
+import static util.ServerConfig.SERVER_UPDATE_RATE;
+
 public class Main {
     private static void loadClasses(Class<?>... classes) {
         try {
@@ -41,6 +43,7 @@ public class Main {
                     lib.map.StateRequest.class,
                     lib.map.StateResponse.class,
                     entity.player.Player.class,
+                    entity.player.PlayerInput.class,
                     entity.player.PlayerConfig.class,
                     entity.player.PlayerHitbox.class,
                     entity.bullet.BulletConfig.class,
@@ -57,7 +60,8 @@ public class Main {
                     physics.mapcollision.MapCollisionDetector.class,
                     MapCollisionDetector.MapCollisionInfo.class,
                     types.WallType.class,
-                    WallType.WallShape.class
+                    WallType.WallShape.class,
+                    util.GRpcMapper.class
             );
         }
 
@@ -69,7 +73,8 @@ public class Main {
                 InputPlayerController::new,
                 BulletController::new);
         world.subscribeOnPlayerAdded(newPlayer -> collisionWorld.addHitbox(new PlayerHitbox(newPlayer)));
-        world.subscribeOnBulletAdded((player, newBullet) -> collisionWorld.addHitbox(new BulletHitbox(newBullet, world)));
+        world.subscribeOnPlayerRemoved(collisionWorld::removeHitbox);
+        world.subscribeOnBulletAdded(newBullet -> collisionWorld.addHitbox(new BulletHitbox(newBullet, world)));
         world.subscribeOnBulletRemoved(collisionWorld::removeHitbox);
 
         GameService gameService = new GameService(world);
@@ -79,13 +84,18 @@ public class Main {
 
         new Thread(() -> Timer.executeAtFixedRate(delta ->
         {
+            gameService.dispatchMessages((sequenceNumber, id, playerInput) ->
+            {
+                InputPlayerController playerController = world.getPlayerController(id);
+                playerController.updateInput(playerInput);
+                playerController.update();
+                collisionWorld.update();
+            });
+            // TODO: rewrite: in world.update only bullets will be actually updated
             world.update(delta);
             collisionWorld.update();
-        }, 0.025f)).start(); // 40 fps
-
-        // start new Thread with
-        // clientResponseObservers.forEach(::onNext(GameStateResponse))
-        // every <x> seconds
+            gameService.broadcastGameState(System.currentTimeMillis());
+        }, 1.0f / SERVER_UPDATE_RATE)).start();
 
         server.blockUntilShutdown();
     }

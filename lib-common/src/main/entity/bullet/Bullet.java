@@ -6,17 +6,21 @@ import entity.WorldEntity;
 import util.Point2D;
 
 public class Bullet implements WorldEntity {
-    private final UUID id = UUID.randomUUID();
+    private final UUID id;
 
     private final Point2D position;
     private final float rotation;
     private final float speed;
 
-    public Bullet(Point2D position, float angle) {
-        this.position = new Point2D(position).add(BulletConfig.textureDependentShift(angle));
-
-        this.rotation = angle;
+    public Bullet(UUID id, Point2D position, float rotation) {
+        this.id = id;
+        this.position = position;
+        this.rotation = rotation;
         this.speed = BulletConfig.INITIAL_SPEED;
+    }
+
+    public Bullet(Point2D position, float angle) {
+        this(UUID.randomUUID(), position, angle);
     }
 
     public void setPosition(Point2D position) {

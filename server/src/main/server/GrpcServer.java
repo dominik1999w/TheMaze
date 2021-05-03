@@ -6,8 +6,10 @@ import java.util.logging.Logger;
 
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
+import io.grpc.ServerInterceptors;
 import service.GameService;
 import service.MapService;
+import service.PlayerIDInterceptor;
 
 public class GrpcServer implements GameServer {
     private static final Logger logger = Logger.getLogger(GrpcServer.class.getName());
@@ -18,6 +20,7 @@ public class GrpcServer implements GameServer {
         server = ServerBuilder.forPort(port)
                 .addService(gameService)
                 .addService(mapService)
+                .addService(ServerInterceptors.intercept(gameService, new PlayerIDInterceptor()))
                 .build();
     }
 

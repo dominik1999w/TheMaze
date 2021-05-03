@@ -4,8 +4,8 @@ import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import entity.WorldEntity;
 import entity.bullet.Bullet;
@@ -17,7 +17,7 @@ import world.World;
 public class WorldView implements Renderable {
 
     private final MapView mapView;
-    private final List<SimpleView<? extends WorldEntity>> views = new CopyOnWriteArrayList<>();
+    private final List<SimpleView<? extends WorldEntity>> views = new ArrayList<>();
     private final OrthographicCamera camera;
 
     public WorldView(World<?> world, Map map, OrthographicCamera camera, Player localPlayer, AssetManager assetManager) {
@@ -27,7 +27,7 @@ public class WorldView implements Renderable {
 
         world.subscribeOnPlayerAdded(newPlayer -> views.add(new SimpleView<Player>(newPlayer, assetManager.get(TextureType.PLAYER.getName()))));
         world.subscribeOnPlayerRemoved(playerID -> views.removeIf(view -> view.getId().equals(playerID)));
-        world.subscribeOnBulletAdded((player, newBullet) -> views.add(new SimpleView<Bullet>(newBullet, assetManager.get(TextureType.BULLET.getName()))));
+        world.subscribeOnBulletAdded(newBullet -> views.add(new SimpleView<Bullet>(newBullet, assetManager.get(TextureType.BULLET.getName()))));
         world.subscribeOnBulletRemoved(bulletID -> views.removeIf(view -> view.getId().equals(bulletID)));
     }
 

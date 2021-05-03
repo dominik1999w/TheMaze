@@ -7,24 +7,28 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.UUID;
 
-import connection.GameClient;
-import connection.MapClient;
+import connection.game.GameClient;
+import connection.game.ServerResponseHandler;
+import connection.util.PlayerInputLog;
+import entity.bullet.Bullet;
 import entity.bullet.BulletController;
 import entity.bullet.BulletHitbox;
-import entity.player.PlayerHitbox;
-import entity.player.controller.AuthoritativePlayerController;
-import physics.CollisionWorld;
-import world.World;
-import renderable.WorldView;
 import entity.player.Player;
-import entity.player.controller.InputPlayerController;
+import entity.player.PlayerHitbox;
+import entity.player.PlayerInput;
+import entity.player.controller.AuthoritativePlayerController;
+import entity.player.controller.LocalPlayerController;
 import map.Map;
 import map.MapConfig;
-import map.generator.MapGenerator;
+import physics.CollisionWorld;
+import renderable.WorldView;
 import ui.GameUI;
 import util.Point2D;
+import world.World;
 
 public class GameScreen extends ScreenAdapter {
 
@@ -32,7 +36,7 @@ public class GameScreen extends ScreenAdapter {
     private final SpriteBatch batch;
 
     private final Player player;
-    private final InputPlayerController playerController;
+    private final LocalPlayerController playerController;
     private final CollisionWorld collisionWorld;
 
     private final GameUI gameUI;
@@ -40,58 +44,119 @@ public class GameScreen extends ScreenAdapter {
     private final WorldView worldView;
 
     private final GameClient client;
-    private int frameCounter = 0;
+    private final PlayerInputLog playerInputLog;
 
     private final DebugDrawer debugDrawer;
 
-    public GameScreen(SpriteBatch batch, GameClient client, MapClient mapClient, AssetManager assetManager) {
+    public GameScreen(UUID playerID, SpriteBatch batch, GameClient client, Map map, AssetManager assetManager) {
         this.batch = batch;
-
+        this.playerInputLog = new PlayerInputLog();
         this.client = client;
-        this.client.connect();
-
-        MapGenerator mapGenerator = new MapGenerator(mapClient.getMapLength());
-        Map map = mapGenerator.generateMap(mapClient.getSeed());
-
-        this.camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-
-        this.gameUI = new GameUI(assetManager);
+        client.connect(playerID);
 
         this.world = new World<>(AuthoritativePlayerController::new, BulletController::new);
-        this.player = new Player(UUID.randomUUID(), new Point2D(3.5f * MapConfig.BOX_SIZE, 2.5f * MapConfig.BOX_SIZE));
-        this.playerController = new InputPlayerController(player, world);
-        gameUI.subscribeOnGameInput(playerController);
+        this.player = new Player(playerID, new Point2D(3.5f * MapConfig.BOX_SIZE, 2.5f * MapConfig.BOX_SIZE));
+        this.playerController = new LocalPlayerController(player, world);
         this.collisionWorld = new CollisionWorld(map);
         // Uncomment this for CLIENT-SIDE PLAYER-MAP COLLISION HANDLING
         //world.subscribeOnPlayerAdded(newPlayer -> collisionWorld.addHitbox(new PlayerHitbox(newPlayer)));
-        world.subscribeOnBulletAdded((player, newBullet) -> collisionWorld.addHitbox(new BulletHitbox(newBullet, world)));
+        world.subscribeOnBulletAdded(newBullet -> collisionWorld.addHitbox(new BulletHitbox(newBullet, world)));
         world.subscribeOnBulletRemoved(collisionWorld::removeHitbox);
         collisionWorld.addHitbox(new PlayerHitbox(player));
 
+        this.camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         this.worldView = new WorldView(world, map, camera, player, assetManager);
 
         int mapWidth = 10; // temporary: number of boxes horizontal-wise
         camera.zoom = mapWidth * MapConfig.BOX_SIZE / (float) Gdx.graphics.getWidth();
         camera.update();
 
+        this.gameUI = new GameUI(assetManager);
         gameUI.build();
-
-        client.enterGame(world);
-        gameUI.subscribeOnGameInput(client);
 
         this.debugDrawer = new DebugDrawer(camera, map, player);
     }
 
     @Override
     public void render(float delta) {
-        // read player input
-        gameUI.readInput();
+        // dispatch server messages
+        client.dispatchMessages(new ServerResponseHandler() {
+            @Override
+            public void onActivePlayers(Collection<UUID> playerIDs) {
+                // NOTE: need iterator here to avoid ConcurrentModificationException
+                Iterator<java.util.Map.Entry<UUID, AuthoritativePlayerController>> iterator =
+                        world.getConnectedPlayers().iterator();
+                while (iterator.hasNext()) {
+                    UUID playerID = iterator.next().getKey();
+                    if (!playerIDs.contains(playerID)) {
+                        world.removePlayerController(playerID);
+                    }
+                }
+            }
 
-        // update the world according to player input
-        playerController.update(delta);
+            @Override
+            public void onActiveBullets(Collection<UUID> bulletIDs) {
+                // NOTE: need iterator here to avoid ConcurrentModificationException
+                Iterator<java.util.Map.Entry<UUID, BulletController>> iterator =
+                        world.getBullets().iterator();
+                while (iterator.hasNext()) {
+                    java.util.Map.Entry<UUID, BulletController> playerBullet = iterator.next();
+                    UUID playerID = playerBullet.getKey();
+                    if (playerID.equals(player.getId())) continue;
+
+                    UUID bulletID = playerBullet.getValue().getBullet().getId();
+                    if (!bulletIDs.contains(bulletID)) {
+                        world.removeBulletController(playerID);
+                    }
+                }
+            }
+
+            @Override
+            public void onPlayerState(long sequenceNumber, Player playerState) {
+                if (player.getId().equals(playerState.getId())) {
+                    /*System.out.println(String.format(Locale.ENGLISH,
+                            "Client: (%s, %d)    Server: (%s, %d)",
+                            playerController.getPlayerPosition(), playerInputLog.getCurrentSequenceNumber(),
+                            playerState.getPosition(), sequenceNumber));*/
+
+                    playerInputLog.discardLogUntil(sequenceNumber);
+                    playerController.setNextState(0, playerState);
+                    for (PlayerInput playerInput : playerInputLog.getInputLog()) {
+                        playerController.updateInput(playerInput);
+                        playerController.update();
+                        collisionWorld.update();
+                    }
+                } else {
+                    world.getPlayerController(playerState.getId())
+                            .setNextState(sequenceNumber, playerState);
+                }
+            }
+
+            @Override
+            public void onBulletState(UUID playerID, Bullet bulletState) {
+                if (!playerID.equals(player.getId()))
+                    world.onBulletFired(playerID, bulletState);
+            }
+        });
+
+        // read player input
+        PlayerInput playerInput = gameUI.readInput();
+        playerInput.setDelta(delta);
+
+        // check for AFK (no reasonable input)
+        if (!playerInput.isEmpty()) {
+            client.syncState(playerInputLog.getCurrentSequenceNumber(), playerInput);
+            playerInputLog.log(playerInput);
+            // update the player according to user input
+            playerController.updateInput(playerInput);
+            playerController.update();
+        }
+
+        // update the world
         world.update(delta);
         collisionWorld.update();
 
+        // update camera position
         Point2D playerPosition = player.getPosition();
         camera.position.set(playerPosition.x(), playerPosition.y(), 0);
         camera.update();
@@ -106,12 +171,7 @@ public class GameScreen extends ScreenAdapter {
         batch.end();
 
         //debugDrawer.draw();
-
         gameUI.render(delta);
-
-        // We probably need to syncState at a fixed rate (render() is not fixed rate)
-        if (frameCounter % 1 == 0) client.syncState();
-        frameCounter++;
     }
 
     @Override

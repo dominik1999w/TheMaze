@@ -1,7 +1,5 @@
 package entity.bullet;
 
-import java.util.UUID;
-
 import map.MapConfig;
 import util.Point2D;
 
@@ -22,7 +20,7 @@ public class BulletController {
         bullet.getPosition().add(deltaPosition);
     }
 
-    public UUID getBulletId() {
-        return bullet.getId();
+    public Bullet getBullet() {
+        return bullet;
     }
 }

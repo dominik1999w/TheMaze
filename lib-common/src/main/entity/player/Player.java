@@ -15,9 +15,22 @@ public class Player implements WorldEntity {
         this.id = UUID.randomUUID();
     }
 
+    public Player(Point2D position) {
+        this(position, 0);
+    }
+
+    public Player(Point2D position, float rotation) {
+        this(UUID.randomUUID(), position, rotation);
+    }
+
     public Player(UUID id, Point2D position) {
+        this(id, position, 0);
+    }
+
+    public Player(UUID id, Point2D position, float rotation) {
         this.id = id;
         this.position.set(position);
+        this.rotation = rotation;
     }
 
     public void setPosition(Point2D position) {
@@ -39,5 +52,14 @@ public class Player implements WorldEntity {
     @Override
     public UUID getId() {
         return id;
+    }
+
+    @Override
+    public String toString() {
+        return "Player{" +
+                "id=" + id +
+                ", position=" + position +
+                ", rotation=" + rotation +
+                '}';
     }
 }

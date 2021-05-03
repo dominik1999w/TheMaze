@@ -22,10 +22,12 @@ import com.badlogic.gdx.utils.async.AsyncResult;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 
 import java.util.Random;
+import java.util.UUID;
 
 import connection.ClientFactory;
-import connection.GameClient;
-import connection.MapClient;
+import connection.game.GameClient;
+import connection.map.MapClient;
+import map.Map;
 import map.MapConfig;
 import map.generator.MapGenerator;
 import renderable.MapView;
@@ -43,6 +45,7 @@ public class MenuScreen extends ScreenAdapter {
             //8080
             ;
 
+    private final UUID playerID;
     private final GameApp game;
     private final SpriteBatch batch;
     private final AssetManager assetManager;
@@ -73,7 +76,8 @@ public class MenuScreen extends ScreenAdapter {
     private final int maxMapLength = 50;
     private final int defaultSeed = 0;
 
-    public MenuScreen(GameApp game, SpriteBatch batch, AssetManager assetManager) {
+    public MenuScreen(UUID playerID, GameApp game, SpriteBatch batch, AssetManager assetManager) {
+        this.playerID = playerID;
         this.game = game;
         this.batch = batch;
         this.assetManager = assetManager;
@@ -88,7 +92,7 @@ public class MenuScreen extends ScreenAdapter {
         task = asyncExecutor.submit(() -> {
             gameClient = ClientFactory.newGameClient(HOST, PORT);
             mapClient = ClientFactory.newMapClient(HOST, PORT);
-            mapClient.connect();
+            mapClient.connect(playerID);
 
             if (mapClient.isHost()) {
                 Gdx.app.postRunnable(() -> sliderContainer.setVisible(true));
@@ -145,7 +149,9 @@ public class MenuScreen extends ScreenAdapter {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 if (task.isDone()) {
-                    gameScreen = new GameScreen(batch, gameClient, mapClient, assetManager);
+                    MapGenerator mapGenerator = new MapGenerator(mapClient.getMapLength());
+                    Map map = mapGenerator.generateMap(mapClient.getSeed());
+                    gameScreen = new GameScreen(playerID, batch, gameClient, map, assetManager);
                     game.setScreen(gameScreen);
                 }
             }

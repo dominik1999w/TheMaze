@@ -1,4 +1,6 @@
-package connection;
+package connection.map;
+
+import java.util.UUID;
 
 public class NoOpMapClient implements MapClient {
     @Override
@@ -27,12 +29,12 @@ public class NoOpMapClient implements MapClient {
     }
 
     @Override
-    public void connect() {
+    public void syncState() {
 
     }
 
     @Override
-    public void syncState() {
+    public void connect(UUID id) {
 
     }
 }
