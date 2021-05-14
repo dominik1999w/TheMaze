@@ -13,6 +13,7 @@ import java.util.UUID;
 
 import connection.game.GameClient;
 import connection.game.ServerResponseHandler;
+import connection.map.MapClient;
 import connection.util.PlayerInputLog;
 import entity.bullet.Bullet;
 import entity.bullet.BulletController;
@@ -48,14 +49,15 @@ public class GameScreen extends ScreenAdapter {
 
     private final DebugDrawer debugDrawer;
 
-    public GameScreen(UUID playerID, SpriteBatch batch, GameClient client, Map map, AssetManager assetManager) {
+    public GameScreen(UUID playerID, SpriteBatch batch, GameClient gameClient, MapClient mapClient, Map map, AssetManager assetManager) {
         this.batch = batch;
         this.playerInputLog = new PlayerInputLog();
-        this.client = client;
-        client.connect(playerID);
+        this.client = gameClient;
+        gameClient.connect(playerID);
 
         this.world = new World<>(AuthoritativePlayerController::new, BulletController::new);
-        this.player = new Player(playerID, new Point2D(3.5f * MapConfig.BOX_SIZE, 2.5f * MapConfig.BOX_SIZE));
+
+        this.player = new Player(playerID, mapClient.getStartPos());
         this.playerController = new LocalPlayerController(player, world);
         this.collisionWorld = new CollisionWorld(map);
         // Uncomment this for CLIENT-SIDE PLAYER-MAP COLLISION HANDLING
@@ -127,7 +129,7 @@ public class GameScreen extends ScreenAdapter {
                         collisionWorld.update();
                     }
                 } else {
-                    world.getPlayerController(playerState.getId())
+                    world.getPlayerController(playerState.getId(), playerState.getPosition())
                             .setNextState(sequenceNumber, playerState);
                 }
             }

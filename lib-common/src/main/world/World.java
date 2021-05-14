@@ -67,13 +67,17 @@ public class World<TController extends PlayerController> {
         onBulletRemovedSubscribers.forEach(subscriber -> subscriber.accept(controller.getBullet().getId()));
     }
 
-    public TController getPlayerController(UUID playerID) {
+    public TController getPlayerController(UUID playerID, Point2D position) {
         return players.computeIfAbsent(playerID, k ->
         {
-            Player player = new Player(playerID, new Point2D(3.5f * MapConfig.BOX_SIZE, 2.5f * MapConfig.BOX_SIZE));
+            Player player = new Player(playerID, position);
             onPlayerAddedSubscribers.forEach(subscriber -> subscriber.accept(player));
             return controllerConstructor.apply(player, this);
         });
+    }
+
+    public TController getPlayerController(UUID playerID) {
+        return getPlayerController(playerID, new Point2D(2.5f * MapConfig.BOX_SIZE, 3.5f * MapConfig.BOX_SIZE));
     }
 
     public void onBulletFired(UUID shooterID, Bullet bullet) {

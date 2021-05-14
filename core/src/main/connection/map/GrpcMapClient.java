@@ -2,11 +2,15 @@ package connection.map;
 
 import java.util.UUID;
 
+import connection.CallKey;
+import io.grpc.Context;
 import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
 import lib.map.MapGrpc;
+import lib.map.Position;
 import lib.map.StateRequest;
 import lib.map.StateResponse;
+import util.Point2D;
 
 public class GrpcMapClient implements MapClient {
 
@@ -17,6 +21,8 @@ public class GrpcMapClient implements MapClient {
     private int length = 5;
     private int seed = 0;
     private boolean isHost = false;
+    private Position startPos;
+    private boolean gameStarted = false;
 
     private StreamObserver<StateRequest> stateRequestStream;
 
@@ -33,27 +39,31 @@ public class GrpcMapClient implements MapClient {
                 .setId(id.toString())
                 .setLength(length)
                 .setSeed(seed)
+                .setStarted(gameStarted)
                 .build();
 
-        stateRequestStream = asyncStub.syncGameState(new StreamObserver<StateResponse>() {
-            @Override
-            public void onNext(StateResponse value) {
-                length = value.getLength();
-                seed = value.getSeed();
-            }
+        Context.current().withValue(CallKey.PLAYER_ID, id).run(() -> {
+            stateRequestStream = asyncStub.syncGameState(new StreamObserver<StateResponse>() {
+                @Override
+                public void onNext(StateResponse value) {
+                    length = value.getLength();
+                    seed = value.getSeed();
+                    startPos = value.getPosition();
+                    gameStarted = value.getStarted();
+                }
 
-            @Override
-            public void onError(Throwable t) {
+                @Override
+                public void onError(Throwable t) {
 
-            }
+                }
 
-            @Override
-            public void onCompleted() {
+                @Override
+                public void onCompleted() {
 
-            }
+                }
+            });
+            isHost = blockingStub.connect(request).getIsHost();
         });
-
-        isHost = blockingStub.connect(request).getIsHost();
     }
 
     @Override
@@ -62,6 +72,7 @@ public class GrpcMapClient implements MapClient {
                 .setId(id.toString())
                 .setLength(length)
                 .setSeed(seed)
+                .setStarted(gameStarted)
                 .build();
 
         stateRequestStream.onNext(request);
@@ -90,5 +101,18 @@ public class GrpcMapClient implements MapClient {
     @Override
     public void setSeed(int seed) {
         this.seed = seed;
+    }
+
+    public boolean isGameStarted() {
+        return gameStarted;
+    }
+
+    public void setGameStarted(boolean gameStarted) {
+        this.gameStarted = gameStarted;
+    }
+
+    @Override
+    public Point2D getStartPos() {
+        return new Point2D(startPos.getPositionX(), startPos.getPositionY());
     }
 }

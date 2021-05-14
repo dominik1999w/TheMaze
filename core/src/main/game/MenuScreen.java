@@ -102,13 +102,12 @@ public class MenuScreen extends ScreenAdapter {
 
             return null;
         });
-
     }
 
     void buildUI() {
         buildMenuContainer();
-        buildSliderContainer();
         buildMap();
+        buildSliderContainer();
 
         status = new Label("server status: connecting", skin, "big");
         status.setPosition(10, 0);
@@ -148,11 +147,8 @@ public class MenuScreen extends ScreenAdapter {
         startGame.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                if (task.isDone()) {
-                    MapGenerator mapGenerator = new MapGenerator(mapClient.getMapLength());
-                    Map map = mapGenerator.generateMap(mapClient.getSeed());
-                    gameScreen = new GameScreen(playerID, batch, gameClient, map, assetManager);
-                    game.setScreen(gameScreen);
+                if (task.isDone() && mapClient.isHost()) {
+                    mapClient.setGameStarted(true);
                 }
             }
         });
@@ -233,6 +229,14 @@ public class MenuScreen extends ScreenAdapter {
 
         if (task.isDone()) {
             mapClient.syncState();
+
+            if (mapClient.isGameStarted()) {
+                MapGenerator mapGenerator = new MapGenerator(mapClient.getMapLength());
+                Map map = mapGenerator.generateMap(mapClient.getSeed());
+                gameScreen = new GameScreen(playerID, batch, gameClient, mapClient, map, assetManager);
+                game.setScreen(gameScreen);
+            }
+
             if (!mapClient.isHost() && (prevLength != mapClient.getMapLength() || prevSeed != mapClient.getSeed())) {
                 prevLength = mapClient.getMapLength();
                 prevSeed = mapClient.getSeed();

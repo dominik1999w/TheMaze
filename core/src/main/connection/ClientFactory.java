@@ -43,15 +43,22 @@ public class ClientFactory {
 
     @SuppressWarnings("CheckResult")
     public static MapClient newMapClient(String host, int port) {
-        ManagedChannel channel = ManagedChannelBuilder.forTarget("dns:///" + host + ":" + port)
-                .usePlaintext().build();
-        try {
-            MapGrpc.newBlockingStub(channel).handshake(Empty.newBuilder().build());
-        } catch (StatusRuntimeException e) {
-            logger.info(String.format(Locale.ENGLISH,
-                    "No answer from (%s:%d), switching to NoOpClient", host, port));
-            return new NoOpMapClient();
+        {
+            ManagedChannel channel = ManagedChannelBuilder.forAddress(host, port)
+                    .usePlaintext().build();
+            try {
+                MapGrpc.newBlockingStub(channel).handshake(Empty.newBuilder().build());
+            } catch (StatusRuntimeException e) {
+                logger.info(String.format(Locale.ENGLISH,
+                        "No answer from (%s:%d), switching to NoOpClient", host, port));
+                return new NoOpMapClient();
+            }
         }
+
+        ManagedChannel channel = ManagedChannelBuilder.forAddress(host, port)
+                .usePlaintext()
+                .intercept(new PlayerIDInterceptor())
+                .build();
         return new GrpcMapClient(channel);
     }
 

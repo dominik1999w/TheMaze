@@ -21,6 +21,7 @@ public class GrpcServer implements GameServer {
                 .addService(gameService)
                 .addService(mapService)
                 .addService(ServerInterceptors.intercept(gameService, new PlayerIDInterceptor()))
+                .addService(ServerInterceptors.intercept(mapService, new PlayerIDInterceptor()))
                 .build();
     }
 

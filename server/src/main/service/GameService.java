@@ -17,6 +17,9 @@ import java.util.logging.Logger;
 import connection.CallKey;
 import entity.bullet.Bullet;
 import entity.bullet.BulletController;
+import entity.bullet.BulletHitbox;
+import entity.player.PlayerHitbox;
+import entity.player.controller.InputPlayerController;
 import entity.player.controller.PlayerController;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
@@ -30,20 +33,31 @@ import lib.connection.GameStateResponse;
 import lib.connection.LocalPlayerInput;
 import lib.connection.PlayerState;
 import lib.connection.TheMazeGrpc;
+import lib.map.Position;
+import map.MapConfig;
+import map.generator.MapGenerator;
+import physics.CollisionWorld;
+import time.Timer;
 import util.ClientsInputLog;
 import util.GRpcMapper;
+import util.Point2D;
 import world.World;
+
+import static util.ServerConfig.SERVER_UPDATE_RATE;
 
 public class GameService extends TheMazeGrpc.TheMazeImplBase {
     private static final Logger logger = Logger.getLogger(GameService.class.getName());
 
-    private final World<?> world;
+    private CollisionWorld collisionWorld;
+    private World<InputPlayerController> world;
+
     private final ClientsInputLog inputLog;
 
     private final Map<StreamObserver<GameStateResponse>, UUID> responseObservers = new HashMap<>();
 
-    public GameService(World<?> world) {
-        this.world = world;
+    private boolean enabled = false;
+
+    public GameService() {
         this.inputLog = new ClientsInputLog();
     }
 
@@ -87,6 +101,25 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
 
     @Override
     public StreamObserver<GameStateRequest> syncGameState(StreamObserver<GameStateResponse> responseObserver) {
+        if (!enabled) {
+            return new StreamObserver<GameStateRequest>() {
+                @Override
+                public void onNext(GameStateRequest value) {
+
+                }
+
+                @Override
+                public void onError(Throwable t) {
+
+                }
+
+                @Override
+                public void onCompleted() {
+
+                }
+            };
+        }
+
         onPlayerJoined(CallKey.PLAYER_ID.get(), responseObserver);
         ((ServerCallStreamObserver<GameStateResponse>) responseObserver)
                 .setOnCancelHandler(() -> disconnectedObservers.add(responseObserver));
@@ -155,7 +188,14 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
     private void onPlayerJoined(UUID playerID, StreamObserver<GameStateResponse> responseObserver) {
         queueLock.lock();
         responseObservers.put(responseObserver, playerID);
-        world.onPlayerJoined(playerID);
+
+        /* TODO: TEMPORARY workaround for working with GameService only */
+        try {
+            world.onPlayerJoined(playerID);
+        } catch (NullPointerException exception) {
+            world.getPlayerController(playerID, new Point2D(3.5f * MapConfig.BOX_SIZE, 2.5f * MapConfig.BOX_SIZE));
+        }
+
         queueLock.unlock();
     }
 
@@ -168,5 +208,50 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
                     "Player {0} removed from the world", playerID);
         }
         disconnectedObservers.clear();
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    public void initializeWorld(int length, int seed, HashMap<UUID, Position> positions) {
+        MapGenerator mapGenerator = new MapGenerator(length);
+        map.Map map = mapGenerator.generateMap(seed);
+        collisionWorld = new CollisionWorld(map);
+
+        world = new World<>(
+                InputPlayerController::new,
+                BulletController::new);
+
+        world.subscribeOnPlayerAdded(newPlayer -> collisionWorld.addHitbox(new PlayerHitbox(newPlayer)));
+        world.subscribeOnPlayerRemoved(collisionWorld::removeHitbox);
+        world.subscribeOnBulletAdded(newBullet -> collisionWorld.addHitbox(new BulletHitbox(newBullet, world)));
+        world.subscribeOnBulletRemoved(collisionWorld::removeHitbox);
+
+        for (UUID id : positions.keySet()) {
+            Position pos = positions.get(id);
+            world.getPlayerController(id, new Point2D(pos.getPositionX(), pos.getPositionY()));
+        }
+    }
+
+    public Thread gameThread() {
+        return new Thread(() -> Timer.executeAtFixedRate(delta ->
+        {
+            if (!enabled) {
+                return;
+            }
+
+            dispatchMessages((sequenceNumber, id, playerInput) ->
+            {
+                InputPlayerController playerController = world.getPlayerController(id);
+                playerController.updateInput(playerInput);
+                playerController.update();
+                collisionWorld.update();
+            });
+            // TODO: rewrite: in world.update only bullets will be actually updated
+            world.update(delta);
+            collisionWorld.update();
+            broadcastGameState(System.currentTimeMillis());
+        }, 1.0f / SERVER_UPDATE_RATE));
     }
 }
