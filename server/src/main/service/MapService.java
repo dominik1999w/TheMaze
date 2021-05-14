@@ -91,7 +91,6 @@ public class MapService extends MapGrpc.MapImplBase {
                 );
 
                 if (gameStarted && value.getId().equals(host)) {
-                    logger.info("a ti");
                     HashMap<UUID, Position> positions = new HashMap<>();
                     for (Map.Entry<StreamObserver<StateResponse>, UUID> entry : clients.entrySet()) {
                         UUID id = entry.getValue();

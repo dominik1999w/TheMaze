@@ -105,12 +105,12 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
             return new StreamObserver<GameStateRequest>() {
                 @Override
                 public void onNext(GameStateRequest value) {
-
+                    responseObserver.onError(new RuntimeException("Game service is not enabled."));
                 }
 
                 @Override
                 public void onError(Throwable t) {
-
+                    logger.log(Level.WARNING, "SyncGameState failed: {0}", Status.fromThrowable(t));
                 }
 
                 @Override
