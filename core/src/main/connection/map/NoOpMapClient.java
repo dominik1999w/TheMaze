@@ -47,6 +47,11 @@ public class NoOpMapClient implements MapClient {
     }
 
     @Override
+    public void disconnect() {
+
+    }
+
+    @Override
     public void syncState() {
 
     }

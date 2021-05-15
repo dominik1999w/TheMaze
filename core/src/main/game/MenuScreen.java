@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.ui.Container;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -51,30 +52,29 @@ public class MenuScreen extends ScreenAdapter {
     private final AssetManager assetManager;
     private final Skin skin;
     private final Stage stage;
+    private final AsyncExecutor asyncExecutor;
+    private AsyncResult<Void> task;
+    private GameScreen gameScreen;
 
+    /* UI Containers */
     private Container<Table> menuContainer;
     private Container<Actor> sliderContainer;
     private Label status;
-
-    private GameScreen gameScreen;
-
-    private MapClient mapClient;
-    private GameClient gameClient;
-
-    private final AsyncExecutor asyncExecutor;
-    private AsyncResult<Void> task;
-
+    private TextButton startGame;
     private MapView mapView;
     private OrthographicCamera camera;
 
-    private final Random random = new Random();
+    /* Clients */
+    private MapClient mapClient;
+    private GameClient gameClient;
 
+    /* UI specifications */
     private final float initialZoom = 0.166f;
     private final int defaultHeight = 1080;
-
     private final int minMapLength = 5;
     private final int maxMapLength = 50;
     private final int defaultSeed = 0;
+    private final Random random = new Random();
 
     public MenuScreen(UUID playerID, GameApp game, SpriteBatch batch, AssetManager assetManager) {
         this.playerID = playerID;
@@ -93,18 +93,12 @@ public class MenuScreen extends ScreenAdapter {
             gameClient = ClientFactory.newGameClient(HOST, PORT);
             mapClient = ClientFactory.newMapClient(HOST, PORT);
             mapClient.connect(playerID);
-
-            if (mapClient.isHost()) {
-                Gdx.app.postRunnable(() -> sliderContainer.setVisible(true));
-            }
-
             Gdx.app.postRunnable(() -> status.setText("server status: connected"));
-
             return null;
         });
     }
 
-    void buildUI() {
+    private void buildUI() {
         buildMenuContainer();
         buildMap();
         buildSliderContainer();
@@ -117,6 +111,71 @@ public class MenuScreen extends ScreenAdapter {
         stage.addActor(sliderContainer);
 
         Gdx.input.setInputProcessor(stage);
+    }
+
+    int prevLength = minMapLength;
+    int prevSeed = defaultSeed;
+    boolean sliderShown = false;
+    float countDown = 3 * 60;
+
+    @Override
+    public void render(float delta) {
+        Gdx.gl.glClearColor(.5f, .5f, .5f, 1);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
+        syncState(delta);
+
+        batch.begin();
+        mapView.render(batch);
+        batch.end();
+
+        stage.act(delta);
+        stage.draw();
+    }
+
+    private void syncState(float delta) {
+        if (task.isDone()) {
+            mapClient.syncState();
+
+            if (mapClient.isHost() && !sliderShown) {
+                sliderContainer.setVisible(true);
+                startGame.setVisible(true);
+                sliderShown = true;
+            }
+
+            if (mapClient.isGameStarted()) {
+                countDown -= delta;
+                System.out.println((int) countDown / 60);
+                MapGenerator mapGenerator = new MapGenerator(mapClient.getMapLength());
+                Map map = mapGenerator.generateMap(mapClient.getSeed());
+                gameScreen = new GameScreen(playerID, batch, gameClient, mapClient, map, assetManager);
+                game.setScreen(gameScreen);
+            }
+
+            if (!mapClient.isHost() && (prevLength != mapClient.getMapLength() || prevSeed != mapClient.getSeed())) {
+                prevLength = mapClient.getMapLength();
+                prevSeed = mapClient.getSeed();
+                updateMap(prevLength, prevSeed);
+            }
+        }
+    }
+
+    @Override
+    public void dispose() {
+        if (task.isDone()) {
+            mapClient.disconnect();
+            gameClient.disconnect();
+        }
+        asyncExecutor.dispose();
+        if (gameScreen != null) {
+            gameScreen.dispose();
+        }
+        stage.dispose();
+    }
+
+    @Override
+    public void resize(int width, int height) {
+        stage.getViewport().update(width, height);
     }
 
     private void buildMenuContainer() {
@@ -142,21 +201,31 @@ public class MenuScreen extends ScreenAdapter {
 
         info.row().padTop(50.0f);
 
-        TextButton startGame = new TextButton("Start Game", skin);
+        startGame = new TextButton("Start Game", skin);
         startGame.getLabel().setFontScale(optionFontScale * Gdx.graphics.getHeight() / defaultHeight);
         startGame.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 if (task.isDone() && mapClient.isHost()) {
                     mapClient.setGameStarted(true);
+                } else if (task.isDone()) {
+                    startGame.setText("Ready");
                 }
+                startGame.setTouchable(Touchable.disabled);
             }
         });
+        startGame.setVisible(false);
         info.add(startGame).fillX();
 
         info.row();
 
         TextButton quitGame = new TextButton("Quit", skin);
+        quitGame.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                Gdx.app.exit();
+            }
+        });
         quitGame.getLabel().setFontScale(optionFontScale * Gdx.graphics.getHeight() / defaultHeight);
         info.add(quitGame).fillX();
 
@@ -217,52 +286,5 @@ public class MenuScreen extends ScreenAdapter {
                 camera.zoom * menuContainer.getHeight() * 0.5f,
                 0);
         camera.update();
-    }
-
-    int prevLength = minMapLength;
-    int prevSeed = defaultSeed;
-
-    @Override
-    public void render(float delta) {
-        Gdx.gl.glClearColor(.5f, .5f, .5f, 1);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-
-        if (task.isDone()) {
-            mapClient.syncState();
-
-            if (mapClient.isGameStarted()) {
-                MapGenerator mapGenerator = new MapGenerator(mapClient.getMapLength());
-                Map map = mapGenerator.generateMap(mapClient.getSeed());
-                gameScreen = new GameScreen(playerID, batch, gameClient, mapClient, map, assetManager);
-                game.setScreen(gameScreen);
-            }
-
-            if (!mapClient.isHost() && (prevLength != mapClient.getMapLength() || prevSeed != mapClient.getSeed())) {
-                prevLength = mapClient.getMapLength();
-                prevSeed = mapClient.getSeed();
-                updateMap(prevLength, prevSeed);
-            }
-        }
-
-        batch.begin();
-        mapView.render(batch);
-        batch.end();
-
-        stage.act(delta);
-        stage.draw();
-    }
-
-    @Override
-    public void dispose() {
-        asyncExecutor.dispose();
-        if (gameScreen != null) {
-            gameScreen.dispose();
-        }
-        stage.dispose();
-    }
-
-    @Override
-    public void resize(int width, int height) {
-        stage.getViewport().update(width, height);
     }
 }

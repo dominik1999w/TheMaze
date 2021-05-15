@@ -4,6 +4,7 @@ import server.GrpcServer;
 import service.GameService;
 import service.MapService;
 import types.WallType;
+import util.GameStateHandler;
 
 public class Main {
     private static void loadClasses(Class<?>... classes) {
@@ -28,7 +29,6 @@ public class Main {
                     lib.connection.GameStateRequest.class,
                     lib.connection.GameStateResponse.class,
                     lib.connection.BulletState.class,
-                    lib.map.ConnectReply.class,
                     lib.map.StateRequest.class,
                     lib.map.StateResponse.class,
                     entity.player.Player.class,
@@ -61,7 +61,8 @@ public class Main {
         GameServer server = new GrpcServer(50051, gameService, mapService);
         server.start();
 
-        gameService.gameThread().start();
+        GameStateHandler stateHandler = new GameStateHandler(gameService);
+        stateHandler.gameThread().start();
 
 
         server.blockUntilShutdown();

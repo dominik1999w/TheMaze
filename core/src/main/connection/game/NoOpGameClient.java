@@ -19,4 +19,9 @@ public class NoOpGameClient implements GameClient {
     public void connect(UUID id) {
 
     }
+
+    @Override
+    public void disconnect() {
+
+    }
 }

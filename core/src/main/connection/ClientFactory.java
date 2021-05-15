@@ -3,6 +3,7 @@ package connection;
 import com.google.protobuf.Empty;
 
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import connection.game.GameClient;
@@ -31,6 +32,11 @@ public class ClientFactory {
                 logger.info(String.format(Locale.ENGLISH,
                         "No answer from (%s:%d), switching to NoOpClient", host, port));
                 return new NoOpGameClient();
+            } finally {
+                try {
+                    channel.shutdownNow().awaitTermination(3, TimeUnit.SECONDS);
+                } catch (InterruptedException ignored) {
+                }
             }
         }
 
@@ -52,6 +58,11 @@ public class ClientFactory {
                 logger.info(String.format(Locale.ENGLISH,
                         "No answer from (%s:%d), switching to NoOpClient", host, port));
                 return new NoOpMapClient();
+            } finally {
+                try {
+                    channel.shutdownNow().awaitTermination(3, TimeUnit.SECONDS);
+                } catch (InterruptedException ignored) {
+                }
             }
         }
 

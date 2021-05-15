@@ -3,8 +3,8 @@ package connection.game;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Queue;
-import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
@@ -26,6 +26,7 @@ public class GrpcGameClient implements GameClient {
 
     private final TheMazeGrpc.TheMazeBlockingStub blockingStub;
     private final TheMazeGrpc.TheMazeStub asyncStub;
+    private final ManagedChannel channel;
 
     private UUID id;
 
@@ -35,6 +36,7 @@ public class GrpcGameClient implements GameClient {
     private final Queue<GameStateResponse> responseQueue = new ArrayDeque<>();
 
     public GrpcGameClient(ManagedChannel channel) {
+        this.channel = channel;
         this.blockingStub = TheMazeGrpc.newBlockingStub(channel);
         this.asyncStub = TheMazeGrpc.newStub(channel);
     }
@@ -60,8 +62,8 @@ public class GrpcGameClient implements GameClient {
 
             response.getPlayersList().forEach(playerState ->
                     responseHandler.onPlayerState(
-                        playerState.getId().equals(id.toString()) ? playerState.getSequenceNumber() : response.getTimestamp(),
-                        GRpcMapper.playerState(playerState)
+                            playerState.getId().equals(id.toString()) ? playerState.getSequenceNumber() : response.getTimestamp(),
+                            GRpcMapper.playerState(playerState)
                     )
             );
 
@@ -75,7 +77,6 @@ public class GrpcGameClient implements GameClient {
         queueLock.unlock();
     }
 
-    @SuppressWarnings("CheckResult")
     @Override
     public void connect(UUID id) {
         this.id = id;
@@ -116,5 +117,13 @@ public class GrpcGameClient implements GameClient {
                 .build();
 
         gameStateRequestStream.onNext(request);
+    }
+
+    @Override
+    public void disconnect() {
+        try {
+            channel.shutdownNow().awaitTermination(3, TimeUnit.SECONDS);
+        } catch (InterruptedException ignored) {
+        }
     }
 }

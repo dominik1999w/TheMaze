@@ -1,10 +1,12 @@
 package connection.map;
 
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import connection.CallKey;
 import io.grpc.Context;
 import io.grpc.ManagedChannel;
+import io.grpc.stub.ClientCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import lib.map.MapGrpc;
 import lib.map.Position;
@@ -16,6 +18,7 @@ public class GrpcMapClient implements MapClient {
 
     private final MapGrpc.MapBlockingStub blockingStub;
     private final MapGrpc.MapStub asyncStub;
+    private final ManagedChannel channel;
 
     private UUID id;
     private int length = 5;
@@ -27,10 +30,12 @@ public class GrpcMapClient implements MapClient {
     private StreamObserver<StateRequest> stateRequestStream;
 
     public GrpcMapClient(ManagedChannel channel) {
+        this.channel = channel;
         this.blockingStub = MapGrpc.newBlockingStub(channel);
         this.asyncStub = MapGrpc.newStub(channel);
     }
 
+    @SuppressWarnings("CheckResult")
     @Override
     public void connect(UUID id) {
         this.id = id;
@@ -50,6 +55,7 @@ public class GrpcMapClient implements MapClient {
                     seed = value.getSeed();
                     startPos = value.getPosition();
                     gameStarted = value.getStarted();
+                    isHost = value.getIsHost();
                 }
 
                 @Override
@@ -62,8 +68,17 @@ public class GrpcMapClient implements MapClient {
 
                 }
             });
-            isHost = blockingStub.connect(request).getIsHost();
+            blockingStub.connect(request);
         });
+    }
+
+    @Override
+    public void disconnect() {
+        ((ClientCallStreamObserver<StateRequest>) stateRequestStream).cancel("Disconnected", null);
+        try {
+            channel.shutdownNow().awaitTermination(3, TimeUnit.SECONDS);
+        } catch (InterruptedException ignored) {
+        }
     }
 
     @Override

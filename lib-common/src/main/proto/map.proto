@@ -10,7 +10,7 @@ import "google/protobuf/empty.proto";
 
 service Map {
   rpc Handshake (google.protobuf.Empty) returns (google.protobuf.Empty) {}
-  rpc Connect (StateRequest) returns (ConnectReply) {}
+  rpc Connect (StateRequest) returns (google.protobuf.Empty) {}
   rpc SyncGameState (stream StateRequest) returns (stream StateResponse) {}
 }
 
@@ -21,15 +21,12 @@ message StateRequest {
   bool started = 4;
 }
 
-message ConnectReply {
-  bool isHost = 1;
-}
-
 message StateResponse {
   int32 length = 1;
   int32 seed = 2;
   Position position = 3;
   bool started = 4;
+  bool isHost = 5;
 }
 
 message Position {

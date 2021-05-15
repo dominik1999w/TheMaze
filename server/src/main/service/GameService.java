@@ -34,16 +34,12 @@ import lib.connection.LocalPlayerInput;
 import lib.connection.PlayerState;
 import lib.connection.TheMazeGrpc;
 import lib.map.Position;
-import map.MapConfig;
 import map.generator.MapGenerator;
 import physics.CollisionWorld;
-import time.Timer;
 import util.ClientsInputLog;
 import util.GRpcMapper;
 import util.Point2D;
 import world.World;
-
-import static util.ServerConfig.SERVER_UPDATE_RATE;
 
 public class GameService extends TheMazeGrpc.TheMazeImplBase {
     private static final Logger logger = Logger.getLogger(GameService.class.getName());
@@ -185,35 +181,6 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
         }
     }
 
-    private void onPlayerJoined(UUID playerID, StreamObserver<GameStateResponse> responseObserver) {
-        queueLock.lock();
-        responseObservers.put(responseObserver, playerID);
-
-        /* TODO: TEMPORARY workaround for working with GameService only */
-        try {
-            world.onPlayerJoined(playerID);
-        } catch (NullPointerException exception) {
-            world.getPlayerController(playerID, new Point2D(3.5f * MapConfig.BOX_SIZE, 2.5f * MapConfig.BOX_SIZE));
-        }
-
-        queueLock.unlock();
-    }
-
-    private void handleDisconnectedObservers() {
-        for (StreamObserver<GameStateResponse> observer : disconnectedObservers) {
-            UUID playerID = responseObservers.remove(observer);
-            if (playerID != null)
-                world.removePlayerController(playerID);
-            logger.log(Level.INFO,
-                    "Player {0} removed from the world", playerID);
-        }
-        disconnectedObservers.clear();
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
-
     public void initializeWorld(int length, int seed, HashMap<UUID, Position> positions) {
         MapGenerator mapGenerator = new MapGenerator(length);
         map.Map map = mapGenerator.generateMap(seed);
@@ -234,24 +201,40 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
         }
     }
 
-    public Thread gameThread() {
-        return new Thread(() -> Timer.executeAtFixedRate(delta ->
-        {
-            if (!enabled) {
-                return;
-            }
+    private void onPlayerJoined(UUID playerID, StreamObserver<GameStateResponse> responseObserver) {
+        queueLock.lock();
+        responseObservers.put(responseObserver, playerID);
 
-            dispatchMessages((sequenceNumber, id, playerInput) ->
-            {
-                InputPlayerController playerController = world.getPlayerController(id);
-                playerController.updateInput(playerInput);
-                playerController.update();
-                collisionWorld.update();
-            });
-            // TODO: rewrite: in world.update only bullets will be actually updated
-            world.update(delta);
-            collisionWorld.update();
-            broadcastGameState(System.currentTimeMillis());
-        }, 1.0f / SERVER_UPDATE_RATE));
+        world.onPlayerJoined(playerID);
+
+        queueLock.unlock();
+    }
+
+    private void handleDisconnectedObservers() {
+        for (StreamObserver<GameStateResponse> observer : disconnectedObservers) {
+            UUID playerID = responseObservers.remove(observer);
+            if (playerID != null)
+                world.removePlayerController(playerID);
+            logger.log(Level.INFO,
+                    "Player {0} removed from the world", playerID);
+        }
+        disconnectedObservers.clear();
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    public boolean isEnabled() {
+        return this.enabled;
+    }
+
+    public CollisionWorld getCollisionWorld() {
+        return collisionWorld;
+    }
+
+
+    public World<InputPlayerController> getWorld() {
+        return world;
     }
 }
