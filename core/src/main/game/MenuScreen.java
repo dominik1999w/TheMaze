@@ -28,11 +28,13 @@ import java.util.UUID;
 import connection.ClientFactory;
 import connection.game.GameClient;
 import connection.map.MapClient;
+import connection.map.ServerMapResponseHandler;
 import map.Map;
 import map.MapConfig;
 import map.generator.MapGenerator;
 import renderable.MapView;
 import types.SkinType;
+import util.Point2D;
 
 public class MenuScreen extends ScreenAdapter {
     private static final String HOST =
@@ -75,6 +77,7 @@ public class MenuScreen extends ScreenAdapter {
     private final int maxMapLength = 50;
     private final int defaultSeed = 0;
     private final Random random = new Random();
+    private boolean startGameValue;
 
     public MenuScreen(UUID playerID, GameApp game, SpriteBatch batch, AssetManager assetManager) {
         this.playerID = playerID;
@@ -116,14 +119,14 @@ public class MenuScreen extends ScreenAdapter {
     int prevLength = minMapLength;
     int prevSeed = defaultSeed;
     boolean sliderShown = false;
-    float countDown = 3 * 60;
+    Point2D initialPosition = new Point2D(3.5f * MapConfig.BOX_SIZE, 2.5f * MapConfig.BOX_SIZE);
 
     @Override
     public void render(float delta) {
         Gdx.gl.glClearColor(.5f, .5f, .5f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        syncState(delta);
+        syncState();
 
         batch.begin();
         mapView.render(batch);
@@ -133,30 +136,39 @@ public class MenuScreen extends ScreenAdapter {
         stage.draw();
     }
 
-    private void syncState(float delta) {
+    private void syncState() {
         if (task.isDone()) {
-            mapClient.syncState();
+            mapClient.syncState(prevLength, prevSeed, startGameValue);
+            mapClient.dispatchMessages(new ServerMapResponseHandler() {
+                @Override
+                public void displayAdminUI() {
+                    if (!sliderShown) {
+                        sliderContainer.setVisible(true);
+                        startGame.setVisible(true);
+                        sliderShown = true;
+                    }
+                }
 
-            if (mapClient.isHost() && !sliderShown) {
-                sliderContainer.setVisible(true);
-                startGame.setVisible(true);
-                sliderShown = true;
-            }
+                @Override
+                public void updateMap(int mapLength, int seed) {
+                    if (prevLength != mapLength || prevSeed != seed) {
+                        calculateMap(mapLength, seed);
+                    }
+                }
 
-            if (mapClient.isGameStarted()) {
-                countDown -= delta;
-                System.out.println((int) countDown / 60);
-                MapGenerator mapGenerator = new MapGenerator(mapClient.getMapLength());
-                Map map = mapGenerator.generateMap(mapClient.getSeed());
-                gameScreen = new GameScreen(playerID, batch, gameClient, mapClient, map, assetManager);
-                game.setScreen(gameScreen);
-            }
+                @Override
+                public void updateInitialPosition(Point2D position) {
+                    initialPosition = position;
+                }
 
-            if (!mapClient.isHost() && (prevLength != mapClient.getMapLength() || prevSeed != mapClient.getSeed())) {
-                prevLength = mapClient.getMapLength();
-                prevSeed = mapClient.getSeed();
-                updateMap(prevLength, prevSeed);
-            }
+                @Override
+                public void startGame(int mapLength, int seed, boolean isHost) {
+                    MapGenerator mapGenerator = new MapGenerator(mapLength);
+                    Map map = mapGenerator.generateMap(seed);
+                    gameScreen = new GameScreen(playerID, batch, gameClient, initialPosition, map, assetManager);
+                    game.setScreen(gameScreen);
+                }
+            });
         }
     }
 
@@ -206,11 +218,7 @@ public class MenuScreen extends ScreenAdapter {
         startGame.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                if (task.isDone() && mapClient.isHost()) {
-                    mapClient.setGameStarted(true);
-                } else if (task.isDone()) {
-                    startGame.setText("Ready");
-                }
+                startGameValue = true;
                 startGame.setTouchable(Touchable.disabled);
             }
         });
@@ -253,7 +261,7 @@ public class MenuScreen extends ScreenAdapter {
                 if (!slider.isDragging()) {
                     return;
                 }
-                updateMap((int) slider.getValue(), random.nextInt());
+                calculateMap((int) slider.getValue(), random.nextInt());
             }
         });
         config.add(slider).growX();
@@ -264,14 +272,12 @@ public class MenuScreen extends ScreenAdapter {
     private void buildMap() {
         camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         mapView = new MapView(new MapGenerator(minMapLength).generateMap(defaultSeed), assetManager);
-        updateMap(minMapLength, defaultSeed);
+        calculateMap(minMapLength, defaultSeed);
     }
 
-    private void updateMap(int length, int seed) {
-        if (task != null && task.isDone()) {
-            mapClient.setMapLength(length);
-            mapClient.setSeed(seed);
-        }
+    private void calculateMap(int length, int seed) {
+        prevLength = length;
+        prevSeed = seed;
 
         updateCamera(length);
 

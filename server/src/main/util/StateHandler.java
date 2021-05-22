@@ -2,23 +2,31 @@ package util;
 
 import entity.player.controller.InputPlayerController;
 import service.GameService;
+import service.MapService;
 import time.Timer;
 
 import static util.ServerConfig.SERVER_UPDATE_RATE;
 
-public class GameStateHandler {
+public class StateHandler {
 
     private final GameService gameService;
+    private final MapService mapService;
 
-    public GameStateHandler(GameService gameService) {
+    public StateHandler(MapService mapService, GameService gameService) {
+        this.mapService = mapService;
         this.gameService = gameService;
     }
 
-
-    public Thread gameThread() {
+    public Thread mainThread() {
         return new Thread(() -> Timer.executeAtFixedRate(delta ->
         {
             if (!gameService.isEnabled()) {
+                mapService.dispatchMessages();
+                mapService.broadcastMapState((mapLength, seed, positions) -> {
+                    gameService.initializeWorld(mapLength, seed, positions);
+                    gameService.setEnabled(true);
+                });
+
                 return;
             }
 

@@ -42,7 +42,7 @@ public class GrpcGameClient implements GameClient {
     }
 
     @Override
-    public void dispatchMessages(ServerResponseHandler responseHandler) {
+    public void dispatchMessages(ServerGameResponseHandler responseHandler) {
         queueLock.lock();
         //System.out.println("Dispatching messages: " + responseQueue.size());
         while (!responseQueue.isEmpty()) {

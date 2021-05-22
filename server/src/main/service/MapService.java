@@ -2,17 +2,22 @@ package service;
 
 import com.google.protobuf.Empty;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import connection.CallKey;
 import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import lib.map.MapGrpc;
@@ -23,9 +28,8 @@ import map.MapConfig;
 
 public class MapService extends MapGrpc.MapImplBase {
     private static final Logger logger = Logger.getLogger(MapService.class.getName());
-    private final GameService gameService;
 
-    private UUID host = null;
+    private String host = null;
     private int lastSeed;
     private int lastLength;
     private boolean gameStarted = false;
@@ -33,8 +37,7 @@ public class MapService extends MapGrpc.MapImplBase {
     private final Map<StreamObserver<StateResponse>, UUID> clients = new HashMap<>();
     private final Set<StreamObserver<StateResponse>> disconnectedClients = new HashSet<>();
 
-    public MapService(GameService gameService) {
-        this.gameService = gameService;
+    public MapService() {
     }
 
     @Override
@@ -44,73 +47,62 @@ public class MapService extends MapGrpc.MapImplBase {
         responseObserver.onCompleted();
     }
 
+    private final Lock queueLock = new ReentrantLock();
+    private final Queue<StateRequest> requestQueue = new ArrayDeque<>();
+
     @Override
     public void connect(StateRequest request, StreamObserver<Empty> responseObserver) {
         logger.info("Connect from " + request.getId());
 
-        if (host == null) {
-            host = UUID.fromString(request.getId());
-            lastSeed = request.getSeed();
-            lastLength = request.getLength();
-        }
+        queueLock.lock();
+        requestQueue.add(request);
+        queueLock.unlock();
 
         responseObserver.onNext(Empty.newBuilder().build());
         responseObserver.onCompleted();
     }
 
+    public void dispatchMessages() {
+        queueLock.lock();
+        while (!requestQueue.isEmpty()) {
+            StateRequest request = requestQueue.poll();
+            if (host == null) {
+                host = request.getId();
+            }
+
+            if (request.getId().equals(host)) {
+                lastLength = request.getLength();
+                lastSeed = request.getSeed();
+                gameStarted = request.getStarted();
+            }
+        }
+        queueLock.unlock();
+    }
+
     @Override
-    public StreamObserver<StateRequest> syncGameState(StreamObserver<StateResponse> responseObserver) {
+    public StreamObserver<StateRequest> syncMapState(StreamObserver<StateResponse> responseObserver) {
+        queueLock.lock();
         clients.put(responseObserver, CallKey.PLAYER_ID.get());
         ((ServerCallStreamObserver<StateResponse>) responseObserver)
                 .setOnCancelHandler(() -> {
-                    if (CallKey.PLAYER_ID.get().equals(host)) {
+                    if (CallKey.PLAYER_ID.get().toString().equals(host)) {
                         host = null;
                     }
                     disconnectedClients.add(responseObserver);
                 });
+        queueLock.unlock();
 
         return new StreamObserver<StateRequest>() {
             @Override
             public void onNext(StateRequest value) {
-                if (host == null) {
-                    host = CallKey.PLAYER_ID.get();
-                }
-
-                if (CallKey.PLAYER_ID.get().equals(host)) {
-                    lastLength = value.getLength();
-                    lastSeed = value.getSeed();
-                    gameStarted = value.getStarted();
-                }
-
-                handleDisconnectedClients();
-
-                Position position = getStartingPosition(value.getId());
-
-                responseObserver.onNext(
-                        StateResponse.newBuilder()
-                                .setLength(lastLength)
-                                .setSeed(lastSeed)
-                                .setPosition(position)
-                                .setStarted(gameStarted)
-                                .setIsHost(CallKey.PLAYER_ID.get().equals(host))
-                                .build()
-                );
-
-                if (gameStarted && CallKey.PLAYER_ID.get().equals(host)) {
-                    HashMap<UUID, Position> positions = new HashMap<>();
-                    for (Map.Entry<StreamObserver<StateResponse>, UUID> entry : clients.entrySet()) {
-                        UUID id = entry.getValue();
-                        positions.put(id, getStartingPosition(id.toString()));
-                    }
-
-                    gameService.initializeWorld(lastLength, lastSeed, positions);
-                    gameService.setEnabled(true);
-                }
+                queueLock.lock();
+                requestQueue.add(value);
+                queueLock.unlock();
             }
 
             @Override
             public void onError(Throwable t) {
-                logger.log(Level.WARNING, "SyncGameState failed: {0}", Status.fromThrowable(t));
+                logger.log(Level.WARNING, "SyncMapState failed: {0}", Status.fromThrowable(t));
             }
 
             @Override
@@ -118,6 +110,36 @@ public class MapService extends MapGrpc.MapImplBase {
                 responseObserver.onCompleted();
             }
         };
+    }
+
+    public void broadcastMapState(StartGameHandler gameHandler) {
+        handleDisconnectedClients();
+
+        Map<UUID, Position> positions = new HashMap<>();
+        for (Map.Entry<StreamObserver<StateResponse>, UUID> entry : clients.entrySet()) {
+            UUID id = entry.getValue();
+            positions.put(id, getStartingPosition(id.toString()));
+        }
+
+        if (gameStarted) {
+            gameHandler.initializeGame(lastLength, lastSeed, positions);
+        }
+
+        for (Map.Entry<StreamObserver<StateResponse>, UUID> entry : clients.entrySet()) {
+            try {
+                entry.getKey().onNext(
+                        StateResponse.newBuilder()
+                                .setLength(lastLength)
+                                .setSeed(lastSeed)
+                                .setPosition(positions.get(entry.getValue()))
+                                .setStarted(gameStarted)
+                                .setIsHost(entry.getValue().toString().equals(host))
+                                .build());
+            } catch (StatusRuntimeException e) {
+                logger.log(Level.INFO,
+                        "Player {0} disconnected", entry.getValue());
+            }
+        }
     }
 
     private void handleDisconnectedClients() {

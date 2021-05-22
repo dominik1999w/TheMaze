@@ -12,8 +12,7 @@ import java.util.Iterator;
 import java.util.UUID;
 
 import connection.game.GameClient;
-import connection.game.ServerResponseHandler;
-import connection.map.MapClient;
+import connection.game.ServerGameResponseHandler;
 import connection.util.PlayerInputLog;
 import entity.bullet.Bullet;
 import entity.bullet.BulletController;
@@ -49,7 +48,7 @@ public class GameScreen extends ScreenAdapter {
 
     private final DebugDrawer debugDrawer;
 
-    public GameScreen(UUID playerID, SpriteBatch batch, GameClient gameClient, MapClient mapClient, Map map, AssetManager assetManager) {
+    public GameScreen(UUID playerID, SpriteBatch batch, GameClient gameClient, Point2D initialPosition, Map map, AssetManager assetManager) {
         this.batch = batch;
         this.playerInputLog = new PlayerInputLog();
         this.client = gameClient;
@@ -57,7 +56,7 @@ public class GameScreen extends ScreenAdapter {
 
         this.world = new World<>(AuthoritativePlayerController::new, BulletController::new);
 
-        this.player = new Player(playerID, mapClient.getStartPos());
+        this.player = new Player(playerID, initialPosition);
         this.playerController = new LocalPlayerController(player, world);
         this.collisionWorld = new CollisionWorld(map);
         // Uncomment this for CLIENT-SIDE PLAYER-MAP COLLISION HANDLING
@@ -82,7 +81,7 @@ public class GameScreen extends ScreenAdapter {
     @Override
     public void render(float delta) {
         // dispatch server messages
-        client.dispatchMessages(new ServerResponseHandler() {
+        client.dispatchMessages(new ServerGameResponseHandler() {
             @Override
             public void onActivePlayers(Collection<UUID> playerIDs) {
                 // NOTE: need iterator here to avoid ConcurrentModificationException

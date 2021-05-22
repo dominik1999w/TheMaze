@@ -1,7 +1,11 @@
 package connection.map;
 
+import java.util.ArrayDeque;
+import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import connection.CallKey;
 import io.grpc.Context;
@@ -9,7 +13,6 @@ import io.grpc.ManagedChannel;
 import io.grpc.stub.ClientCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import lib.map.MapGrpc;
-import lib.map.Position;
 import lib.map.StateRequest;
 import lib.map.StateResponse;
 import util.Point2D;
@@ -21,13 +24,11 @@ public class GrpcMapClient implements MapClient {
     private final ManagedChannel channel;
 
     private UUID id;
-    private int length = 5;
-    private int seed = 0;
-    private boolean isHost = false;
-    private Position startPos;
-    private boolean gameStarted = false;
 
     private StreamObserver<StateRequest> stateRequestStream;
+
+    private final Lock queueLock = new ReentrantLock();
+    private final Queue<StateResponse> responseQueue = new ArrayDeque<>();
 
     public GrpcMapClient(ManagedChannel channel) {
         this.channel = channel;
@@ -35,27 +36,45 @@ public class GrpcMapClient implements MapClient {
         this.asyncStub = MapGrpc.newStub(channel);
     }
 
-    @SuppressWarnings("CheckResult")
+    public void dispatchMessages(ServerMapResponseHandler responseHandler) {
+        queueLock.lock();
+        while (!responseQueue.isEmpty()) {
+            StateResponse response = responseQueue.poll();
+
+            responseHandler.updateInitialPosition(
+                    new Point2D(response.getPosition().getPositionX(), response.getPosition().getPositionY())
+            );
+            if (response.getIsHost()) {
+                responseHandler.displayAdminUI();
+            } else {
+                responseHandler.updateMap(response.getLength(), response.getSeed());
+            }
+            if (response.getStarted()) {
+                responseHandler.startGame(response.getLength(), response.getSeed(), response.getIsHost());
+            }
+        }
+        queueLock.unlock();
+    }
+
+    @SuppressWarnings({"CheckResult", "ResultOfMethodCallIgnored"})
     @Override
     public void connect(UUID id) {
         this.id = id;
 
         StateRequest request = StateRequest.newBuilder()
                 .setId(id.toString())
-                .setLength(length)
-                .setSeed(seed)
-                .setStarted(gameStarted)
+                .setLength(5)
+                .setSeed(0)
+                .setStarted(false)
                 .build();
 
         Context.current().withValue(CallKey.PLAYER_ID, id).run(() -> {
-            stateRequestStream = asyncStub.syncGameState(new StreamObserver<StateResponse>() {
+            stateRequestStream = asyncStub.syncMapState(new StreamObserver<StateResponse>() {
                 @Override
                 public void onNext(StateResponse value) {
-                    length = value.getLength();
-                    seed = value.getSeed();
-                    startPos = value.getPosition();
-                    gameStarted = value.getStarted();
-                    isHost = value.getIsHost();
+                    queueLock.lock();
+                    responseQueue.add(value);
+                    queueLock.unlock();
                 }
 
                 @Override
@@ -82,7 +101,7 @@ public class GrpcMapClient implements MapClient {
     }
 
     @Override
-    public void syncState() {
+    public void syncState(int length, int seed, boolean gameStarted) {
         StateRequest request = StateRequest.newBuilder()
                 .setId(id.toString())
                 .setLength(length)
@@ -91,43 +110,5 @@ public class GrpcMapClient implements MapClient {
                 .build();
 
         stateRequestStream.onNext(request);
-    }
-
-    @Override
-    public boolean isHost() {
-        return isHost;
-    }
-
-    @Override
-    public int getMapLength() {
-        return length;
-    }
-
-    @Override
-    public void setMapLength(int length) {
-        this.length = length;
-    }
-
-    @Override
-    public int getSeed() {
-        return seed;
-    }
-
-    @Override
-    public void setSeed(int seed) {
-        this.seed = seed;
-    }
-
-    public boolean isGameStarted() {
-        return gameStarted;
-    }
-
-    public void setGameStarted(boolean gameStarted) {
-        this.gameStarted = gameStarted;
-    }
-
-    @Override
-    public Point2D getStartPos() {
-        return new Point2D(startPos.getPositionX(), startPos.getPositionY());
     }
 }

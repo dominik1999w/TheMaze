@@ -6,7 +6,7 @@ import entity.player.PlayerInput;
 
 public class NoOpGameClient implements GameClient {
     @Override
-    public void dispatchMessages(ServerResponseHandler responseHandler) {
+    public void dispatchMessages(ServerGameResponseHandler responseHandler) {
 
     }
 

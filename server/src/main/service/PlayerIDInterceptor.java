@@ -17,7 +17,10 @@ public class PlayerIDInterceptor implements ServerInterceptor {
     @Override
     public <ReqT, RespT> ServerCall.Listener<ReqT> interceptCall(ServerCall<ReqT, RespT> call, Metadata headers, ServerCallHandler<ReqT, RespT> next) {
         Context context;
-        if ("SyncGameState".equals(call.getMethodDescriptor().getBareMethodName())) {
+        if (
+                "SyncGameState".equals(call.getMethodDescriptor().getBareMethodName())
+                        || "SyncMapState".equals(call.getMethodDescriptor().getBareMethodName())
+        ) {
             UUID playerID = UUID.fromString(headers.get(PLAYER_ID_METADATA));
             context = Context.current().withValue(PLAYER_ID, playerID);
         } else {

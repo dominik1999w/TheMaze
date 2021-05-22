@@ -26,7 +26,6 @@ import io.grpc.StatusRuntimeException;
 import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import lib.connection.BulletState;
-import lib.connection.ConnectReply;
 import lib.connection.ConnectRequest;
 import lib.connection.GameStateRequest;
 import lib.connection.GameStateResponse;
@@ -65,9 +64,9 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
     }
 
     @Override
-    public void connect(ConnectRequest request, StreamObserver<ConnectReply> responseObserver) {
+    public void connect(ConnectRequest request, StreamObserver<Empty> responseObserver) {
         logger.log(Level.INFO, "Connect from {0}", request.getId());
-        responseObserver.onNext(ConnectReply.newBuilder().setSeed(0).build());
+        responseObserver.onNext(Empty.newBuilder().build());
         responseObserver.onCompleted();
     }
 
@@ -181,7 +180,7 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
         }
     }
 
-    public void initializeWorld(int length, int seed, HashMap<UUID, Position> positions) {
+    public void initializeWorld(int length, int seed, Map<UUID, Position> positions) {
         MapGenerator mapGenerator = new MapGenerator(length);
         map.Map map = mapGenerator.generateMap(seed);
         collisionWorld = new CollisionWorld(map);
@@ -195,9 +194,9 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
         world.subscribeOnBulletAdded(newBullet -> collisionWorld.addHitbox(new BulletHitbox(newBullet, world)));
         world.subscribeOnBulletRemoved(collisionWorld::removeHitbox);
 
-        for (UUID id : positions.keySet()) {
-            Position pos = positions.get(id);
-            world.getPlayerController(id, new Point2D(pos.getPositionX(), pos.getPositionY()));
+        for (Map.Entry<UUID, Position> entry : positions.entrySet()) {
+            Position pos = entry.getValue();
+            world.getPlayerController(entry.getKey(), new Point2D(pos.getPositionX(), pos.getPositionY()));
         }
     }
 

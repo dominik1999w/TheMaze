@@ -4,7 +4,7 @@ import server.GrpcServer;
 import service.GameService;
 import service.MapService;
 import types.WallType;
-import util.GameStateHandler;
+import util.StateHandler;
 
 public class Main {
     private static void loadClasses(Class<?>... classes) {
@@ -56,14 +56,13 @@ public class Main {
 
         GameService gameService = new GameService();
 
-        MapService mapService = new MapService(gameService);
+        MapService mapService = new MapService();
 
         GameServer server = new GrpcServer(50051, gameService, mapService);
         server.start();
 
-        GameStateHandler stateHandler = new GameStateHandler(gameService);
-        stateHandler.gameThread().start();
-
+        StateHandler stateHandler = new StateHandler(mapService, gameService);
+        stateHandler.mainThread().start();
 
         server.blockUntilShutdown();
     }

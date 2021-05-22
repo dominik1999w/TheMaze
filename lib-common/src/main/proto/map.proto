@@ -11,7 +11,7 @@ import "google/protobuf/empty.proto";
 service Map {
   rpc Handshake (google.protobuf.Empty) returns (google.protobuf.Empty) {}
   rpc Connect (StateRequest) returns (google.protobuf.Empty) {}
-  rpc SyncGameState (stream StateRequest) returns (stream StateResponse) {}
+  rpc SyncMapState (stream StateRequest) returns (stream StateResponse) {}
 }
 
 message StateRequest {

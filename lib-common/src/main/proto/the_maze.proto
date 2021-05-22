@@ -10,7 +10,7 @@ import "google/protobuf/empty.proto";
 
 service TheMaze {
   rpc Handshake (google.protobuf.Empty) returns (google.protobuf.Empty) {}
-  rpc Connect (ConnectRequest) returns (ConnectReply) {}
+  rpc Connect (ConnectRequest) returns (google.protobuf.Empty) {}
   rpc SyncGameState (stream GameStateRequest) returns (stream GameStateResponse) {}
 }
 

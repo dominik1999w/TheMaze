@@ -6,7 +6,7 @@ import java.util.UUID;
 import entity.bullet.Bullet;
 import entity.player.Player;
 
-public interface ServerResponseHandler {
+public interface ServerGameResponseHandler {
     void onActivePlayers(Collection<UUID> playerIDs);
     void onActiveBullets(Collection<UUID> activeBullets);
 
