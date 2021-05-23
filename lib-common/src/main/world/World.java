@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -22,6 +23,8 @@ public class World<TController extends PlayerController> {
     private final Map<UUID, TController> players = new HashMap<>(); //new ConcurrentHashMap<>();
     private final Map<UUID, BulletController> bullets = new HashMap<>(); //new ConcurrentHashMap<>();
 
+    private UUID bulletOwner;
+
     private final List<Consumer<Player>> onPlayerAddedSubscribers = new ArrayList<>();
     private final List<Consumer<UUID>> onPlayerRemovedSubscribers = new ArrayList<>();
     private final List<Consumer<Bullet>> onBulletAddedSubscribers = new ArrayList<>();
@@ -30,10 +33,13 @@ public class World<TController extends PlayerController> {
     private final BiFunction<Player, World<?>, TController> controllerConstructor;
     private final Function<Bullet, BulletController> bulletControllerConstructor;
 
+    private final Random random;
+
     public World(BiFunction<Player, World<?>, TController> playerControllerConstructor,
                  Function<Bullet, BulletController> bulletControllerConstructor) {
         this.controllerConstructor = playerControllerConstructor;
         this.bulletControllerConstructor = bulletControllerConstructor;
+        this.random = new Random();
     }
 
     public void subscribeOnPlayerAdded(Consumer<Player> callback) {
@@ -80,6 +86,12 @@ public class World<TController extends PlayerController> {
         return getPlayerController(playerID, new Point2D(2.5f * MapConfig.BOX_SIZE, 3.5f * MapConfig.BOX_SIZE));
     }
 
+    public void assignBulletRandomly() {
+        List<UUID> playerIdsList = new ArrayList<>(players.keySet());
+        bulletOwner = playerIdsList.get(random.nextInt(playerIdsList.size()));
+        System.out.println(bulletOwner + " has the bullet!");
+    }
+
     public void onBulletFired(UUID shooterID, Bullet bullet) {
         bullets.computeIfAbsent(shooterID, k ->
         {
@@ -89,12 +101,14 @@ public class World<TController extends PlayerController> {
     }
 
     public void onBulletFired(Player player) {
+        if(!player.getId().equals(bulletOwner)) return;
         bullets.computeIfAbsent(player.getId(), k ->
         {
             Point2D bulletPosition = new Point2D(player.getPosition())
                     .add(BulletConfig.textureDependentShift(player.getRotation()));
             Bullet bullet = new Bullet(bulletPosition, player.getRotation());
             onBulletAddedSubscribers.forEach(subscriber -> subscriber.accept(bullet));
+            bulletOwner = null;
             return bulletControllerConstructor.apply(bullet);
         });
     }

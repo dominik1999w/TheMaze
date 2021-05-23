@@ -193,11 +193,14 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
         world.subscribeOnPlayerRemoved(collisionWorld::removeHitbox);
         world.subscribeOnBulletAdded(newBullet -> collisionWorld.addHitbox(new BulletHitbox(newBullet, world)));
         world.subscribeOnBulletRemoved(collisionWorld::removeHitbox);
+        world.subscribeOnBulletRemoved(uuid -> world.assignBulletRandomly());
 
         for (Map.Entry<UUID, Position> entry : positions.entrySet()) {
             Position pos = entry.getValue();
             world.getPlayerController(entry.getKey(), new Point2D(pos.getPositionX(), pos.getPositionY()));
         }
+
+        world.assignBulletRandomly();
     }
 
     private void onPlayerJoined(UUID playerID, StreamObserver<GameStateResponse> responseObserver) {

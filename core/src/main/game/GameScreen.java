@@ -135,8 +135,7 @@ public class GameScreen extends ScreenAdapter {
 
             @Override
             public void onBulletState(UUID playerID, Bullet bulletState) {
-                if (!playerID.equals(player.getId()))
-                    world.onBulletFired(playerID, bulletState);
+                world.onBulletFired(playerID, bulletState);
             }
         });
 

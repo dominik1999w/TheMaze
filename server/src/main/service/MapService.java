@@ -30,8 +30,8 @@ public class MapService extends MapGrpc.MapImplBase {
     private static final Logger logger = Logger.getLogger(MapService.class.getName());
 
     private String host = null;
-    private int lastSeed;
-    private int lastLength;
+    private int lastSeed = 0;
+    private int lastLength = 5;
     private boolean gameStarted = false;
 
     private final Map<StreamObserver<StateResponse>, UUID> clients = new HashMap<>();
