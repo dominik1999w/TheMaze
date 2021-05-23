@@ -156,9 +156,9 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
                     .setRotation(controller.getPlayerRotation())
                     .build());
         }
-        for (Map.Entry<UUID, BulletController> bulletEntry : world.getBullets()) {
-            UUID playerID = bulletEntry.getKey();
-            Bullet bullet = bulletEntry.getValue().getBullet();
+        if(world.getBulletController() != null) {
+            UUID playerID = world.getBulletController().getPlayerID();
+            Bullet bullet = world.getBulletController().getBullet();
             response.addBullets(BulletState.newBuilder()
                     .setId(bullet.getId().toString())
                     .setPlayerId(playerID.toString())

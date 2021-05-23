@@ -8,7 +8,6 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import entity.bullet.Bullet;
 import entity.bullet.BulletConfig;
@@ -21,9 +20,9 @@ import util.Point2D;
 public class World<TController extends PlayerController> {
 
     private final Map<UUID, TController> players = new HashMap<>(); //new ConcurrentHashMap<>();
-    private final Map<UUID, BulletController> bullets = new HashMap<>(); //new ConcurrentHashMap<>();
 
     private UUID bulletOwner;
+    private BulletController bulletController;
 
     private final List<Consumer<Player>> onPlayerAddedSubscribers = new ArrayList<>();
     private final List<Consumer<UUID>> onPlayerRemovedSubscribers = new ArrayList<>();
@@ -31,12 +30,12 @@ public class World<TController extends PlayerController> {
     private final List<Consumer<UUID>> onBulletRemovedSubscribers = new ArrayList<>();
 
     private final BiFunction<Player, World<?>, TController> controllerConstructor;
-    private final Function<Bullet, BulletController> bulletControllerConstructor;
+    private final BiFunction<UUID, Bullet, BulletController> bulletControllerConstructor;
 
     private final Random random;
 
     public World(BiFunction<Player, World<?>, TController> playerControllerConstructor,
-                 Function<Bullet, BulletController> bulletControllerConstructor) {
+                 BiFunction<UUID, Bullet, BulletController> bulletControllerConstructor) {
         this.controllerConstructor = playerControllerConstructor;
         this.bulletControllerConstructor = bulletControllerConstructor;
         this.random = new Random();
@@ -68,9 +67,10 @@ public class World<TController extends PlayerController> {
         players.remove(playerID);
     }
 
-    public void removeBulletController(UUID playerID) {
-        BulletController controller = bullets.remove(playerID);
-        onBulletRemovedSubscribers.forEach(subscriber -> subscriber.accept(controller.getBullet().getId()));
+    public void removeBulletController() {
+        UUID bulletID = bulletController.getBullet().getId();
+        bulletController = null;
+        onBulletRemovedSubscribers.forEach(subscriber -> subscriber.accept(bulletID));
     }
 
     public TController getPlayerController(UUID playerID, Point2D position) {
@@ -93,41 +93,44 @@ public class World<TController extends PlayerController> {
     }
 
     public void onBulletFired(UUID shooterID, Bullet bullet) {
-        bullets.computeIfAbsent(shooterID, k ->
-        {
+        if(bulletController == null) {
+            bulletController = bulletControllerConstructor.apply(shooterID, bullet);
             onBulletAddedSubscribers.forEach(subscriber -> subscriber.accept(bullet));
-            return bulletControllerConstructor.apply(bullet);
-        });
+        }
     }
 
     public void onBulletFired(Player player) {
         if(!player.getId().equals(bulletOwner)) return;
-        bullets.computeIfAbsent(player.getId(), k ->
-        {
+        if(bulletController == null) {
             Point2D bulletPosition = new Point2D(player.getPosition())
                     .add(BulletConfig.textureDependentShift(player.getRotation()));
             Bullet bullet = new Bullet(bulletPosition, player.getRotation());
-            onBulletAddedSubscribers.forEach(subscriber -> subscriber.accept(bullet));
             bulletOwner = null;
-            return bulletControllerConstructor.apply(bullet);
-        });
+            bulletController = bulletControllerConstructor.apply(player.getId(), bullet);
+            onBulletAddedSubscribers.forEach(subscriber -> subscriber.accept(bullet));
+        }
     }
 
     public void onBulletDied(UUID bulletID) {
+        if(bulletID.equals(bulletController.getBullet().getId())) {
+            bulletOwner = null;
+            bulletController = null;
+        }
         onBulletRemovedSubscribers.forEach(subscriber -> subscriber.accept(bulletID));
-        bullets.values().removeIf(bullet -> bullet.getBullet().getId().equals(bulletID));
     }
 
     public void update(float delta) {
         players.values().forEach(PlayerController::update);
-        bullets.values().forEach(bulletController -> bulletController.update(delta));
+        if(bulletController != null) {
+            bulletController.update(delta);
+        }
     }
 
     public Iterable<Map.Entry<UUID, TController>> getConnectedPlayers() {
         return players.entrySet();
     }
 
-    public Iterable<Map.Entry<UUID, BulletController>> getBullets() {
-        return bullets.entrySet();
+    public BulletController getBulletController() {
+        return bulletController;
     }
 }
