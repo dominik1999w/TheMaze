@@ -1,7 +1,5 @@
 package service;
 
-import com.google.protobuf.Empty;
-
 import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -26,7 +24,6 @@ import io.grpc.StatusRuntimeException;
 import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import lib.connection.BulletState;
-import lib.connection.ConnectRequest;
 import lib.connection.GameStateRequest;
 import lib.connection.GameStateResponse;
 import lib.connection.LocalPlayerInput;
@@ -50,24 +47,8 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
 
     private final Map<StreamObserver<GameStateResponse>, UUID> responseObservers = new HashMap<>();
 
-    private boolean enabled = false;
-
     public GameService() {
         this.inputLog = new ClientsInputLog();
-    }
-
-    @Override
-    public void handshake(Empty request, StreamObserver<Empty> responseObserver) {
-        logger.info("Handshake from unknown");
-        responseObserver.onNext(Empty.newBuilder().build());
-        responseObserver.onCompleted();
-    }
-
-    @Override
-    public void connect(ConnectRequest request, StreamObserver<Empty> responseObserver) {
-        logger.log(Level.INFO, "Connect from {0}", request.getId());
-        responseObserver.onNext(Empty.newBuilder().build());
-        responseObserver.onCompleted();
     }
 
     private final Lock queueLock = new ReentrantLock();
@@ -96,25 +77,6 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
 
     @Override
     public StreamObserver<GameStateRequest> syncGameState(StreamObserver<GameStateResponse> responseObserver) {
-        if (!enabled) {
-            return new StreamObserver<GameStateRequest>() {
-                @Override
-                public void onNext(GameStateRequest value) {
-                    responseObserver.onError(new RuntimeException("Game service is not enabled."));
-                }
-
-                @Override
-                public void onError(Throwable t) {
-                    logger.log(Level.WARNING, "SyncGameState failed: {0}", Status.fromThrowable(t));
-                }
-
-                @Override
-                public void onCompleted() {
-
-                }
-            };
-        }
-
         onPlayerJoined(CallKey.PLAYER_ID.get(), responseObserver);
         ((ServerCallStreamObserver<GameStateResponse>) responseObserver)
                 .setOnCancelHandler(() -> disconnectedObservers.add(responseObserver));
@@ -156,7 +118,7 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
                     .setRotation(controller.getPlayerRotation())
                     .build());
         }
-        if(world.getBulletController() != null) {
+        if (world.getBulletController() != null) {
             UUID playerID = world.getBulletController().getPlayerID();
             Bullet bullet = world.getBulletController().getBullet();
             response.addBullets(BulletState.newBuilder()
@@ -223,18 +185,9 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
         disconnectedObservers.clear();
     }
 
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
-
-    public boolean isEnabled() {
-        return this.enabled;
-    }
-
     public CollisionWorld getCollisionWorld() {
         return collisionWorld;
     }
-
 
     public World<InputPlayerController> getWorld() {
         return world;

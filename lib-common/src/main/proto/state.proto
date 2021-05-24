@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package state;
+
+option java_multiple_files = true;
+option java_package = "lib.state";
+option java_outer_classname = "StateGrpcGdx";
+
+import "google/protobuf/empty.proto";
+
+service State {
+  rpc SyncState (stream google.protobuf.Empty) returns (stream StateResponse) {}
+}
+
+message StateResponse {
+  float timeToStartRound = 1;
+  int32 score = 2;
+}

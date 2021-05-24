@@ -2,12 +2,17 @@ package time;
 
 public class Timer {
 
-    public static void executeAtFixedRate(TimedRunnable runnable, float secondsRate) {
+    public Timer() {
+    }
+
+    private volatile boolean run = true;
+
+    public void executeAtFixedRate(TimedRunnable runnable, float secondsRate) {
         final long deltaTime = (long) (1e9 * secondsRate);
         long currentTime = System.nanoTime();
         long accumulator = 0;
 
-        while (true) {
+        while (run) {
             long time = System.nanoTime();
             long frameTime = time - currentTime;
             currentTime = time;
@@ -19,6 +24,10 @@ public class Timer {
                 accumulator -= deltaTime;
             }
         }
+    }
+
+    public void cancel() {
+        run = false;
     }
 
     @FunctionalInterface

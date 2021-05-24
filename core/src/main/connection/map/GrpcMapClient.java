@@ -13,8 +13,8 @@ import io.grpc.ManagedChannel;
 import io.grpc.stub.ClientCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import lib.map.MapGrpc;
-import lib.map.StateRequest;
-import lib.map.StateResponse;
+import lib.map.MapStateRequest;
+import lib.map.MapStateResponse;
 import util.Point2D;
 
 public class GrpcMapClient implements MapClient {
@@ -25,10 +25,10 @@ public class GrpcMapClient implements MapClient {
 
     private UUID id;
 
-    private StreamObserver<StateRequest> stateRequestStream;
+    private StreamObserver<MapStateRequest> stateRequestStream;
 
     private final Lock queueLock = new ReentrantLock();
-    private final Queue<StateResponse> responseQueue = new ArrayDeque<>();
+    private final Queue<MapStateResponse> responseQueue = new ArrayDeque<>();
 
     public GrpcMapClient(ManagedChannel channel) {
         this.channel = channel;
@@ -36,10 +36,11 @@ public class GrpcMapClient implements MapClient {
         this.asyncStub = MapGrpc.newStub(channel);
     }
 
-    public void dispatchMessages(ServerMapResponseHandler responseHandler) {
+    @Override
+    public void dispatchMessages(ServerResponseHandler responseHandler) {
         queueLock.lock();
         while (!responseQueue.isEmpty()) {
-            StateResponse response = responseQueue.poll();
+            MapStateResponse response = responseQueue.poll();
 
             responseHandler.updateInitialPosition(
                     new Point2D(response.getPosition().getPositionX(), response.getPosition().getPositionY())
@@ -56,53 +57,34 @@ public class GrpcMapClient implements MapClient {
         queueLock.unlock();
     }
 
-    @SuppressWarnings({"CheckResult", "ResultOfMethodCallIgnored"})
     @Override
     public void connect(UUID id) {
         this.id = id;
 
-        StateRequest request = StateRequest.newBuilder()
-                .setId(id.toString())
-                .setLength(5)
-                .setSeed(0)
-                .setStarted(false)
-                .build();
+        Context.current().withValue(CallKey.PLAYER_ID, id).run(() ->
+                stateRequestStream = asyncStub.syncMapState(new StreamObserver<MapStateResponse>() {
+                    @Override
+                    public void onNext(MapStateResponse value) {
+                        queueLock.lock();
+                        responseQueue.add(value);
+                        queueLock.unlock();
+                    }
 
-        Context.current().withValue(CallKey.PLAYER_ID, id).run(() -> {
-            stateRequestStream = asyncStub.syncMapState(new StreamObserver<StateResponse>() {
-                @Override
-                public void onNext(StateResponse value) {
-                    queueLock.lock();
-                    responseQueue.add(value);
-                    queueLock.unlock();
-                }
+                    @Override
+                    public void onError(Throwable t) {
 
-                @Override
-                public void onError(Throwable t) {
+                    }
 
-                }
+                    @Override
+                    public void onCompleted() {
 
-                @Override
-                public void onCompleted() {
-
-                }
-            });
-            blockingStub.connect(request);
-        });
-    }
-
-    @Override
-    public void disconnect() {
-        ((ClientCallStreamObserver<StateRequest>) stateRequestStream).cancel("Disconnected", null);
-        try {
-            channel.shutdownNow().awaitTermination(3, TimeUnit.SECONDS);
-        } catch (InterruptedException ignored) {
-        }
+                    }
+                }));
     }
 
     @Override
     public void syncState(int length, int seed, boolean gameStarted) {
-        StateRequest request = StateRequest.newBuilder()
+        MapStateRequest request = MapStateRequest.newBuilder()
                 .setId(id.toString())
                 .setLength(length)
                 .setSeed(seed)
@@ -111,4 +93,14 @@ public class GrpcMapClient implements MapClient {
 
         stateRequestStream.onNext(request);
     }
+
+    @Override
+    public void disconnect() {
+        ((ClientCallStreamObserver<MapStateRequest>) stateRequestStream).cancel("Disconnected", null);
+        try {
+            channel.shutdownNow().awaitTermination(3, TimeUnit.SECONDS);
+        } catch (InterruptedException ignored) {
+        }
+    }
+
 }

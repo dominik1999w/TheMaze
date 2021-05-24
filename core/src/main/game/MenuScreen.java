@@ -28,7 +28,7 @@ import java.util.UUID;
 import connection.ClientFactory;
 import connection.game.GameClient;
 import connection.map.MapClient;
-import connection.map.ServerMapResponseHandler;
+import connection.state.StateClient;
 import map.Map;
 import map.MapConfig;
 import map.generator.MapGenerator;
@@ -69,6 +69,7 @@ public class MenuScreen extends ScreenAdapter {
     /* Clients */
     private MapClient mapClient;
     private GameClient gameClient;
+    private StateClient stateClient;
 
     /* UI specifications */
     private final float initialZoom = 0.166f;
@@ -95,7 +96,10 @@ public class MenuScreen extends ScreenAdapter {
         task = asyncExecutor.submit(() -> {
             gameClient = ClientFactory.newGameClient(HOST, PORT);
             mapClient = ClientFactory.newMapClient(HOST, PORT);
+            stateClient = ClientFactory.newStateClient(HOST, PORT);
+
             mapClient.connect(playerID);
+
             Gdx.app.postRunnable(() -> status.setText("server status: connected"));
             return null;
         });
@@ -139,7 +143,7 @@ public class MenuScreen extends ScreenAdapter {
     private void syncState() {
         if (task.isDone()) {
             mapClient.syncState(prevLength, prevSeed, startGameValue);
-            mapClient.dispatchMessages(new ServerMapResponseHandler() {
+            mapClient.dispatchMessages(new MapClient.ServerResponseHandler() {
                 @Override
                 public void displayAdminUI() {
                     if (!sliderShown) {
@@ -165,7 +169,7 @@ public class MenuScreen extends ScreenAdapter {
                 public void startGame(int mapLength, int seed, boolean isHost) {
                     MapGenerator mapGenerator = new MapGenerator(mapLength);
                     Map map = mapGenerator.generateMap(seed);
-                    gameScreen = new GameScreen(playerID, batch, gameClient, initialPosition, map, assetManager);
+                    gameScreen = new GameScreen(playerID, batch, gameClient, stateClient, initialPosition, map, assetManager);
                     game.setScreen(gameScreen);
                 }
             });

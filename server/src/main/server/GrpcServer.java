@@ -10,18 +10,21 @@ import io.grpc.ServerInterceptors;
 import service.GameService;
 import service.MapService;
 import service.PlayerIDInterceptor;
+import service.StateService;
 
 public class GrpcServer implements GameServer {
     private static final Logger logger = Logger.getLogger(GrpcServer.class.getName());
 
     private final Server server;
 
-    public GrpcServer(int port, GameService gameService, MapService mapService) {
+    public GrpcServer(int port, GameService gameService, MapService mapService, StateService stateService) {
         server = ServerBuilder.forPort(port)
                 .addService(gameService)
                 .addService(mapService)
+                .addService(stateService)
                 .addService(ServerInterceptors.intercept(gameService, new PlayerIDInterceptor()))
                 .addService(ServerInterceptors.intercept(mapService, new PlayerIDInterceptor()))
+                .addService(ServerInterceptors.intercept(stateService, new PlayerIDInterceptor()))
                 .build();
     }
 

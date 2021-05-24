@@ -1,7 +1,5 @@
 package service;
 
-import com.google.protobuf.Empty;
-
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,9 +19,9 @@ import io.grpc.StatusRuntimeException;
 import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import lib.map.MapGrpc;
+import lib.map.MapStateRequest;
+import lib.map.MapStateResponse;
 import lib.map.Position;
-import lib.map.StateRequest;
-import lib.map.StateResponse;
 import map.MapConfig;
 
 public class MapService extends MapGrpc.MapImplBase {
@@ -34,42 +32,22 @@ public class MapService extends MapGrpc.MapImplBase {
     private int lastLength = 5;
     private boolean gameStarted = false;
 
-    private final Map<StreamObserver<StateResponse>, UUID> clients = new HashMap<>();
-    private final Set<StreamObserver<StateResponse>> disconnectedClients = new HashSet<>();
+    private final Map<StreamObserver<MapStateResponse>, UUID> clients = new HashMap<>();
+    private final Set<StreamObserver<MapStateResponse>> disconnectedClients = new HashSet<>();
 
     public MapService() {
     }
 
-    @Override
-    public void handshake(Empty request, StreamObserver<Empty> responseObserver) {
-        logger.info("Handshake from unknown");
-        responseObserver.onNext(Empty.newBuilder().build());
-        responseObserver.onCompleted();
-    }
-
     private final Lock queueLock = new ReentrantLock();
-    private final Queue<StateRequest> requestQueue = new ArrayDeque<>();
-
-    @Override
-    public void connect(StateRequest request, StreamObserver<Empty> responseObserver) {
-        logger.info("Connect from " + request.getId());
-
-        queueLock.lock();
-        requestQueue.add(request);
-        queueLock.unlock();
-
-        responseObserver.onNext(Empty.newBuilder().build());
-        responseObserver.onCompleted();
-    }
+    private final Queue<MapStateRequest> requestQueue = new ArrayDeque<>();
 
     public void dispatchMessages() {
         queueLock.lock();
         while (!requestQueue.isEmpty()) {
-            StateRequest request = requestQueue.poll();
+            MapStateRequest request = requestQueue.poll();
             if (host == null) {
                 host = request.getId();
             }
-
             if (request.getId().equals(host)) {
                 lastLength = request.getLength();
                 lastSeed = request.getSeed();
@@ -80,10 +58,10 @@ public class MapService extends MapGrpc.MapImplBase {
     }
 
     @Override
-    public StreamObserver<StateRequest> syncMapState(StreamObserver<StateResponse> responseObserver) {
+    public StreamObserver<MapStateRequest> syncMapState(StreamObserver<MapStateResponse> responseObserver) {
         queueLock.lock();
         clients.put(responseObserver, CallKey.PLAYER_ID.get());
-        ((ServerCallStreamObserver<StateResponse>) responseObserver)
+        ((ServerCallStreamObserver<MapStateResponse>) responseObserver)
                 .setOnCancelHandler(() -> {
                     if (CallKey.PLAYER_ID.get().toString().equals(host)) {
                         host = null;
@@ -92,9 +70,9 @@ public class MapService extends MapGrpc.MapImplBase {
                 });
         queueLock.unlock();
 
-        return new StreamObserver<StateRequest>() {
+        return new StreamObserver<MapStateRequest>() {
             @Override
-            public void onNext(StateRequest value) {
+            public void onNext(MapStateRequest value) {
                 queueLock.lock();
                 requestQueue.add(value);
                 queueLock.unlock();
@@ -116,7 +94,7 @@ public class MapService extends MapGrpc.MapImplBase {
         handleDisconnectedClients();
 
         Map<UUID, Position> positions = new HashMap<>();
-        for (Map.Entry<StreamObserver<StateResponse>, UUID> entry : clients.entrySet()) {
+        for (Map.Entry<StreamObserver<MapStateResponse>, UUID> entry : clients.entrySet()) {
             UUID id = entry.getValue();
             positions.put(id, getStartingPosition(id.toString()));
         }
@@ -125,10 +103,10 @@ public class MapService extends MapGrpc.MapImplBase {
             gameHandler.initializeGame(lastLength, lastSeed, positions);
         }
 
-        for (Map.Entry<StreamObserver<StateResponse>, UUID> entry : clients.entrySet()) {
+        for (Map.Entry<StreamObserver<MapStateResponse>, UUID> entry : clients.entrySet()) {
             try {
                 entry.getKey().onNext(
-                        StateResponse.newBuilder()
+                        MapStateResponse.newBuilder()
                                 .setLength(lastLength)
                                 .setSeed(lastSeed)
                                 .setPosition(positions.get(entry.getValue()))
@@ -143,7 +121,7 @@ public class MapService extends MapGrpc.MapImplBase {
     }
 
     private void handleDisconnectedClients() {
-        for (StreamObserver<StateResponse> client : disconnectedClients) {
+        for (StreamObserver<MapStateResponse> client : disconnectedClients) {
             UUID id = clients.remove(client);
             logger.log(Level.INFO,
                     "Player {0} removed from the world", id);

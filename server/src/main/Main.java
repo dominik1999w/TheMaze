@@ -1,21 +1,19 @@
 import lib.connection.BulletState;
-import lib.connection.ConnectReply;
-import lib.connection.ConnectRequest;
 import lib.connection.GameStateRequest;
 import lib.connection.GameStateResponse;
 import lib.connection.LocalPlayerInput;
 import lib.connection.PlayerState;
 import lib.map.Position;
-import lib.map.StateRequest;
-import lib.map.StateResponse;
+import lib.map.MapStateRequest;
+import lib.map.MapStateResponse;
 import map.Map;
 import physics.mapcollision.MapCollisionDetector;
 import server.GameServer;
 import server.GrpcServer;
 import service.GameService;
 import service.MapService;
+import service.StateService;
 import types.WallType;
-import util.StateHandler;
 
 public class Main {
     private static void loadClasses(Class<?>... classes) {
@@ -33,15 +31,13 @@ public class Main {
     public static void main(String[] args) throws Exception {
         if (Integer.parseInt(System.getProperty("java.version").split("\\.")[0]) >= 9) {
             BulletState.newBuilder();
-            ConnectReply.newBuilder();
-            ConnectRequest.newBuilder();
             GameStateRequest.newBuilder();
             GameStateResponse.newBuilder();
             LocalPlayerInput.newBuilder();
             PlayerState.newBuilder();
             Position.newBuilder();
-            StateRequest.newBuilder();
-            StateResponse.newBuilder();
+            MapStateRequest.newBuilder();
+            MapStateResponse.newBuilder();
 
             loadClasses(
                     connection.CallKey.class,
@@ -59,8 +55,6 @@ public class Main {
                     entity.player.PlayerInput.class,
                     entity.WorldEntity.class,
                     lib.connection.BulletState.class,
-                    lib.connection.ConnectReply.class,
-                    lib.connection.ConnectRequest.class,
                     lib.connection.GameStateRequest.class,
                     lib.connection.GameStateResponse.class,
                     lib.connection.LocalPlayerInput.class,
@@ -68,8 +62,8 @@ public class Main {
                     lib.connection.TheMazeGrpcGdx.class,
                     lib.map.MapGrpcGdx.class,
                     lib.map.Position.class,
-                    lib.map.StateRequest.class,
-                    lib.map.StateResponse.class,
+                    lib.map.MapStateRequest.class,
+                    lib.map.MapStateResponse.class,
                     map.generator.MapGenerator.class,
                     map.Map.class,
                     Map.Node.class,
@@ -101,11 +95,13 @@ public class Main {
 
         MapService mapService = new MapService();
 
-        GameServer server = new GrpcServer(50051, gameService, mapService);
+        StateService stateService = new StateService();
+
+        GameServer server = new GrpcServer(50051, gameService, mapService, stateService);
         server.start();
 
-        StateHandler stateHandler = new StateHandler(mapService, gameService);
-        stateHandler.mainThread().start();
+        Game game = new Game(mapService, stateService, gameService);
+        game.startGame();
 
         server.blockUntilShutdown();
     }

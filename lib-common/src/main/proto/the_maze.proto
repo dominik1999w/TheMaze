@@ -9,19 +9,8 @@ option java_outer_classname = "TheMazeGrpcGdx";
 import "google/protobuf/empty.proto";
 
 service TheMaze {
-  rpc Handshake (google.protobuf.Empty) returns (google.protobuf.Empty) {}
-  rpc Connect (ConnectRequest) returns (google.protobuf.Empty) {}
   rpc SyncGameState (stream GameStateRequest) returns (stream GameStateResponse) {}
 }
-
-message ConnectRequest {
-  string id = 1;
-}
-
-message ConnectReply {
-  int32 seed = 1;
-}
-
 
 message LocalPlayerInput {
   string id = 1;

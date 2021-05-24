@@ -42,7 +42,7 @@ public class GrpcGameClient implements GameClient {
     }
 
     @Override
-    public void dispatchMessages(ServerGameResponseHandler responseHandler) {
+    public void dispatchMessages(ServerResponseHandler responseHandler) {
         queueLock.lock();
         //System.out.println("Dispatching messages: " + responseQueue.size());
         while (!responseQueue.isEmpty()) {
@@ -81,26 +81,25 @@ public class GrpcGameClient implements GameClient {
     public void connect(UUID id) {
         this.id = id;
 
-        Context.current().withValue(CallKey.PLAYER_ID, id).run(() -> {
-            gameStateRequestStream = asyncStub.syncGameState(new StreamObserver<GameStateResponse>() {
-                @Override
-                public void onNext(GameStateResponse value) {
-                    queueLock.lock();
-                    responseQueue.add(value);
-                    queueLock.unlock();
-                }
+        Context.current().withValue(CallKey.PLAYER_ID, id).run(() ->
+                gameStateRequestStream = asyncStub.syncGameState(new StreamObserver<GameStateResponse>() {
+                    @Override
+                    public void onNext(GameStateResponse value) {
+                        queueLock.lock();
+                        responseQueue.add(value);
+                        queueLock.unlock();
+                    }
 
-                @Override
-                public void onError(Throwable t) {
+                    @Override
+                    public void onError(Throwable t) {
 
-                }
+                    }
 
-                @Override
-                public void onCompleted() {
+                    @Override
+                    public void onCompleted() {
 
-                }
-            });
-        });
+                    }
+                }));
     }
 
     @Override

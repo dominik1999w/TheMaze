@@ -1,76 +1,35 @@
 package connection;
 
-import com.google.protobuf.Empty;
-
-import java.util.Locale;
-import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
-
 import connection.game.GameClient;
 import connection.game.GrpcGameClient;
-import connection.game.NoOpGameClient;
 import connection.map.GrpcMapClient;
 import connection.map.MapClient;
-import connection.map.NoOpMapClient;
+import connection.state.GrpcStateClient;
+import connection.state.StateClient;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
-import io.grpc.StatusRuntimeException;
-import lib.connection.TheMazeGrpc;
-import lib.map.MapGrpc;
 
 public class ClientFactory {
-    private static final Logger logger = Logger.getLogger(ClientFactory.class.getName());
 
-    @SuppressWarnings("CheckResult")
     public static GameClient newGameClient(String host, int port) {
-        {
-            ManagedChannel channel = ManagedChannelBuilder.forAddress(host, port)
-                    .usePlaintext().build();
-            try {
-                TheMazeGrpc.newBlockingStub(channel).handshake(Empty.newBuilder().build());
-            } catch (StatusRuntimeException e) {
-                logger.info(String.format(Locale.ENGLISH,
-                        "No answer from (%s:%d), switching to NoOpClient", host, port));
-                return new NoOpGameClient();
-            } finally {
-                try {
-                    channel.shutdownNow().awaitTermination(3, TimeUnit.SECONDS);
-                } catch (InterruptedException ignored) {
-                }
-            }
-        }
-
-        ManagedChannel channel = ManagedChannelBuilder.forAddress(host, port)
-                .usePlaintext()
-                .intercept(new PlayerIDInterceptor())
-                .build();
+        ManagedChannel channel = getManagedChannel(host, port);
         return new GrpcGameClient(channel);
     }
 
-    @SuppressWarnings("CheckResult")
     public static MapClient newMapClient(String host, int port) {
-        {
-            ManagedChannel channel = ManagedChannelBuilder.forAddress(host, port)
-                    .usePlaintext().build();
-            try {
-                MapGrpc.newBlockingStub(channel).handshake(Empty.newBuilder().build());
-            } catch (StatusRuntimeException e) {
-                logger.info(String.format(Locale.ENGLISH,
-                        "No answer from (%s:%d), switching to NoOpClient", host, port));
-                return new NoOpMapClient();
-            } finally {
-                try {
-                    channel.shutdownNow().awaitTermination(3, TimeUnit.SECONDS);
-                } catch (InterruptedException ignored) {
-                }
-            }
-        }
-
-        ManagedChannel channel = ManagedChannelBuilder.forAddress(host, port)
-                .usePlaintext()
-                .intercept(new PlayerIDInterceptor())
-                .build();
+        ManagedChannel channel = getManagedChannel(host, port);
         return new GrpcMapClient(channel);
     }
 
+    public static StateClient newStateClient(String host, int port) {
+        ManagedChannel channel = getManagedChannel(host, port);
+        return new GrpcStateClient(channel);
+    }
+
+    private static ManagedChannel getManagedChannel(String host, int port) {
+        return ManagedChannelBuilder.forAddress(host, port)
+                .usePlaintext()
+                .intercept(new PlayerIDInterceptor())
+                .build();
+    }
 }

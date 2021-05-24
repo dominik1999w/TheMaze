@@ -5,6 +5,7 @@ import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import java.util.Collection;
@@ -12,7 +13,7 @@ import java.util.Iterator;
 import java.util.UUID;
 
 import connection.game.GameClient;
-import connection.game.ServerGameResponseHandler;
+import connection.state.StateClient;
 import connection.util.PlayerInputLog;
 import entity.bullet.Bullet;
 import entity.bullet.BulletController;
@@ -43,16 +44,22 @@ public class GameScreen extends ScreenAdapter {
     private final World<AuthoritativePlayerController> world;
     private final WorldView worldView;
 
-    private final GameClient client;
+    private final GameClient gameClient;
+    private final StateClient stateClient;
+
     private final PlayerInputLog playerInputLog;
 
     private final DebugDrawer debugDrawer;
 
-    public GameScreen(UUID playerID, SpriteBatch batch, GameClient gameClient, Point2D initialPosition, Map map, AssetManager assetManager) {
+    public GameScreen(UUID playerID, SpriteBatch batch, GameClient gameClient, StateClient stateClient, Point2D initialPosition, Map map, AssetManager assetManager) {
         this.batch = batch;
         this.playerInputLog = new PlayerInputLog();
-        this.client = gameClient;
+
+        this.gameClient = gameClient;
+        this.stateClient = stateClient;
+
         gameClient.connect(playerID);
+        stateClient.connect(playerID);
 
         this.world = new World<>(AuthoritativePlayerController::new, BulletController::new);
 
@@ -78,10 +85,17 @@ public class GameScreen extends ScreenAdapter {
         this.debugDrawer = new DebugDrawer(camera, map, player);
     }
 
+    boolean newRoundStarting = true;
+
     @Override
     public void render(float delta) {
+        renderCountDown();
+        if (newRoundStarting) {
+            return;
+        }
+
         // dispatch server messages
-        client.dispatchMessages(new ServerGameResponseHandler() {
+        gameClient.dispatchMessages(new GameClient.ServerResponseHandler() {
             @Override
             public void onActivePlayers(Collection<UUID> playerIDs) {
                 // NOTE: need iterator here to avoid ConcurrentModificationException
@@ -98,9 +112,9 @@ public class GameScreen extends ScreenAdapter {
             @Override
             public void onActiveBullets(Collection<UUID> bulletIDs) {
                 BulletController bulletController = world.getBulletController();
-                if(bulletController != null) {
+                if (bulletController != null) {
                     UUID playerID = bulletController.getPlayerID();
-                    if(playerID.equals(player.getId())) return;
+                    if (playerID.equals(player.getId())) return;
 
                     UUID bulletID = bulletController.getBullet().getId();
                     if (!bulletIDs.contains(bulletID)) {
@@ -142,7 +156,7 @@ public class GameScreen extends ScreenAdapter {
 
         // check for AFK (no reasonable input)
         if (!playerInput.isEmpty()) {
-            client.syncState(playerInputLog.getCurrentSequenceNumber(), playerInput);
+            gameClient.syncState(playerInputLog.getCurrentSequenceNumber(), playerInput);
             playerInputLog.log(playerInput);
             // update the player according to user input
             playerController.updateInput(playerInput);
@@ -158,10 +172,10 @@ public class GameScreen extends ScreenAdapter {
         camera.position.set(playerPosition.x(), playerPosition.y(), 0);
         camera.update();
 
-        // render the world
-        Gdx.gl.glClearColor(1, 1, 1, 1);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+        Gdx.gl.glClearColor(.5f, .5f, .5f, 1);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        // render the world
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
         worldView.render(batch);
@@ -169,6 +183,28 @@ public class GameScreen extends ScreenAdapter {
 
         //debugDrawer.draw();
         gameUI.render(delta);
+    }
+
+    private void renderCountDown() {
+        stateClient.dispatchMessages(time -> {
+            if (time == 0) {
+                newRoundStarting = false;
+                return;
+            }
+
+            BitmapFont bitmapFont = new BitmapFont();
+            Gdx.gl.glClearColor(.5f, .5f, .5f, 1f);
+            Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
+            Point2D playerPosition = player.getPosition();
+            camera.position.set(playerPosition.x(), playerPosition.y(), 0);
+            camera.update();
+
+            batch.begin();
+            worldView.render(batch);
+            bitmapFont.draw(batch, String.valueOf(time), playerPosition.x(), playerPosition.y());
+            batch.end();
+        });
     }
 
     @Override

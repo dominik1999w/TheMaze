@@ -20,6 +20,7 @@ public class PlayerIDInterceptor implements ServerInterceptor {
         if (
                 "SyncGameState".equals(call.getMethodDescriptor().getBareMethodName())
                         || "SyncMapState".equals(call.getMethodDescriptor().getBareMethodName())
+                        || "SyncState".equals(call.getMethodDescriptor().getBareMethodName())
         ) {
             UUID playerID = UUID.fromString(headers.get(PLAYER_ID_METADATA));
             context = Context.current().withValue(PLAYER_ID, playerID);
