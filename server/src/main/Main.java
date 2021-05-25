@@ -1,3 +1,4 @@
+import game.Game;
 import lib.connection.BulletState;
 import lib.connection.GameStateRequest;
 import lib.connection.GameStateResponse;

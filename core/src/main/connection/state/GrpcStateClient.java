@@ -43,6 +43,8 @@ public class GrpcStateClient implements StateClient {
             StateResponse response = responseQueue.poll();
             float timeToStartRound = response.getTimeToStartRound();
             handler.showGameCountdown(timeToStartRound);
+            // TODO: showing points in UI
+            System.out.println("I have " + response.getScore() + " points!");
         }
         queueLock.unlock();
     }

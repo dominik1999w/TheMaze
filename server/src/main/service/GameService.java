@@ -19,6 +19,7 @@ import entity.bullet.BulletHitbox;
 import entity.player.PlayerHitbox;
 import entity.player.controller.InputPlayerController;
 import entity.player.controller.PlayerController;
+import game.Game;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.ServerCallStreamObserver;
@@ -142,7 +143,7 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
         }
     }
 
-    public void initializeWorld(int length, int seed, Map<UUID, Position> positions) {
+    public void initializeWorld(Game game, int length, int seed, Map<UUID, Position> positions) {
         MapGenerator mapGenerator = new MapGenerator(length);
         map.Map map = mapGenerator.generateMap(seed);
         collisionWorld = new CollisionWorld(map);
@@ -155,13 +156,20 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
         world.subscribeOnPlayerRemoved(collisionWorld::removeHitbox);
         world.subscribeOnBulletAdded(newBullet -> collisionWorld.addHitbox(new BulletHitbox(newBullet, world)));
         world.subscribeOnBulletRemoved(collisionWorld::removeHitbox);
-        world.subscribeOnBulletRemoved(uuid -> world.assignBulletRandomly());
+        world.subscribeOnRoundResult(game::endRound);
 
         for (Map.Entry<UUID, Position> entry : positions.entrySet()) {
             Position pos = entry.getValue();
             world.getPlayerController(entry.getKey(), new Point2D(pos.getPositionX(), pos.getPositionY()));
         }
+    }
 
+    public void startNewRound(Map<UUID, Position> positions) {
+        requestQueue.clear();
+        for (Map.Entry<UUID, Position> entry : positions.entrySet()) {
+            Position pos = entry.getValue();
+            world.getPlayerController(entry.getKey()).getPlayer().setPosition(new Point2D(pos.getPositionX(), pos.getPositionY()));
+        }
         world.assignBulletRandomly();
     }
 

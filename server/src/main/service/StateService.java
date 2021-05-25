@@ -57,7 +57,7 @@ public class StateService extends StateGrpc.StateImplBase {
         };
     }
 
-    public void broadcastPreRoundState(float delta) {
+    public void broadcastPreRoundState(float delta, Map<UUID, Integer> points) {
         handleDisconnectedClients();
 
         for (Map.Entry<StreamObserver<StateResponse>, UUID> entry : clients.entrySet()) {
@@ -65,7 +65,7 @@ public class StateService extends StateGrpc.StateImplBase {
                 entry.getKey().onNext(
                         StateResponse.newBuilder()
                                 .setTimeToStartRound(delta)
-                                .setScore(0)
+                                .setScore(points.getOrDefault(entry.getValue(), 0))
                                 .build());
             } catch (StatusRuntimeException e) {
                 logger.log(Level.INFO,

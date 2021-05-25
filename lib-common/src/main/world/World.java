@@ -28,6 +28,7 @@ public class World<TController extends PlayerController> {
     private final List<Consumer<UUID>> onPlayerRemovedSubscribers = new ArrayList<>();
     private final List<Consumer<Bullet>> onBulletAddedSubscribers = new ArrayList<>();
     private final List<Consumer<UUID>> onBulletRemovedSubscribers = new ArrayList<>();
+    private final List<Consumer<RoundResult>> onRoundResultSubscribers = new ArrayList<>();
 
     private final BiFunction<Player, World<?>, TController> controllerConstructor;
     private final BiFunction<UUID, Bullet, BulletController> bulletControllerConstructor;
@@ -55,6 +56,10 @@ public class World<TController extends PlayerController> {
 
     public void subscribeOnBulletRemoved(Consumer<UUID> callback) {
         onBulletRemovedSubscribers.add(callback);
+    }
+
+    public void subscribeOnRoundResult(Consumer<RoundResult> callback) {
+        onRoundResultSubscribers.add(callback);
     }
 
     public void onPlayerJoined(UUID id) {
@@ -112,11 +117,13 @@ public class World<TController extends PlayerController> {
     }
 
     public void onBulletDied(UUID bulletID) {
+        onBulletRemovedSubscribers.forEach(subscriber -> subscriber.accept(bulletID));
         if(bulletID.equals(bulletController.getBullet().getId())) {
+            UUID shooter = bulletController.getPlayerID();
             bulletOwner = null;
             bulletController = null;
+            onRoundResultSubscribers.forEach(subscriber -> subscriber.accept(new RoundResult(shooter)));
         }
-        onBulletRemovedSubscribers.forEach(subscriber -> subscriber.accept(bulletID));
     }
 
     public void update(float delta) {

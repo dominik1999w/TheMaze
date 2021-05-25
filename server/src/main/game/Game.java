@@ -1,3 +1,5 @@
+package game;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -9,6 +11,7 @@ import service.GameService;
 import service.MapService;
 import service.StateService;
 import time.Timer;
+import world.RoundResult;
 
 import static util.ServerConfig.SERVER_UPDATE_RATE;
 
@@ -25,6 +28,7 @@ public class Game {
     private int mapLength = 5;
     private int seed = 0;
     private Map<UUID, Position> initialPositions = new HashMap<>();
+    private Map<UUID, Integer> points = new HashMap<>();
 
     public Game(MapService mapService, StateService stateService, GameService gameService) {
         this.mapService = mapService;
@@ -41,7 +45,7 @@ public class Game {
                     this.mapLength = mapLength;
                     this.seed = seed;
                     this.initialPositions = initialPositions;
-                    gameService.initializeWorld(mapLength, seed, initialPositions); // required for world preview during pregame countdown
+                    gameService.initializeWorld(this, mapLength, seed, initialPositions); // required for world preview during pregame countdown
                     timer.cancel();
                 });
             }, 1.0f / SERVER_UPDATE_RATE);
@@ -52,9 +56,6 @@ public class Game {
 
     public void startNewRound() {
         logger.info("Starting new round...");
-
-        gameTimer.cancel();
-        stateTimer.cancel();
 
         stateTimer = new Timer();
         gameTimer = new Timer();
@@ -69,14 +70,14 @@ public class Game {
                     return;
                 }
                 logger.info(String.valueOf(remainingTime));
-                stateService.broadcastPreRoundState(remainingTime);
+                stateService.broadcastPreRoundState(remainingTime, points);
                 remainingTime -= delta;
             }
         }, 1.0f);
 
         logger.info("new round just started...");
 
-        gameService.initializeWorld(mapLength, seed, initialPositions);
+        gameService.startNewRound(initialPositions);
 
         gameTimer.executeAtFixedRate(delta -> {
             gameService.dispatchMessages((sequenceNumber, id, playerInput) ->
@@ -91,6 +92,19 @@ public class Game {
             gameService.getCollisionWorld().update();
             gameService.broadcastGameState(System.currentTimeMillis());
         }, 1.0f / SERVER_UPDATE_RATE);
+    }
+
+    public void endRound(RoundResult result) {
+        stateTimer.cancel();
+        gameTimer.cancel();
+
+        System.out.println(result.shooter + " -- " + result.getShooterPoints());
+        points.put(result.shooter, points.getOrDefault(result.shooter,0)+result.getShooterPoints());
+        if(result.killed != null) {
+            points.put(result.killed, points.getOrDefault(result.killed,0)+result.getKilledPoints());
+        }
+
+        startNewRound();
     }
 
 }

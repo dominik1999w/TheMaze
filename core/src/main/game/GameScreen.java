@@ -85,7 +85,7 @@ public class GameScreen extends ScreenAdapter {
         this.debugDrawer = new DebugDrawer(camera, map, player);
     }
 
-    boolean newRoundStarting = true;
+    boolean newRoundStarting;
 
     @Override
     public void render(float delta) {
@@ -191,6 +191,7 @@ public class GameScreen extends ScreenAdapter {
                 newRoundStarting = false;
                 return;
             }
+            newRoundStarting = true;
 
             BitmapFont bitmapFont = new BitmapFont();
             Gdx.gl.glClearColor(.5f, .5f, .5f, 1f);
