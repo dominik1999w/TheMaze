@@ -20,7 +20,6 @@ import entity.player.PlayerHitbox;
 import entity.player.controller.InputPlayerController;
 import entity.player.controller.PlayerController;
 import game.Game;
-import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
@@ -92,7 +91,7 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
 
             @Override
             public void onError(Throwable t) {
-                logger.log(Level.WARNING, "SyncGameState failed: {0}", Status.fromThrowable(t));
+                logger.log(Level.WARNING, "SyncGameState failed: {0}", t);
                 //responseObserver.onError(t);
             }
 
@@ -165,7 +164,10 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
     }
 
     public void startNewRound(Map<UUID, Position> positions) {
+        queueLock.lock();
         requestQueue.clear();
+        queueLock.unlock();
+
         for (Map.Entry<UUID, Position> entry : positions.entrySet()) {
             Position pos = entry.getValue();
             world.getPlayerController(entry.getKey()).getPlayer().setPosition(new Point2D(pos.getPositionX(), pos.getPositionY()));

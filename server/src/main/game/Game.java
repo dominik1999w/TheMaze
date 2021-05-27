@@ -2,6 +2,7 @@ package game;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TimerTask;
 import java.util.UUID;
 import java.util.logging.Logger;
 
@@ -29,6 +30,7 @@ public class Game {
     private int seed = 0;
     private Map<UUID, Position> initialPositions = new HashMap<>();
     private Map<UUID, Integer> points = new HashMap<>();
+    private Thread gameThread;
 
     public Game(MapService mapService, StateService stateService, GameService gameService) {
         this.mapService = mapService;
@@ -65,7 +67,7 @@ public class Game {
 
             @Override
             public void run(float delta) {
-                if (remainingTime < 0.0f) {
+                if (remainingTime == 0.0f) {
                     stateTimer.cancel();
                     return;
                 }
@@ -76,32 +78,41 @@ public class Game {
         }, 1.0f);
 
         logger.info("new round just started...");
+        stateService.broadcastPreRoundState(-1, points);
 
-        gameService.startNewRound(initialPositions);
+        gameThread = new Thread(new TimerTask() {
+            @Override
+            public void run() {
+                gameService.startNewRound(initialPositions);
+                gameTimer.executeAtFixedRate(delta -> {
+                    gameService.dispatchMessages((sequenceNumber, id, playerInput) ->
+                    {
+                        InputPlayerController playerController = gameService.getWorld().getPlayerController(id);
+                        playerController.updateInput(playerInput);
+                        playerController.update();
+                        gameService.getCollisionWorld().update();
+                    });
+                    // TODO: rewrite: in world.update only bullets will be actually updated
+                    gameService.getWorld().update(delta);
+                    gameService.getCollisionWorld().update();
+                    gameService.broadcastGameState(System.currentTimeMillis());
+                }, 1.0f / SERVER_UPDATE_RATE);
+            }
+        });
+        gameThread.start();
 
-        gameTimer.executeAtFixedRate(delta -> {
-            gameService.dispatchMessages((sequenceNumber, id, playerInput) ->
-            {
-                InputPlayerController playerController = gameService.getWorld().getPlayerController(id);
-                playerController.updateInput(playerInput);
-                playerController.update();
-                gameService.getCollisionWorld().update();
-            });
-            // TODO: rewrite: in world.update only bullets will be actually updated
-            gameService.getWorld().update(delta);
-            gameService.getCollisionWorld().update();
-            gameService.broadcastGameState(System.currentTimeMillis());
-        }, 1.0f / SERVER_UPDATE_RATE);
     }
 
     public void endRound(RoundResult result) {
-        stateTimer.cancel();
+//        stateTimer.cancel();
+//        gameTimer.cancel();
         gameTimer.cancel();
+        gameThread.interrupt();
 
         System.out.println(result.shooter + " -- " + result.getShooterPoints());
-        points.put(result.shooter, points.getOrDefault(result.shooter,0)+result.getShooterPoints());
-        if(result.killed != null) {
-            points.put(result.killed, points.getOrDefault(result.killed,0)+result.getKilledPoints());
+        points.put(result.shooter, points.getOrDefault(result.shooter, 0) + result.getShooterPoints());
+        if (result.killed != null) {
+            points.put(result.killed, points.getOrDefault(result.killed, 0) + result.getKilledPoints());
         }
 
         startNewRound();

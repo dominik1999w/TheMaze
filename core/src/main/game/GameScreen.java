@@ -85,7 +85,7 @@ public class GameScreen extends ScreenAdapter {
         this.debugDrawer = new DebugDrawer(camera, map, player);
     }
 
-    boolean newRoundStarting;
+    boolean newRoundStarting = true;
 
     @Override
     public void render(float delta) {
@@ -187,7 +187,7 @@ public class GameScreen extends ScreenAdapter {
 
     private void renderCountDown() {
         stateClient.dispatchMessages(time -> {
-            if (time == 0) {
+            if (time < 0) {
                 newRoundStarting = false;
                 return;
             }
