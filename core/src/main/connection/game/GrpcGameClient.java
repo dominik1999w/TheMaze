@@ -54,12 +54,6 @@ public class GrpcGameClient implements GameClient {
                     .collect(Collectors.toSet());
             responseHandler.onActivePlayers(activePlayers);
 
-            Collection<UUID> activeBullets = response.getBulletsList().stream()
-                    .map(BulletState::getId)
-                    .map(UUID::fromString)
-                    .collect(Collectors.toSet());
-            responseHandler.onActiveBullets(activeBullets);
-
             response.getPlayersList().forEach(playerState ->
                     responseHandler.onPlayerState(
                             playerState.getId().equals(id.toString()) ? playerState.getSequenceNumber() : response.getTimestamp(),
@@ -67,12 +61,15 @@ public class GrpcGameClient implements GameClient {
                     )
             );
 
-            response.getBulletsList().forEach(bulletState ->
-                    responseHandler.onBulletState(
-                            UUID.fromString(bulletState.getPlayerId()),
-                            GRpcMapper.bulletState(bulletState)
-                    )
-            );
+            if (response.hasBullet()) {
+                BulletState bulletState = response.getBullet();
+                responseHandler.onBulletState(
+                        UUID.fromString(bulletState.getPlayerId()),
+                        GRpcMapper.bulletState(bulletState)
+                );
+            } else {
+                responseHandler.onBulletState(null, null);
+            }
         }
         queueLock.unlock();
     }

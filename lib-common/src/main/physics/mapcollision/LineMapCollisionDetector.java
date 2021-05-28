@@ -20,13 +20,8 @@ public class LineMapCollisionDetector extends MapCollisionDetector {
 
     @Override
     public MapCollisionInfo detectMapCollision(HitboxHistory history) {
-        Point2D initialPosition = history.getPreviousPosition();
-        Point2D deltaPosition = new Point2D(history.getHitbox().getPosition()).subtract(initialPosition);
-        return detectMapCollisions(initialPosition, deltaPosition, history.getHitbox().getRadius());
-    }
-
-    public MapCollisionInfo detectMapCollisions(Point2D currentPosition, Point2D deltaPosition, float hitboxRadius) {
-        Point2D targetPosition = new Point2D(currentPosition).add(deltaPosition);
+        Point2D currentPosition = history.getPreviousPosition();
+        Point2D targetPosition = new Point2D(history.getHitbox().getPosition());
 
         Point2Di currentTile = new Point2Di(
                 floor(currentPosition.x() / MapConfig.BOX_SIZE),

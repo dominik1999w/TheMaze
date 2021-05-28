@@ -118,17 +118,17 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
                     .setRotation(controller.getPlayerRotation())
                     .build());
         }
-        if (world.getBulletController() != null) {
-            UUID playerID = world.getBulletController().getPlayerID();
-            Bullet bullet = world.getBulletController().getBullet();
-            response.addBullets(BulletState.newBuilder()
+        world.getBullet().ifPresent(cachedBullet -> {
+            UUID playerID = cachedBullet.getShooterID();
+            Bullet bullet = cachedBullet.getController().getBullet();
+            response.setBullet(BulletState.newBuilder()
                     .setId(bullet.getId().toString())
                     .setPlayerId(playerID.toString())
                     .setPositionX(bullet.getPosition().x())
                     .setPositionY(bullet.getPosition().y())
                     .setRotation(bullet.getRotation())
                     .build());
-        }
+        });
         GameStateResponse stateResponse = response.build();
 
         for (Map.Entry<StreamObserver<GameStateResponse>, UUID> entry : responseObservers.entrySet()) {

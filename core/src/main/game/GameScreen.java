@@ -111,20 +111,6 @@ public class GameScreen extends ScreenAdapter {
                 }
 
                 @Override
-                public void onActiveBullets(Collection<UUID> bulletIDs) {
-                    BulletController bulletController = world.getBulletController();
-                    if (bulletController != null) {
-                        UUID playerID = bulletController.getPlayerID();
-                        if (playerID.equals(player.getId())) return;
-
-                        UUID bulletID = bulletController.getBullet().getId();
-                        if (!bulletIDs.contains(bulletID)) {
-                            world.removeBulletController();
-                        }
-                    }
-                }
-
-                @Override
                 public void onPlayerState(long sequenceNumber, Player playerState) {
                     if (player.getId().equals(playerState.getId())) {
                     /*System.out.println(String.format(Locale.ENGLISH,
@@ -147,7 +133,13 @@ public class GameScreen extends ScreenAdapter {
 
                 @Override
                 public void onBulletState(UUID playerID, Bullet bulletState) {
-                    world.onBulletFired(playerID, bulletState);
+                    //if (player.getId().equals(playerID)) return;
+
+                    if (playerID == null) {
+                        world.onBulletDied();
+                    } else {
+                        world.onBulletFired(playerID, bulletState);
+                    }
                 }
             });
 
