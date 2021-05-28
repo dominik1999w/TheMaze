@@ -51,7 +51,11 @@ public class GameUI {
     }
 
     public PlayerInput readInput() {
-        return new PlayerInput(movementTouchpad.getKnobPercentX(), movementTouchpad.getKnobPercentY(), shootButtonPressed);
+        try {
+            return new PlayerInput(movementTouchpad.getKnobPercentX(), movementTouchpad.getKnobPercentY(), shootButtonPressed);
+        } finally {
+            shootButtonPressed = false;
+        }
     }
 
     public void render(float delta) {
