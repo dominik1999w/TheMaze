@@ -72,4 +72,8 @@ public class BulletHitbox implements Hitbox {
             world.onBulletDied();
         }
     }
+
+    public long getBirthTimestamp() {
+        return startTimestamp;
+    }
 }

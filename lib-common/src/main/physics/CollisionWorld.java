@@ -41,7 +41,7 @@ public class CollisionWorld {
             return;
         }
 
-        if (bulletHistory != null) {
+        if (bulletHistory != null && moveTimestamp >= bulletHistory.getHitbox().getBirthTimestamp()) {
             // Player: hitboxHistory.getPreviousPosition() -> hitboxHistory.getHitbox().getPosition()
             // Bullet: bulletHistory.getPreviousPosition() -> bulletHistory.getPreviousPosition() + bullet.getDirection() * deltaTime
             // Bullet: bulletHistory.getPosition(timestamp) -> bulletHistory.getPosition(timestamp + deltaTime)

@@ -87,8 +87,9 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
         return new StreamObserver<GameStateRequest>() {
             @Override
             public void onNext(GameStateRequest value) {
+                Timestamp<GameStateRequest> tRequest = new Timestamp<>(value);
                 queueLock.lock();
-                requestQueue.add(new Timestamp<>(value));
+                requestQueue.add(tRequest);
                 queueLock.unlock();
             }
 
