@@ -17,7 +17,6 @@ import connection.state.StateClient;
 import connection.util.PlayerInputLog;
 import entity.bullet.Bullet;
 import entity.bullet.BulletController;
-import entity.bullet.BulletHitbox;
 import entity.player.Player;
 import entity.player.PlayerHitbox;
 import entity.player.PlayerInput;
@@ -84,7 +83,7 @@ public class GameScreen extends ScreenAdapter {
     }
 
     boolean newRoundStarting = true;
-    int countDownTime;
+    int countDownTime = 3;
 
     @Override
     public void render(float delta) {
@@ -145,13 +144,14 @@ public class GameScreen extends ScreenAdapter {
 
             // check for AFK (no reasonable input)
             if (!playerInput.isEmpty()) {
-                gameClient.syncState(playerInputLog.getCurrentSequenceNumber(), playerInput);
+//                gameClient.syncState(playerInputLog.getCurrentSequenceNumber(), playerInput);
                 playerInputLog.log(playerInput);
                 // update the player according to user input
                 playerController.updateInput(playerInput);
                 playerController.update();
                 collisionWorld.onPlayerMoved(player.getId(), System.currentTimeMillis(), playerInput.getDelta());
             }
+            gameClient.syncState(playerInputLog.getCurrentSequenceNumber(), playerInput);
 
             // update the world
             world.update(delta);

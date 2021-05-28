@@ -29,6 +29,10 @@ public class BulletHitbox implements Hitbox {
         ).multiply(MapConfig.BOX_SIZE * bullet.getSpeed());
         this.bulletStartPosition = new Point2D(bullet.getPosition());
         this.startTimestamp = System.currentTimeMillis();
+
+        System.out.format("Bullet velocity: %s\n", bulletVelocity);
+        System.out.format("Bullet start position: %s\n", bulletStartPosition);
+        System.out.format("Start timestamp: %s\n", startTimestamp);
     }
 
     @Override
