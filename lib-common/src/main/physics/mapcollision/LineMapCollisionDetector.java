@@ -51,9 +51,9 @@ public class LineMapCollisionDetector extends MapCollisionDetector {
 
         float x, y;
         if (Math.abs(dx) > Float.MIN_VALUE) {
-            x = currentTile.x();
-            y = currentTile.y();
             float dydx = dy / dx;
+            x = currentTile.x();
+            y = currentPosition.y() + dydx * (x - currentPosition.x());
             for (int i = 0; i < tileAreaSize.x(); i++) {
                 if (map.hasWall(xWallType, (int) x, floor(y))) {
                     System.out.format("With (%s,%s): Bullet %s collision at (%f,%f)\n",
@@ -65,9 +65,9 @@ public class LineMapCollisionDetector extends MapCollisionDetector {
             }
         }
         if (Math.abs(dy) > Float.MIN_VALUE) {
-            x = currentTile.x();
-            y = currentTile.y();
             float dxdy = dx / dy;
+            y = currentTile.y();
+            x = currentPosition.x() + dxdy * (y - currentPosition.y());
             for (int i = 0; i < tileAreaSize.y(); i++) {
                 if (map.hasWall(yWallType, floor(x), (int) y)) {
                     System.out.format("With (%s,%s): Bullet %s collision at (%f,%f)\n",
