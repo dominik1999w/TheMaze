@@ -110,12 +110,14 @@ public class World<TController extends PlayerController> {
     }
 
     public void onBulletDied() {
-        UUID bulletID = cachedBullet.getID();
-        onBulletRemovedSubscribers.forEach(subscriber -> subscriber.accept(bulletID));
+        if (cachedBullet.enabled()) {
+            UUID bulletID = cachedBullet.getID();
+            onBulletRemovedSubscribers.forEach(subscriber -> subscriber.accept(bulletID));
 
-        UUID shooterID = cachedBullet.getShooterID();
-        cachedBullet.disable();
-        onRoundResultSubscribers.forEach(subscriber -> subscriber.accept(new RoundResult(shooterID)));
+            UUID shooterID = cachedBullet.getShooterID();
+            cachedBullet.disable();
+            onRoundResultSubscribers.forEach(subscriber -> subscriber.accept(new RoundResult(shooterID)));
+        }
     }
 
     public void update(float delta) {
