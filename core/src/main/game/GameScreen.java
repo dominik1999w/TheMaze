@@ -136,7 +136,7 @@ public class GameScreen extends ScreenAdapter {
                     for (PlayerInput playerInput : playerInputLog.getInputLog()) {
                         playerController.updateInput(playerInput);
                         playerController.update();
-                        collisionWorld.update();
+                        collisionWorld.onPlayerMoved(player.getId());
                     }
                 } else {
                     world.getPlayerController(playerState.getId(), playerState.getPosition())
@@ -161,6 +161,7 @@ public class GameScreen extends ScreenAdapter {
             // update the player according to user input
             playerController.updateInput(playerInput);
             playerController.update();
+            collisionWorld.onPlayerMoved(player.getId());
         }
 
         // update the world

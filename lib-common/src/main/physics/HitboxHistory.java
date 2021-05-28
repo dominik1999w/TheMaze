@@ -5,11 +5,11 @@ import util.Point2D;
 public class HitboxHistory {
 
     private final Hitbox hitbox;
-    private final Point2D previousPosition;
+    private final Point2D previousPosition = new Point2D();
 
-    HitboxHistory(Hitbox hitbox, Point2D previousPosition) {
+    HitboxHistory(Hitbox hitbox) {
         this.hitbox = hitbox;
-        this.previousPosition = previousPosition;
+        this.previousPosition.set(hitbox.getPosition());
     }
 
     public Hitbox getHitbox() {

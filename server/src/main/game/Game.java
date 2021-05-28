@@ -66,9 +66,8 @@ public class Game {
                 InputPlayerController playerController = gameService.getWorld().getPlayerController(id);
                 playerController.updateInput(playerInput);
                 playerController.update();
-                gameService.getCollisionWorld().update();
+                gameService.getCollisionWorld().onPlayerMoved(playerController.getPlayer().getId());
             });
-            // TODO: rewrite: in world.update only bullets will be actually updated
             gameService.getWorld().update(delta);
             gameService.getCollisionWorld().update();
             gameService.broadcastGameState(System.currentTimeMillis());
