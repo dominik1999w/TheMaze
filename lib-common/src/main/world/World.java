@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
@@ -26,7 +27,7 @@ public class World<TController extends PlayerController> {
 
     private final List<Consumer<Player>> onPlayerAddedSubscribers = new ArrayList<>();
     private final List<Consumer<UUID>> onPlayerRemovedSubscribers = new ArrayList<>();
-    private final List<Consumer<Bullet>> onBulletAddedSubscribers = new ArrayList<>();
+    private final List<BiConsumer<UUID, Bullet>> onBulletAddedSubscribers = new ArrayList<>();
     private final List<Consumer<UUID>> onBulletRemovedSubscribers = new ArrayList<>();
     private final List<Consumer<RoundResult>> onRoundResultSubscribers = new ArrayList<>();
 
@@ -50,7 +51,7 @@ public class World<TController extends PlayerController> {
         onPlayerRemovedSubscribers.add(callback);
     }
 
-    public void subscribeOnBulletAdded(Consumer<Bullet> callback) {
+    public void subscribeOnBulletAdded(BiConsumer<UUID, Bullet> callback) {
         onBulletAddedSubscribers.add(callback);
     }
 
@@ -94,7 +95,7 @@ public class World<TController extends PlayerController> {
         if (!cachedBullet.enabled()) {
             cachedBullet.passTo(shooterID);
             cachedBullet.enable(bulletControllerConstructor.apply(shooterID, bullet));
-            onBulletAddedSubscribers.forEach(subscriber -> subscriber.accept(bullet));
+            onBulletAddedSubscribers.forEach(subscriber -> subscriber.accept(shooterID, bullet));
         }
     }
 
@@ -103,9 +104,9 @@ public class World<TController extends PlayerController> {
             Point2D bulletPosition = new Point2D(player.getPosition())
                     .add(BulletConfig.textureDependentShift(player.getRotation()));
             Bullet bullet = new Bullet(bulletPosition, player.getRotation());
-            cachedBullet.passTo(player.getId());
+
             cachedBullet.enable(bulletControllerConstructor.apply(player.getId(), bullet));
-            onBulletAddedSubscribers.forEach(subscriber -> subscriber.accept(bullet));
+            onBulletAddedSubscribers.forEach(subscriber -> subscriber.accept(player.getId(), bullet));
         }
     }
 

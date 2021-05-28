@@ -156,7 +156,7 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
 
         world.subscribeOnPlayerAdded(newPlayer -> collisionWorld.addPlayerHitbox(new PlayerHitbox(newPlayer)));
         world.subscribeOnPlayerRemoved(collisionWorld::removeHitbox);
-        world.subscribeOnBulletAdded(newBullet -> collisionWorld.setBulletHitbox(new BulletHitbox(newBullet, world)));
+        world.subscribeOnBulletAdded((shooterID, newBullet) -> collisionWorld.setBulletHitbox(new BulletHitbox(shooterID, newBullet, world)));
         world.subscribeOnBulletRemoved(collisionWorld::removeHitbox);
         world.subscribeOnRoundResult(game::endRound);
 
