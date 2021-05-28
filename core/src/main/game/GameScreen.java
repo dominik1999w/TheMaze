@@ -67,10 +67,6 @@ public class GameScreen extends ScreenAdapter {
         this.player = new Player(playerID, initialPosition);
         this.playerController = new LocalPlayerController(player, world);
         this.collisionWorld = new CollisionWorld(map);
-        // Uncomment this for CLIENT-SIDE PLAYER-MAP COLLISION HANDLING
-        //world.subscribeOnPlayerAdded(newPlayer -> collisionWorld.addHitbox(new PlayerHitbox(newPlayer)));
-        world.subscribeOnBulletAdded(newBullet -> collisionWorld.setBulletHitbox(new BulletHitbox(newBullet, world)));
-        world.subscribeOnBulletRemoved(collisionWorld::removeHitbox);
         collisionWorld.addPlayerHitbox(new PlayerHitbox(player));
 
         this.camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
