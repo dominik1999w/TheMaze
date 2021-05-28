@@ -3,11 +3,11 @@ package service;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
@@ -27,13 +27,13 @@ import map.MapConfig;
 public class MapService extends MapGrpc.MapImplBase {
     private static final Logger logger = Logger.getLogger(MapService.class.getName());
 
-    private AtomicReference<String> host = new AtomicReference<>("");
+    private String host = null;
     private int lastSeed = 0;
     private int lastLength = 5;
     private boolean gameStarted = false;
 
-    private final Map<StreamObserver<MapStateResponse>, UUID> clients = new ConcurrentHashMap<>();
-    private final Map<StreamObserver<MapStateResponse>, UUID> disconnectedClients = new ConcurrentHashMap<>();
+    private final Map<StreamObserver<MapStateResponse>, UUID> clients = new HashMap<>();
+    private final Set<StreamObserver<MapStateResponse>> disconnectedClients = new HashSet<>();
 
     public MapService() {
     }
@@ -45,10 +45,10 @@ public class MapService extends MapGrpc.MapImplBase {
         queueLock.lock();
         while (!requestQueue.isEmpty()) {
             MapStateRequest request = requestQueue.poll();
-            if (host.get().equals("") && !disconnectedClients.containsValue(UUID.fromString(request.getId()))) {
-                host.set(request.getId());
+            if (host == null) {
+                host = request.getId();
             }
-            if (request.getId().equals(host.get())) {
+            if (request.getId().equals(host)) {
                 lastLength = request.getLength();
                 lastSeed = request.getSeed();
                 gameStarted = request.getStarted();
@@ -59,15 +59,16 @@ public class MapService extends MapGrpc.MapImplBase {
 
     @Override
     public StreamObserver<MapStateRequest> syncMapState(StreamObserver<MapStateResponse> responseObserver) {
+        queueLock.lock();
         clients.put(responseObserver, CallKey.PLAYER_ID.get());
-
         ((ServerCallStreamObserver<MapStateResponse>) responseObserver)
                 .setOnCancelHandler(() -> {
-                    if (CallKey.PLAYER_ID.get().toString().equals(host.get())) {
-                        host.set("");
+                    if (CallKey.PLAYER_ID.get().toString().equals(host)) {
+                        host = null;
                     }
-                    disconnectedClients.put(responseObserver, CallKey.PLAYER_ID.get());
+                    disconnectedClients.add(responseObserver);
                 });
+        queueLock.unlock();
 
         return new StreamObserver<MapStateRequest>() {
             @Override
@@ -110,7 +111,7 @@ public class MapService extends MapGrpc.MapImplBase {
                                 .setSeed(lastSeed)
                                 .setPosition(positions.get(entry.getValue()))
                                 .setStarted(gameStarted)
-                                .setIsHost(entry.getValue().toString().equals(host.get()))
+                                .setIsHost(entry.getValue().toString().equals(host))
                                 .build());
             } catch (StatusRuntimeException e) {
                 logger.log(Level.INFO,
@@ -120,7 +121,7 @@ public class MapService extends MapGrpc.MapImplBase {
     }
 
     private void handleDisconnectedClients() {
-        for (StreamObserver<MapStateResponse> client : disconnectedClients.keySet()) {
+        for (StreamObserver<MapStateResponse> client : disconnectedClients) {
             UUID id = clients.remove(client);
             logger.log(Level.INFO,
                     "Player {0} removed from the world", id);

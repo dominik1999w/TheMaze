@@ -38,13 +38,12 @@ public class BulletHitbox implements Hitbox {
     }
 
     @Override
-    public void notifyMapCollision(Point2D resolvedPosition) {
-        world.onBulletDied(bullet.getId());
+    public void setPosition(Point2D resolvedPosition) {
+        bullet.setPosition(resolvedPosition);
     }
 
     @Override
-    public void notifyEntityCollision(Hitbox hitbox) {
-        // TODO: if hitbox.getId() != bullet.shooterID
-        world.onBulletDied(getId());
+    public void notifyMapCollision() {
+        world.onBulletDied(bullet.getId());
     }
 }

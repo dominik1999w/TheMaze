@@ -35,12 +35,12 @@ public class PlayerHitbox implements Hitbox {
     }
 
     @Override
-    public void notifyMapCollision(Point2D resolvedPosition) {
+    public void setPosition(Point2D resolvedPosition) {
         player.setPosition(resolvedPosition);
     }
 
     @Override
-    public void notifyEntityCollision(Hitbox hitbox) {
-        // TODO: player was hit by a bullet
+    public void notifyMapCollision() {
+
     }
 }

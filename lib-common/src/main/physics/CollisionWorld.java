@@ -1,65 +1,56 @@
 package physics;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
+import map.Map;
 import physics.mapcollision.ClampMapCollisionDetector;
 import physics.mapcollision.LineMapCollisionDetector;
 import physics.mapcollision.MapCollisionDetector;
+import util.Point2D;
 
 public class CollisionWorld {
 
-    private final Map<UUID, HitboxHistory> hitboxHistories = new HashMap<>();
-    private HitboxHistory bulletHistory = null;
+    private final Collection<HitboxHistory> hitboxHistories = new ArrayList<>();
 
     private final EnumMap<HitboxType, MapCollisionDetector> mapCollisionDetector = new EnumMap<>(HitboxType.class);
 
-    public CollisionWorld(map.Map map) {
+    private LineMapCollisionDetector lineMapCollisionDetector;
+
+    public CollisionWorld(Map map) {
         mapCollisionDetector.put(HitboxType.SLOW, new ClampMapCollisionDetector(map));
-        mapCollisionDetector.put(HitboxType.FAST, new LineMapCollisionDetector(map));
+        lineMapCollisionDetector = new LineMapCollisionDetector(map);
+        mapCollisionDetector.put(HitboxType.FAST, lineMapCollisionDetector);
     }
 
     public void addHitbox(Hitbox hitbox) {
-        if (hitbox.getType() == HitboxType.FAST) {
-            bulletHistory = new HitboxHistory(hitbox);
-        } else {
-            hitboxHistories.put(hitbox.getId(), new HitboxHistory(hitbox));
-        }
-    }
-
-    public void onPlayerMoved(UUID id) {
-        HitboxHistory hitboxHistory = hitboxHistories.get(id);
-        if (hitboxHistory == null) {
-            System.out.println("TRACE: onPlayerMoved on not existing player");
-            return;
-        }
-
-        onHitboxMoved(hitboxHistory);
+        hitboxHistories.add(new HitboxHistory(hitbox, new Point2D(hitbox.getPosition())));
     }
 
     public void update() {
-        if (bulletHistory != null) {
-            onHitboxMoved(bulletHistory);
+        Collection<Hitbox> hitboxesToNotify = new ArrayList<>();
+        for (HitboxHistory hitboxHistory : hitboxHistories) {
+            MapCollisionDetector.MapCollisionInfo collisionInfo = mapCollisionDetector
+                    .get(hitboxHistory.getHitbox().getType())
+                    .detectMapCollision(hitboxHistory);
+            if (collisionInfo.hasCollided) {
+                hitboxHistory.getHitbox().setPosition(collisionInfo.nextPosition);
+                hitboxesToNotify.add(hitboxHistory.getHitbox());
+            }
+
+            hitboxHistory.setPreviousPosition(collisionInfo.nextPosition);
         }
+
+        hitboxesToNotify.forEach(Hitbox::notifyMapCollision);
     }
 
     public void removeHitbox(UUID hitboxID) {
-        if (bulletHistory != null && bulletHistory.getHitbox().getId().equals(hitboxID)) {
-            bulletHistory = null;
-        } else {
-            hitboxHistories.remove(hitboxID);
-        }
+        hitboxHistories.removeIf(hitboxHistory -> hitboxHistory.getHitbox().getId().equals(hitboxID));
     }
 
-    private void onHitboxMoved(HitboxHistory hitboxHistory) {
-        MapCollisionDetector.MapCollisionInfo collisionInfo = mapCollisionDetector
-                .get(hitboxHistory.getHitbox().getType())
-                .detectMapCollision(hitboxHistory);
-        hitboxHistory.setPreviousPosition(collisionInfo.nextPosition);
-        if (collisionInfo.hasCollided) {
-            hitboxHistory.getHitbox().notifyMapCollision(collisionInfo.nextPosition);
-        }
+    public LineMapCollisionDetector getLineMapCollisionDetector() {
+        return lineMapCollisionDetector;
     }
 }

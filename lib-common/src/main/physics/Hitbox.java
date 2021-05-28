@@ -12,6 +12,8 @@ public interface Hitbox {
     float getRadius();
     Point2D getPosition();
 
-    void notifyMapCollision(Point2D resolvedPosition);
-    void notifyEntityCollision(Hitbox hitbox);
+    void setPosition(Point2D resolvedPosition);
+
+    void notifyMapCollision();
+    //void notifyCollision(Hitbox hitbox);
 }

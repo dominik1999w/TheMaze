@@ -59,6 +59,11 @@ public class Point2D {
         return this;
     }
 
+    public static float dist(Point2D A, Point2D B) {
+        return (float)Math.sqrt((A.x() - B.x()) * (A.x() - B.x()) +
+                (A.y() - B.y()) * (A.y() - B.y()));
+    }
+
     public float mag() {
         return (float) Math.sqrt(x * x + y * y);
     }
