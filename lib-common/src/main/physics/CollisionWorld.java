@@ -13,12 +13,14 @@ public class CollisionWorld {
 
     private final Map<UUID, HitboxHistory> hitboxHistories = new HashMap<>();
     private HitboxHistory bulletHistory = null;
+    private LineMapCollisionDetector lineMapCollisionDetector;
 
     private final EnumMap<HitboxType, MapCollisionDetector> mapCollisionDetector = new EnumMap<>(HitboxType.class);
 
     public CollisionWorld(map.Map map) {
         mapCollisionDetector.put(HitboxType.SLOW, new ClampMapCollisionDetector(map));
-        mapCollisionDetector.put(HitboxType.FAST, new LineMapCollisionDetector(map));
+        lineMapCollisionDetector = new LineMapCollisionDetector(map);
+        mapCollisionDetector.put(HitboxType.FAST, lineMapCollisionDetector);
     }
 
     public void addHitbox(Hitbox hitbox) {
@@ -61,5 +63,9 @@ public class CollisionWorld {
         if (collisionInfo.hasCollided) {
             hitboxHistory.getHitbox().notifyMapCollision(collisionInfo.nextPosition);
         }
+    }
+
+    public LineMapCollisionDetector getLineMapCollisionDetector() {
+        return lineMapCollisionDetector;
     }
 }
