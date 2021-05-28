@@ -201,6 +201,7 @@ public class GameScreen extends ScreenAdapter {
             camera.position.set(playerPosition.x(), playerPosition.y(), 0);
             camera.update();
 
+            batch.setProjectionMatrix(camera.combined);
             batch.begin();
             worldView.render(batch);
             bitmapFont.draw(batch, String.valueOf(time), playerPosition.x(), playerPosition.y());
