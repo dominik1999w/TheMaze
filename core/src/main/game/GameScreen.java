@@ -187,7 +187,7 @@ public class GameScreen extends ScreenAdapter {
 
     private void renderCountDown() {
         stateClient.dispatchMessages(time -> {
-            if (time < 0) {
+            if (time == 0) {
                 newRoundStarting = false;
                 return;
             }
