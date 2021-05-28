@@ -10,6 +10,7 @@ import world.World;
 
 public class BulletHitbox implements Hitbox {
 
+    private final UUID shooterID;
     private final Bullet bullet;
     private final World<?> world;
 
@@ -17,13 +18,14 @@ public class BulletHitbox implements Hitbox {
     private final Point2D bulletStartPosition;
     private final long startTimestamp;
 
-    public BulletHitbox(Bullet bullet, World<?> world) {
+    public BulletHitbox(UUID shooterID, Bullet bullet, World<?> world) {
+        this.shooterID = shooterID;
         this.bullet = bullet;
         this.world = world;
 
         this.bulletVelocity = new Point2D(
-                (float)Math.cos(Math.toRadians(bullet.getRotation())),
-                (float)Math.sin(Math.toRadians(bullet.getRotation()))
+                (float) Math.cos(Math.toRadians(bullet.getRotation())),
+                (float) Math.sin(Math.toRadians(bullet.getRotation()))
         ).multiply(MapConfig.BOX_SIZE * bullet.getSpeed());
         this.bulletStartPosition = new Point2D(bullet.getPosition());
         this.startTimestamp = System.currentTimeMillis();
@@ -56,14 +58,13 @@ public class BulletHitbox implements Hitbox {
 
     @Override
     public void notifyMapCollision(Point2D resolvedPosition) {
-        System.out.println("Bullet: mapCollision");
         world.onBulletDied();
     }
 
     @Override
     public void notifyEntityCollision(Hitbox hitbox) {
-        System.out.println("Bullet: playerCollision with " + hitbox.getId());
-        // TODO: if hitbox.getId() != bullet.shooterID
-        world.onBulletDied();
+        if (!shooterID.equals(hitbox.getId())) {
+            world.onBulletDied();
+        }
     }
 }
