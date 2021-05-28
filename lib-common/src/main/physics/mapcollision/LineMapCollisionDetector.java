@@ -35,18 +35,16 @@ public class LineMapCollisionDetector extends MapCollisionDetector {
         int xStep = 1, yStep = 1;
         float dy = (targetPosition.y() - currentPosition.y());
         float dx = (targetPosition.x() - currentPosition.x());
-        WallType yWallType = WallType.UP_WALL;
-        WallType xWallType = WallType.RIGHT_WALL;
+        WallType xWallType = WallType.LEFT_WALL;
+        WallType yWallType = WallType.DOWN_WALL;
         float horizontalStartX = currentTile.x() + 1;
         float verticalStartY = currentTile.y() + 1;
         Point2Di tileAreaSize = new Point2Di(targetTile).subtract(currentTile);
-            yWallType = WallType.DOWN_WALL;
         if (tileAreaSize.y() < 0) {
             yStep = -1;
             tileAreaSize.set(tileAreaSize.x(), -tileAreaSize.y());
             verticalStartY -= 1;
         }
-            xWallType = WallType.LEFT_WALL;
         if (tileAreaSize.x() < 0) {
             xStep = -1;
             tileAreaSize.set(-tileAreaSize.x(), tileAreaSize.y());

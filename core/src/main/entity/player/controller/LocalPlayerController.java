@@ -7,6 +7,7 @@ public class LocalPlayerController extends InputPlayerController implements Game
 
     public LocalPlayerController(Player player, World<?> world) {
         super(player, world);
+        setIgnoreShootPressed(true);
     }
 
     @Override
