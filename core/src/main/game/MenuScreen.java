@@ -38,10 +38,11 @@ import util.Point2D;
 
 public class MenuScreen extends ScreenAdapter {
     private static final String HOST =
-            "10.0.2.2"
+//            "10.0.2.2"
 //            "localhost"
 //            "10.232.0.13"
 //            "192.168.1.15"
+            "54.177.126.239"
             ;
 
     private static final int PORT =
@@ -170,7 +171,6 @@ public class MenuScreen extends ScreenAdapter {
                 public void startGame(int mapLength, int seed, boolean isHost) {
                     MapGenerator mapGenerator = new MapGenerator(mapLength);
                     Map map = mapGenerator.generateMap(seed);
-
                     gameScreen = new GameScreen(playerID, batch, gameClient, stateClient, initialPosition, map, assetManager);
                     game.setScreen(gameScreen);
                 }

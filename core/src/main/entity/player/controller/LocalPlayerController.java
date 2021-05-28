@@ -1,7 +1,6 @@
 package entity.player.controller;
 
 import entity.player.Player;
-import util.Point2D;
 import world.World;
 
 public class LocalPlayerController extends InputPlayerController implements GameAuthoritativeListener {
