@@ -37,23 +37,27 @@ public class LineMapCollisionDetector extends MapCollisionDetector {
         float dx = (targetPosition.x() - currentPosition.x());
         WallType yWallType = WallType.UP_WALL;
         WallType xWallType = WallType.RIGHT_WALL;
+        float horizontalStartX = currentTile.x() + 1;
+        float verticalStartY = currentTile.y() + 1;
         Point2Di tileAreaSize = new Point2Di(targetTile).subtract(currentTile);
         if (tileAreaSize.y() < 0) {
             yStep = -1;
             tileAreaSize.set(tileAreaSize.x(), -tileAreaSize.y());
             yWallType = WallType.DOWN_WALL;
+            verticalStartY -= 1;
         }
         if (tileAreaSize.x() < 0) {
             xStep = -1;
             tileAreaSize.set(-tileAreaSize.x(), tileAreaSize.y());
             xWallType = WallType.LEFT_WALL;
+            horizontalStartX -= 1;
         }
 
         float x, y;
         if (Math.abs(dx) > Float.MIN_VALUE) {
             float dydx = dy / dx;
-            x = currentTile.x();
-            y = currentPosition.y() + dydx * (x - currentPosition.x());
+            x = horizontalStartX;
+            y = (currentPosition.y() / MapConfig.BOX_SIZE) + dydx * (x - (currentPosition.x() / MapConfig.BOX_SIZE));
             for (int i = 0; i < tileAreaSize.x(); i++) {
                 if (map.hasWall(xWallType, (int) x, floor(y))) {
                     System.out.format("With (%s,%s): Bullet %s collision at (%f,%f)\n",
@@ -66,8 +70,8 @@ public class LineMapCollisionDetector extends MapCollisionDetector {
         }
         if (Math.abs(dy) > Float.MIN_VALUE) {
             float dxdy = dx / dy;
-            y = currentTile.y();
-            x = currentPosition.x() + dxdy * (y - currentPosition.y());
+            y = verticalStartY;
+            x = (currentPosition.x() / MapConfig.BOX_SIZE) + dxdy * (y - (currentPosition.y() / MapConfig.BOX_SIZE));
             for (int i = 0; i < tileAreaSize.y(); i++) {
                 if (map.hasWall(yWallType, floor(x), (int) y)) {
                     System.out.format("With (%s,%s): Bullet %s collision at (%f,%f)\n",
