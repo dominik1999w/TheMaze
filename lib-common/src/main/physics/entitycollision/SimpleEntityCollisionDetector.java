@@ -6,14 +6,13 @@ import util.Point2D;
 
 public class SimpleEntityCollisionDetector implements EntityCollisionDetector {
     @Override
-    public boolean detectCollision(HitboxHistory historyA, HitboxHistory historyB) {
+    public boolean detectCollision(HitboxHistory historyA, Point2D currentPositionB, Point2D targetPositionB, float radiusB) {
         Point2D currentPositionA = new Point2D(historyA.getPreviousPosition()).divide(MapConfig.BOX_SIZE);
         Point2D targetPositionA = new Point2D(historyA.getHitbox().getPosition()).divide(MapConfig.BOX_SIZE);
-        Point2D currentPositionB = new Point2D(historyB.getPreviousPosition()).divide(MapConfig.BOX_SIZE);
-        Point2D targetPositionB = new Point2D(historyB.getHitbox().getPosition()).divide(MapConfig.BOX_SIZE);
+        currentPositionB = new Point2D(currentPositionB).divide(MapConfig.BOX_SIZE);
+        targetPositionB = new Point2D(targetPositionB).divide(MapConfig.BOX_SIZE);
 
         float radiusA = historyA.getHitbox().getRadius();
-        float radiusB = historyB.getHitbox().getRadius();
 
         // dist(t) = mag(posB(t) - posA(t)) - radA - radB
         // posA'(t) = posA(t0) + (posA(t1) - posA(t0)) * t

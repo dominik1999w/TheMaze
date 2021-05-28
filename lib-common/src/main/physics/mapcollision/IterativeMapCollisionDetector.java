@@ -14,7 +14,7 @@ public class IterativeMapCollisionDetector extends MapCollisionDetector {
     }
 
     @Override
-    public MapCollisionInfo detectMapCollision(HitboxHistory history) {
+    public MapCollisionInfo detectMapCollision(HitboxHistory<?> history) {
         Point2D delta_position = new Point2D(history.getHitbox().getPosition())
                 .subtract(history.getPreviousPosition());
         Point2D position = new Point2D(history.getPreviousPosition());

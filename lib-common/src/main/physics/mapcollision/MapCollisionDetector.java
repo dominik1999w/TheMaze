@@ -12,7 +12,7 @@ public abstract class MapCollisionDetector {
         this.map = map;
     }
 
-    public abstract MapCollisionInfo detectMapCollision(HitboxHistory history);
+    public abstract MapCollisionInfo detectMapCollision(HitboxHistory<?> history);
 
     public static class MapCollisionInfo {
         public final Point2D nextPosition;

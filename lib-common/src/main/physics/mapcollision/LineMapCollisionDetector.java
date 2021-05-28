@@ -19,7 +19,7 @@ public class LineMapCollisionDetector extends MapCollisionDetector {
     }
 
     @Override
-    public MapCollisionInfo detectMapCollision(HitboxHistory history) {
+    public MapCollisionInfo detectMapCollision(HitboxHistory<?> history) {
         Point2D currentPosition = history.getPreviousPosition();
         Point2D targetPosition = new Point2D(history.getHitbox().getPosition());
 

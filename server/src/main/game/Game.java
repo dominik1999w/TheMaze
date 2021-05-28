@@ -61,12 +61,12 @@ public class Game {
                 newRoundStarted.set(false);
             }
 
-            gameService.dispatchMessages((sequenceNumber, id, playerInput) ->
+            gameService.dispatchMessages((sequenceNumber, timestamp, id, playerInput) ->
             {
                 InputPlayerController playerController = gameService.getWorld().getPlayerController(id);
                 playerController.updateInput(playerInput);
                 playerController.update();
-                gameService.getCollisionWorld().onPlayerMoved(playerController.getPlayer().getId());
+                gameService.getCollisionWorld().onPlayerMoved(playerController.getPlayer().getId(), timestamp, playerInput.getDelta());
             });
             gameService.getWorld().update(delta);
             gameService.getCollisionWorld().update();

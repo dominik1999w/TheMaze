@@ -62,16 +62,16 @@ public class GameScreen extends ScreenAdapter {
         gameClient.connect(playerID);
         stateClient.connect(playerID);
 
-        this.world = new World<>(AuthoritativePlayerController::new, BulletController::new);
+        this.world = new World<>(AuthoritativePlayerController::new, (playerID1, bullet) -> new BulletController(bullet));
 
         this.player = new Player(playerID, initialPosition);
         this.playerController = new LocalPlayerController(player, world);
         this.collisionWorld = new CollisionWorld(map);
         // Uncomment this for CLIENT-SIDE PLAYER-MAP COLLISION HANDLING
         //world.subscribeOnPlayerAdded(newPlayer -> collisionWorld.addHitbox(new PlayerHitbox(newPlayer)));
-        world.subscribeOnBulletAdded(newBullet -> collisionWorld.addHitbox(new BulletHitbox(newBullet, world)));
+        world.subscribeOnBulletAdded(newBullet -> collisionWorld.setBulletHitbox(new BulletHitbox(newBullet, world)));
         world.subscribeOnBulletRemoved(collisionWorld::removeHitbox);
-        collisionWorld.addHitbox(new PlayerHitbox(player));
+        collisionWorld.addPlayerHitbox(new PlayerHitbox(player));
 
         this.camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         this.worldView = new WorldView(world, map, camera, player, assetManager);
@@ -111,7 +111,7 @@ public class GameScreen extends ScreenAdapter {
                 }
 
                 @Override
-                public void onPlayerState(long sequenceNumber, Player playerState) {
+                public void onPlayerState(long sequenceNumber, long timestamp, Player playerState) {
                     if (player.getId().equals(playerState.getId())) {
                     /*System.out.println(String.format(Locale.ENGLISH,
                             "Client: (%s, %d)    Server: (%s, %d)",
@@ -123,7 +123,7 @@ public class GameScreen extends ScreenAdapter {
                         for (PlayerInput playerInput : playerInputLog.getInputLog()) {
                             playerController.updateInput(playerInput);
                             playerController.update();
-                            collisionWorld.onPlayerMoved(player.getId());
+                            collisionWorld.onPlayerMoved(player.getId(), timestamp, playerInput.getDelta());
                         }
                     } else {
                         world.getPlayerController(playerState.getId(), playerState.getPosition())
@@ -154,7 +154,7 @@ public class GameScreen extends ScreenAdapter {
                 // update the player according to user input
                 playerController.updateInput(playerInput);
                 playerController.update();
-                collisionWorld.onPlayerMoved(player.getId());
+                collisionWorld.onPlayerMoved(player.getId(), System.currentTimeMillis(), playerInput.getDelta());
             }
 
             // update the world

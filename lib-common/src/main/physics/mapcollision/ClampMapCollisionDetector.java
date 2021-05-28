@@ -16,7 +16,7 @@ public class ClampMapCollisionDetector extends MapCollisionDetector {
     }
 
     @Override
-    public MapCollisionInfo detectMapCollision(HitboxHistory history) {
+    public MapCollisionInfo detectMapCollision(HitboxHistory<?> history) {
         Point2D currentPosition = new Point2D(history.getPreviousPosition());
         Point2D targetPosition = new Point2D(history.getHitbox().getPosition());
 

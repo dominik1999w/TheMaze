@@ -35,6 +35,7 @@ import physics.CollisionWorld;
 import util.ClientsInputLog;
 import util.GRpcMapper;
 import util.Point2D;
+import util.Timestamp;
 import world.World;
 
 public class GameService extends TheMazeGrpc.TheMazeImplBase {
@@ -52,15 +53,17 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
     }
 
     private final Lock queueLock = new ReentrantLock();
-    private final Queue<GameStateRequest> requestQueue = new ArrayDeque<>();
+    private final Queue<Timestamp<GameStateRequest>> requestQueue = new ArrayDeque<>();
 
     public void dispatchMessages(ClientRequestHandler requestHandler) {
         queueLock.lock();
         while (!requestQueue.isEmpty()) {
-            GameStateRequest request = requestQueue.poll();
+            Timestamp<GameStateRequest> tRequest = requestQueue.poll();
+            GameStateRequest request = tRequest.get();
             LocalPlayerInput source = request.getPlayer();
             requestHandler.onClientRequest(
                     request.getSequenceNumber(),
+                    tRequest.getTimestamp(),
                     UUID.fromString(source.getId()),
                     GRpcMapper.playerInput(source)
             );
@@ -85,7 +88,7 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
             @Override
             public void onNext(GameStateRequest value) {
                 queueLock.lock();
-                requestQueue.add(value);
+                requestQueue.add(new Timestamp<>(value));
                 queueLock.unlock();
             }
 
@@ -149,11 +152,11 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
 
         world = new World<>(
                 InputPlayerController::new,
-                BulletController::new);
+                (playerID, bullet) -> new BulletController(bullet));
 
-        world.subscribeOnPlayerAdded(newPlayer -> collisionWorld.addHitbox(new PlayerHitbox(newPlayer)));
+        world.subscribeOnPlayerAdded(newPlayer -> collisionWorld.addPlayerHitbox(new PlayerHitbox(newPlayer)));
         world.subscribeOnPlayerRemoved(collisionWorld::removeHitbox);
-        world.subscribeOnBulletAdded(newBullet -> collisionWorld.addHitbox(new BulletHitbox(newBullet, world)));
+        world.subscribeOnBulletAdded(newBullet -> collisionWorld.setBulletHitbox(new BulletHitbox(newBullet, world)));
         world.subscribeOnBulletRemoved(collisionWorld::removeHitbox);
         world.subscribeOnRoundResult(game::endRound);
 

@@ -2,17 +2,17 @@ package physics;
 
 import util.Point2D;
 
-public class HitboxHistory {
+public class HitboxHistory<H extends Hitbox> {
 
-    private final Hitbox hitbox;
+    private final H hitbox;
     private final Point2D previousPosition = new Point2D();
 
-    HitboxHistory(Hitbox hitbox) {
+    HitboxHistory(H hitbox) {
         this.hitbox = hitbox;
         this.previousPosition.set(hitbox.getPosition());
     }
 
-    public Hitbox getHitbox() {
+    public H getHitbox() {
         return this.hitbox;
     }
 
