@@ -11,7 +11,6 @@ import physics.entitycollision.SimpleEntityCollisionDetector;
 import physics.mapcollision.ClampMapCollisionDetector;
 import physics.mapcollision.LineMapCollisionDetector;
 import physics.mapcollision.MapCollisionDetector;
-import util.Point2D;
 
 public class CollisionWorld {
 
@@ -78,14 +77,14 @@ public class CollisionWorld {
                 }
             }
         }*/
-        if (bulletHistory != null) {
+        /*if (bulletHistory != null) {
             EntityCollisionDetector.EntityCollisionInfo collisionInfo = entityCollisionDetector.detectCollision(hitboxHistory, bulletHistory);
 
             if (collisionInfo.haveCollided) {
                 bulletHistory.getHitbox().notifyEntityCollision(hitboxHistory.getHitbox());
                 hitboxHistory.getHitbox().notifyEntityCollision(bulletHistory.getHitbox());
             }
-        }
+        }*/
 
         if (hitboxHistory != null) {
             onHitboxMoved(hitboxHistory);
@@ -111,10 +110,10 @@ public class CollisionWorld {
     }
 
     public void removeBulletHitbox(UUID hitboxID) {
-        /*if (bulletHistory.getHitbox().getId().equals(hitboxID)) {
-            bulletDeathTimestamp = System.currentTimeMillis();
-        }*/
-        bulletHistory = null;
+        if (bulletHistory.getHitbox().getId().equals(hitboxID)) {
+            //bulletDeathTimestamp = System.currentTimeMillis();
+            bulletHistory = null;
+        }
     }
 
     public void removePlayerHitbox(UUID hitboxID) {

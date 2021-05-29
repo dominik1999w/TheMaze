@@ -20,7 +20,7 @@ public class HitboxHistory<H extends Hitbox> {
         return this.previousPosition;
     }
 
-    void setPreviousPosition(Point2D updatedPosition) {
-        previousPosition.set(updatedPosition);
+    public void setPreviousPosition(Point2D nextPosition) {
+        this.previousPosition.set(previousPosition);
     }
 }

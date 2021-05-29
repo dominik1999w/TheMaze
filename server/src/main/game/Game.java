@@ -27,7 +27,7 @@ public class Game {
     private final StateService stateService;
 
     private Map<UUID, Position> initialPositions = new HashMap<>();
-    private Map<UUID, Integer> points = new HashMap<>();
+    private final Map<UUID, Integer> points = new HashMap<>();
     private final AtomicBoolean newRoundStarted = new AtomicBoolean(false);
 
     public Game(MapService mapService, StateService stateService, GameService gameService) {
