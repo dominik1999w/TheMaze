@@ -94,6 +94,18 @@ public class CollisionWorld {
 
     public void update() {
         if (bulletIsActive()) {
+            for (HitboxHistory<?> hitboxHistory : hitboxHistories.values()) {
+                if (bulletHistory != null) {
+                    EntityCollisionDetector.EntityCollisionInfo collisionInfo = entityCollisionDetector.detectCollision(hitboxHistory, bulletHistory);
+
+                    if (collisionInfo.haveCollided) {
+                        bulletHistory.getHitbox().notifyEntityCollision(hitboxHistory.getHitbox());
+                        hitboxHistory.getHitbox().notifyEntityCollision(bulletHistory.getHitbox());
+                        return;
+                    }
+                }
+            }
+
             onHitboxMoved(bulletHistory);
         }
     }
