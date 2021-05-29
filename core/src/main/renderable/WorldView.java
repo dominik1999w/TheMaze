@@ -25,7 +25,7 @@ public class WorldView implements Renderable {
     public WorldView(World<?> world, Map map, OrthographicCamera camera, Player localPlayer, AssetManager assetManager, CollisionWorld collisionWorld) {
         this.mapView = new MapView(map, assetManager);
         this.camera = camera;
-        sightView = new SightView(collisionWorld, localPlayer, map.getMapLength());
+        sightView = new SightView(map, localPlayer, map.getMapLength());
         views.add(new SimpleView<>(localPlayer, assetManager.get(TextureType.PLAYER.getName())));
 
         world.subscribeOnPlayerAdded(newPlayer -> views.add(new SimpleView<Player>(newPlayer, assetManager.get(TextureType.PLAYER.getName()))));

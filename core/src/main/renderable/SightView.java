@@ -25,19 +25,19 @@ import physics.mapcollision.LineMapCollisionDetector;
 import util.Point2D;
 
 public class SightView implements Renderable {
-    private ShapeRenderer shapeRenderer = new ShapeRenderer();
-    private FrameBuffer fbo;
+    private final ShapeRenderer shapeRenderer = new ShapeRenderer();
+    private final FrameBuffer fbo;
 
-    LineMapCollisionDetector detector;
-    Player localPlayer;
-    int mapSize;
-    final int quality = 1;
+    private final LineMapCollisionDetector detector;
+    private final Player localPlayer;
+    private final int mapSize;
+    private final int quality = 1;
 
-    public SightView(CollisionWorld collisionWorld, Player localPlayer, int mapSize) {
-        detector = collisionWorld.getLineMapCollisionDetector();
+    public SightView(Map map, Player localPlayer, int mapSize) {
+        this.detector = new LineMapCollisionDetector(map);
         this.localPlayer = localPlayer;
         this.mapSize = mapSize;
-        fbo = new FrameBuffer(Pixmap.Format.RGBA8888,
+        this.fbo = new FrameBuffer(Pixmap.Format.RGBA8888,
                 mapSize * MapConfig.BOX_SIZE  * quality,
                 mapSize * MapConfig.BOX_SIZE  * quality, false);
     }
