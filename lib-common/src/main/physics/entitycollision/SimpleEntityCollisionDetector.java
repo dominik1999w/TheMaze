@@ -6,7 +6,7 @@ import util.Point2D;
 
 public class SimpleEntityCollisionDetector implements EntityCollisionDetector {
     @Override
-    public boolean detectCollision(HitboxHistory<?> historyA, Point2D currentPositionB, Point2D targetPositionB, float radiusB) {
+    public EntityCollisionInfo detectCollision(HitboxHistory<?> historyA, Point2D currentPositionB, Point2D targetPositionB, float radiusB) {
         Point2D currentPositionA = new Point2D(historyA.getPreviousPosition()).divide(MapConfig.BOX_SIZE);
         Point2D targetPositionA = new Point2D(historyA.getHitbox().getPosition()).divide(MapConfig.BOX_SIZE);
         currentPositionB = new Point2D(currentPositionB).divide(MapConfig.BOX_SIZE);
@@ -42,14 +42,14 @@ public class SimpleEntityCollisionDetector implements EntityCollisionDetector {
                 deltaDeltaSum * deltaDeltaSum - deltaDeltaMag * (deltaCurrent.mag() - sumRadiusSq)
         );
 
-        if (quadraticDiscriminant < 0f) return false;
+        if (quadraticDiscriminant < 0f) return new EntityCollisionInfo();
 
         float sqrtDiscriminant = (float) Math.sqrt(quadraticDiscriminant);
         float collisionTimeL = (-deltaDeltaSum - sqrtDiscriminant) / deltaDeltaMag;
         float collisionTimeR = (-deltaDeltaSum + sqrtDiscriminant) / deltaDeltaMag;
 
-        if (0 <= collisionTimeL && collisionTimeL <= 1) return true;
-        if (0 <= collisionTimeR && collisionTimeR <= 1) return true;
-        return false;
+        if (0 <= collisionTimeR && collisionTimeR <= 1) return new EntityCollisionInfo(collisionTimeR);
+        if (0 <= collisionTimeL && collisionTimeL <= 1) return new EntityCollisionInfo(collisionTimeL);
+        return new EntityCollisionInfo();
     }
 }

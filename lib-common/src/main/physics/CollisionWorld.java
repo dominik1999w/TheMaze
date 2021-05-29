@@ -41,21 +41,28 @@ public class CollisionWorld {
             return;
         }
 
-        // TODO: trim moveTimestamp to birthTimestamp
-        if (bulletHistory != null && moveTimestamp >= bulletHistory.getHitbox().getBirthTimestamp()) {
+        if (bulletHistory != null) {
             // Player: hitboxHistory.getPreviousPosition() -> hitboxHistory.getHitbox().getPosition()
             // Bullet: bulletHistory.getPosition(timestamp) -> bulletHistory.getPosition(timestamp + deltaTime)
-            Point2D bulletCurrentPosition = bulletHistory.getHitbox().getPosition(moveTimestamp);
-            Point2D bulletTargetPosition = bulletHistory.getHitbox().getPosition(moveTimestamp + (long)(deltaTime * 1000.0f));
-            System.out.format("%s, %s, %s, %f, %s, %s, %s, %s\n", System.currentTimeMillis(),
-                    moveTimestamp, (moveTimestamp + (long)(deltaTime * 1000.0f)), deltaTime,
-                    hitboxHistory.getPreviousPosition(), hitboxHistory.getHitbox().getPosition(),
-                    bulletCurrentPosition, bulletTargetPosition);
-            if (entityCollisionDetector.detectCollision(hitboxHistory,
-                    bulletCurrentPosition, bulletTargetPosition, bulletHistory.getHitbox().getRadius())
-            ) {
-                hitboxHistory.getHitbox().notifyEntityCollision(bulletHistory.getHitbox());
-                bulletHistory.getHitbox().notifyEntityCollision(hitboxHistory.getHitbox());
+            long moveEndTimestamp = moveTimestamp + (long)(deltaTime * 1000.0f);
+            if (moveEndTimestamp >= bulletHistory.getHitbox().getBirthTimestamp()) {
+                Point2D bulletCurrentPosition = bulletHistory.getHitbox().getPosition(moveTimestamp);
+                Point2D bulletTargetPosition = bulletHistory.getHitbox().getPosition(moveEndTimestamp);
+                System.out.format("%s, %s, %s, %f, %s, %s, %s, %s\n", System.currentTimeMillis(),
+                        moveTimestamp, (moveTimestamp + (long) (deltaTime * 1000.0f)), deltaTime,
+                        hitboxHistory.getPreviousPosition(), hitboxHistory.getHitbox().getPosition(),
+                        bulletCurrentPosition, bulletTargetPosition);
+
+                EntityCollisionDetector.EntityCollisionInfo collisionInfo = entityCollisionDetector.detectCollision(hitboxHistory,
+                        bulletCurrentPosition, bulletTargetPosition, bulletHistory.getHitbox().getRadius());
+
+                if (collisionInfo.haveCollided) {
+                    long collisionTimestamp = moveTimestamp + (long) (deltaTime * 1000.0f * collisionInfo.timePoint);
+                    if (collisionTimestamp >= bulletHistory.getHitbox().getBirthTimestamp()) {
+                        hitboxHistory.getHitbox().notifyEntityCollision(bulletHistory.getHitbox());
+                        bulletHistory.getHitbox().notifyEntityCollision(hitboxHistory.getHitbox());
+                    }
+                }
             }
         }
 
