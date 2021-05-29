@@ -51,7 +51,7 @@ public class CollisionWorld {
             if (moveEndTimestamp >= bulletHistory.getHitbox().getBirthTimestamp() && (bulletIsActive() || moveTimestamp <= bulletDeathTimestamp)) {
                 Point2D bulletCurrentPosition = bulletHistory.getHitbox().getPosition(moveTimestamp);
                 Point2D bulletTargetPosition = bulletHistory.getHitbox().getPosition(moveEndTimestamp);
-                System.out.format("%s, %s, %s, %s, %s\n", System.currentTimeMillis(),
+                System.out.format("General: %s, %s, %s, %s\n",
                         moveTimestamp, moveEndTimestamp, bulletHistory.getHitbox().getBirthTimestamp(), bulletDeathTimestamp);
 
                 EntityCollisionDetector.EntityCollisionInfo collisionInfo = entityCollisionDetector.detectCollision(hitboxHistory,
@@ -60,6 +60,8 @@ public class CollisionWorld {
                 if (collisionInfo.haveCollided) {
                     long collisionTimestamp1 = moveTimestamp + (long) (deltaTime * 1000.0f * collisionInfo.timePoint1);
                     long collisionTimestamp2 = moveTimestamp + (long) (deltaTime * 1000.0f * collisionInfo.timePoint2);
+                    System.out.format("Collided: %f, %f, %s, %s\n",
+                            collisionInfo.timePoint1, collisionInfo.timePoint2, collisionTimestamp1, collisionTimestamp2);
                     if (bulletHistory.getHitbox().getBirthTimestamp() <= collisionTimestamp1 && collisionTimestamp1 <= bulletDeathTimestamp) {
                         hitboxHistory.getHitbox().notifyEntityCollision(bulletHistory.getHitbox());
                         bulletHistory.getHitbox().notifyEntityCollision(hitboxHistory.getHitbox());
