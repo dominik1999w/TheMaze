@@ -48,7 +48,7 @@ public class CollisionWorld {
             // Player: hitboxHistory.getPreviousPosition() -> hitboxHistory.getHitbox().getPosition()
             // Bullet: bulletHistory.getPosition(timestamp) -> bulletHistory.getPosition(timestamp + deltaTime)
             long moveEndTimestamp = moveTimestamp + (long)(deltaTime * 1000.0f);
-            if (moveEndTimestamp >= bulletHistory.getHitbox().getBirthTimestamp() && moveTimestamp <= bulletDeathTimestamp) {
+            if (moveEndTimestamp >= bulletHistory.getHitbox().getBirthTimestamp() && (bulletIsActive() || moveTimestamp <= bulletDeathTimestamp)) {
                 Point2D bulletCurrentPosition = bulletHistory.getHitbox().getPosition(moveTimestamp);
                 Point2D bulletTargetPosition = bulletHistory.getHitbox().getPosition(moveEndTimestamp);
                 System.out.format("%s, %s, %s, %s, %s\n", System.currentTimeMillis(),
@@ -77,7 +77,7 @@ public class CollisionWorld {
     }
 
     public void update() {
-        if (bulletHistory != null && bulletHistory.getHitbox().getBirthTimestamp() > bulletDeathTimestamp) {
+        if (bulletIsActive()) {
             onHitboxMoved(bulletHistory);
         }
     }
@@ -100,5 +100,9 @@ public class CollisionWorld {
         if (collisionInfo.hasCollided) {
             hitboxHistory.getHitbox().notifyMapCollision(collisionInfo.nextPosition);
         }
+    }
+
+    private boolean bulletIsActive() {
+        return bulletHistory != null && bulletHistory.getHitbox().getBirthTimestamp() > bulletDeathTimestamp;
     }
 }
