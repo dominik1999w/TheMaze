@@ -84,8 +84,10 @@ public class CollisionWorld {
         }
     }
 
-    public void removeBulletHitbox() {
-        bulletDeathTimestamp = System.currentTimeMillis();
+    public void removeBulletHitbox(UUID hitboxID) {
+        if (bulletHistory.getHitbox().getId().equals(hitboxID)) {
+            bulletDeathTimestamp = System.currentTimeMillis();
+        }
     }
 
     public void removePlayerHitbox(UUID hitboxID) {
