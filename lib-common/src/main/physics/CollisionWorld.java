@@ -93,10 +93,9 @@ public class CollisionWorld {
     }
 
     public void update() {
-        /*if (bulletIsActive()) {
+        if (bulletIsActive()) {
             onHitboxMoved(bulletHistory);
-        }*/
-        onHitboxMoved(bulletHistory);
+        }
     }
 
     public void removeBulletHitbox(UUID hitboxID) {
@@ -120,7 +119,7 @@ public class CollisionWorld {
         }
     }
 
-    /*private boolean bulletIsActive() {
-        return bulletHistory != null && bulletHistory.getHitbox().getBirthTimestamp() > bulletDeathTimestamp;
-    }*/
+    private boolean bulletIsActive() {
+        return bulletHistory != null/* && bulletHistory.getHitbox().getBirthTimestamp() > bulletDeathTimestamp*/;
+    }
 }
