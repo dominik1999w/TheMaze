@@ -44,7 +44,7 @@ public class CollisionWorld {
             return;
         }
 
-        if (bulletHistory != null) {
+        /*if (bulletHistory != null) {
             // Player: hitboxHistory.getPreviousPosition() -> hitboxHistory.getHitbox().getPosition()
             // Bullet: bulletHistory.getPosition(timestamp) -> bulletHistory.getPosition(timestamp + deltaTime)
             long moveEndTimestamp = moveTimestamp + (long)(deltaTime * 1000.0f);
@@ -77,6 +77,14 @@ public class CollisionWorld {
                     }
                 }
             }
+        }*/
+        if (bulletHistory != null) {
+            EntityCollisionDetector.EntityCollisionInfo collisionInfo = entityCollisionDetector.detectCollision(hitboxHistory, bulletHistory);
+
+            if (collisionInfo.haveCollided) {
+                bulletHistory.getHitbox().notifyEntityCollision(hitboxHistory.getHitbox());
+                hitboxHistory.getHitbox().notifyEntityCollision(bulletHistory.getHitbox());
+            }
         }
 
         if (hitboxHistory != null) {
@@ -85,15 +93,17 @@ public class CollisionWorld {
     }
 
     public void update() {
-        if (bulletIsActive()) {
+        /*if (bulletIsActive()) {
             onHitboxMoved(bulletHistory);
-        }
+        }*/
+        onHitboxMoved(bulletHistory);
     }
 
     public void removeBulletHitbox(UUID hitboxID) {
-        if (bulletHistory.getHitbox().getId().equals(hitboxID)) {
+        /*if (bulletHistory.getHitbox().getId().equals(hitboxID)) {
             bulletDeathTimestamp = System.currentTimeMillis();
-        }
+        }*/
+        bulletHistory = null;
     }
 
     public void removePlayerHitbox(UUID hitboxID) {
@@ -110,7 +120,7 @@ public class CollisionWorld {
         }
     }
 
-    private boolean bulletIsActive() {
+    /*private boolean bulletIsActive() {
         return bulletHistory != null && bulletHistory.getHitbox().getBirthTimestamp() > bulletDeathTimestamp;
-    }
+    }*/
 }
