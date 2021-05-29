@@ -79,7 +79,7 @@ public class CollisionWorld {
     }
 
     public void update() {
-        if (bulletHistory != null) {
+        if (bulletHistory != null && bulletHistory.getHitbox().getBirthTimestamp() > bulletDeathTimestamp) {
             onHitboxMoved(bulletHistory);
         }
     }
