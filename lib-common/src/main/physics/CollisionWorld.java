@@ -99,8 +99,8 @@ public class CollisionWorld {
                     EntityCollisionDetector.EntityCollisionInfo collisionInfo = entityCollisionDetector.detectCollision(hitboxHistory, bulletHistory);
 
                     if (collisionInfo.haveCollided) {
-                        bulletHistory.getHitbox().notifyEntityCollision(hitboxHistory.getHitbox());
                         hitboxHistory.getHitbox().notifyEntityCollision(bulletHistory.getHitbox());
+                        bulletHistory.getHitbox().notifyEntityCollision(hitboxHistory.getHitbox());
                         return;
                     }
                 }
