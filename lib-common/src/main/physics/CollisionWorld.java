@@ -62,10 +62,14 @@ public class CollisionWorld {
                     long collisionTimestamp2 = moveTimestamp + (long) (deltaTime * 1000.0f * collisionInfo.timePoint2);
                     System.out.format("Collided: %f, %f, %s, %s\n",
                             collisionInfo.timePoint1, collisionInfo.timePoint2, collisionTimestamp1, collisionTimestamp2);
-                    if (bulletHistory.getHitbox().getBirthTimestamp() <= collisionTimestamp1 && collisionTimestamp1 <= bulletDeathTimestamp) {
+                    if (bulletHistory.getHitbox().getBirthTimestamp() <= collisionTimestamp1 &&
+                            (bulletIsActive() || collisionTimestamp1 <= bulletDeathTimestamp)
+                    ) {
                         hitboxHistory.getHitbox().notifyEntityCollision(bulletHistory.getHitbox());
                         bulletHistory.getHitbox().notifyEntityCollision(hitboxHistory.getHitbox());
-                    } else if (bulletHistory.getHitbox().getBirthTimestamp() <= collisionTimestamp2 && collisionTimestamp2 <= bulletDeathTimestamp) {
+                    } else if (bulletHistory.getHitbox().getBirthTimestamp() <= collisionTimestamp2 &&
+                            (bulletIsActive() || collisionTimestamp2 <= bulletDeathTimestamp)
+                    ) {
                         hitboxHistory.getHitbox().notifyEntityCollision(bulletHistory.getHitbox());
                         bulletHistory.getHitbox().notifyEntityCollision(hitboxHistory.getHitbox());
                     }
