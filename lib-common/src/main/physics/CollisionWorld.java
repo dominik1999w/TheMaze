@@ -51,10 +51,8 @@ public class CollisionWorld {
             if (moveEndTimestamp >= bulletHistory.getHitbox().getBirthTimestamp()) {
                 Point2D bulletCurrentPosition = bulletHistory.getHitbox().getPosition(moveTimestamp);
                 Point2D bulletTargetPosition = bulletHistory.getHitbox().getPosition(moveEndTimestamp);
-                System.out.format("%s, %s, %s, %f, %s, %s, %s, %s\n", System.currentTimeMillis(),
-                        moveTimestamp, (moveTimestamp + (long) (deltaTime * 1000.0f)), deltaTime,
-                        hitboxHistory.getPreviousPosition(), hitboxHistory.getHitbox().getPosition(),
-                        bulletCurrentPosition, bulletTargetPosition);
+                System.out.format("%s, %s, %s, %s, %s\n", System.currentTimeMillis(),
+                        moveTimestamp, moveEndTimestamp, bulletHistory.getHitbox().getBirthTimestamp(), bulletDeathTimestamp);
 
                 EntityCollisionDetector.EntityCollisionInfo collisionInfo = entityCollisionDetector.detectCollision(hitboxHistory,
                         bulletCurrentPosition, bulletTargetPosition, bulletHistory.getHitbox().getRadius());
