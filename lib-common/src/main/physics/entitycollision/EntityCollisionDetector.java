@@ -11,14 +11,20 @@ public interface EntityCollisionDetector {
     EntityCollisionInfo detectCollision(HitboxHistory<?> historyA, Point2D currentPositionB, Point2D targetPositionB, float radiusB);
 
     final class EntityCollisionInfo {
-        public final float timePoint;
+        public final float timePoint1;
+        public final float timePoint2;
         public final boolean haveCollided;
-        protected EntityCollisionInfo(float timePoint) {
-            this.timePoint = timePoint;
+        protected EntityCollisionInfo(float timePoint1, float timePoint2) {
+            this.timePoint1 = timePoint1;
+            this.timePoint2 = timePoint2;
             this.haveCollided = true;
         }
+        protected EntityCollisionInfo(float timePoint) {
+            this(timePoint, timePoint);
+        }
         protected EntityCollisionInfo() {
-            this.timePoint = 0;
+            this.timePoint1 = 0;
+            this.timePoint2 = 0;
             this.haveCollided = false;
         }
     }

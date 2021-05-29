@@ -48,8 +48,12 @@ public class SimpleEntityCollisionDetector implements EntityCollisionDetector {
         float collisionTimeL = (-deltaDeltaSum - sqrtDiscriminant) / deltaDeltaMag;
         float collisionTimeR = (-deltaDeltaSum + sqrtDiscriminant) / deltaDeltaMag;
 
-        if (0 <= collisionTimeR && collisionTimeR <= 1) return new EntityCollisionInfo(collisionTimeR);
-        if (0 <= collisionTimeL && collisionTimeL <= 1) return new EntityCollisionInfo(collisionTimeL);
+        boolean validCollisionTimeL = 0 <= collisionTimeL && collisionTimeL <= 1;
+        boolean validCollisionTimeR = 0 <= collisionTimeR && collisionTimeR <= 1;
+
+        if (validCollisionTimeL && validCollisionTimeR) return new EntityCollisionInfo(collisionTimeL, collisionTimeR);
+        if (validCollisionTimeL) return new EntityCollisionInfo(collisionTimeL);
+        if (validCollisionTimeR) return new EntityCollisionInfo(collisionTimeR);
         return new EntityCollisionInfo();
     }
 }

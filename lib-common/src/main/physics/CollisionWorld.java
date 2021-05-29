@@ -16,12 +16,15 @@ import util.Point2D;
 public class CollisionWorld {
 
     private final Map<UUID, HitboxHistory<?>> hitboxHistories = new HashMap<>();
+
     private HitboxHistory<BulletHitbox> bulletHistory = null;
+    private long bulletDeathTimestamp;
 
     private final EnumMap<HitboxType, MapCollisionDetector> mapCollisionDetector = new EnumMap<>(HitboxType.class);
     private final EntityCollisionDetector entityCollisionDetector = new SimpleEntityCollisionDetector();
 
     public CollisionWorld(map.Map map) {
+        this.bulletDeathTimestamp = System.currentTimeMillis();
         mapCollisionDetector.put(HitboxType.SLOW, new ClampMapCollisionDetector(map));
         mapCollisionDetector.put(HitboxType.FAST, new LineMapCollisionDetector(map));
     }
@@ -57,8 +60,12 @@ public class CollisionWorld {
                         bulletCurrentPosition, bulletTargetPosition, bulletHistory.getHitbox().getRadius());
 
                 if (collisionInfo.haveCollided) {
-                    long collisionTimestamp = moveTimestamp + (long) (deltaTime * 1000.0f * collisionInfo.timePoint);
-                    if (collisionTimestamp >= bulletHistory.getHitbox().getBirthTimestamp()) {
+                    long collisionTimestamp1 = moveTimestamp + (long) (deltaTime * 1000.0f * collisionInfo.timePoint1);
+                    long collisionTimestamp2 = moveTimestamp + (long) (deltaTime * 1000.0f * collisionInfo.timePoint2);
+                    if (bulletHistory.getHitbox().getBirthTimestamp() <= collisionTimestamp1 && collisionTimestamp1 <= bulletDeathTimestamp) {
+                        hitboxHistory.getHitbox().notifyEntityCollision(bulletHistory.getHitbox());
+                        bulletHistory.getHitbox().notifyEntityCollision(hitboxHistory.getHitbox());
+                    } else if (bulletHistory.getHitbox().getBirthTimestamp() <= collisionTimestamp2 && collisionTimestamp2 <= bulletDeathTimestamp) {
                         hitboxHistory.getHitbox().notifyEntityCollision(bulletHistory.getHitbox());
                         bulletHistory.getHitbox().notifyEntityCollision(hitboxHistory.getHitbox());
                     }
@@ -77,12 +84,12 @@ public class CollisionWorld {
         }
     }
 
-    public void removeHitbox(UUID hitboxID) {
-        if (bulletHistory != null && bulletHistory.getHitbox().getId().equals(hitboxID)) {
-            bulletHistory = null;
-        } else {
-            hitboxHistories.remove(hitboxID);
-        }
+    public void removeBulletHitbox() {
+        bulletDeathTimestamp = System.currentTimeMillis();
+    }
+
+    public void removePlayerHitbox(UUID hitboxID) {
+        hitboxHistories.remove(hitboxID);
     }
 
     private void onHitboxMoved(HitboxHistory<?> hitboxHistory) {
