@@ -92,7 +92,7 @@ public class Game {
     }
 
     public void endRound(RoundResult result) {
-        System.out.println(result.shooter + " -- " + result.getShooterPoints());
+        System.out.println(result);
         points.put(result.shooter, points.getOrDefault(result.shooter, 0) + result.getShooterPoints());
         if (result.killed != null) {
             points.put(result.killed, points.getOrDefault(result.killed, 0) + result.getKilledPoints());

@@ -16,6 +16,7 @@ import connection.CallKey;
 import entity.bullet.Bullet;
 import entity.bullet.BulletController;
 import entity.bullet.BulletHitbox;
+import entity.player.Player;
 import entity.player.PlayerHitbox;
 import entity.player.controller.InputPlayerController;
 import entity.player.controller.PlayerController;
@@ -156,7 +157,7 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
                 InputPlayerController::new,
                 (playerID, bullet) -> new BulletController(bullet));
 
-        world.subscribeOnPlayerAdded(newPlayer -> collisionWorld.addPlayerHitbox(new PlayerHitbox(newPlayer)));
+        world.subscribeOnPlayerAdded(newPlayer -> collisionWorld.addPlayerHitbox(new PlayerHitbox(newPlayer, world)));
         world.subscribeOnPlayerRemoved(collisionWorld::removePlayerHitbox);
         world.subscribeOnBulletAdded((shooterID, newBullet) -> collisionWorld.setBulletHitbox(new BulletHitbox(shooterID, newBullet, world)));
         world.subscribeOnBulletRemoved(collisionWorld::removeBulletHitbox);
@@ -175,7 +176,10 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
 
         for (Map.Entry<UUID, Position> entry : positions.entrySet()) {
             Position pos = entry.getValue();
-            world.getPlayerController(entry.getKey()).getPlayer().setPosition(new Point2D(pos.getPositionX(), pos.getPositionY()));
+            Player player = world.getPlayerController(entry.getKey()).getPlayer();
+            player.setPosition(new Point2D(pos.getPositionX(), pos.getPositionY()));
+            player.setRotation(0);
+            player.revive(); // temporary
         }
         world.assignBulletRandomly();
     }

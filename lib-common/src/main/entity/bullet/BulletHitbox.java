@@ -6,6 +6,7 @@ import map.MapConfig;
 import physics.Hitbox;
 import physics.HitboxType;
 import util.Point2D;
+import world.RoundResult;
 import world.World;
 
 public class BulletHitbox implements Hitbox {
@@ -40,6 +41,10 @@ public class BulletHitbox implements Hitbox {
         return bullet.getId();
     }
 
+    public UUID getShooterID() {
+        return shooterID;
+    }
+
     @Override
     public HitboxType getType() {
         return HitboxType.FAST;
@@ -63,6 +68,7 @@ public class BulletHitbox implements Hitbox {
     @Override
     public void notifyMapCollision(Point2D resolvedPosition) {
         world.onBulletDied();
+        world.endRound(new RoundResult(shooterID));
     }
 
     @Override

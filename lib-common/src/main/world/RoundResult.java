@@ -8,12 +8,12 @@ public class RoundResult {
     public Integer shooterPoints;
     public Integer killedPoints;
 
-    RoundResult(UUID shooter) {
+    public RoundResult(UUID shooter) {
         this.shooter = shooter;
         this.shooterPoints = -1;
     }
 
-    RoundResult(UUID shooter, UUID killed) {
+    public RoundResult(UUID shooter, UUID killed) {
         this.shooter = shooter;
         this.shooterPoints = 3;
         this.killed = killed;
@@ -25,5 +25,13 @@ public class RoundResult {
     }
     public Integer getKilledPoints() {
         return killedPoints;
+    }
+
+    @Override
+    public String toString() {
+        String s = "-- Round results:\n" +
+                "Shooter: " + shooter + " = " + shooterPoints;
+        if(killed != null) s += "\n" + "Killed: " + killed + " = " + killedPoints;
+        return s;
     }
 }

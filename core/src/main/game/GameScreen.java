@@ -66,7 +66,7 @@ public class GameScreen extends ScreenAdapter {
         this.player = new Player(playerID, initialPosition);
         this.playerController = new LocalPlayerController(player, world);
         this.collisionWorld = new CollisionWorld(map);
-        collisionWorld.addPlayerHitbox(new PlayerHitbox(player));
+        collisionWorld.addPlayerHitbox(new PlayerHitbox(player, world));
 
         this.camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         this.worldView = new WorldView(world, map, camera, player, assetManager, collisionWorld);

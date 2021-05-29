@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -34,12 +36,15 @@ public class World<TController extends PlayerController> {
     private final BiFunction<Player, World<?>, TController> controllerConstructor;
     private final BiFunction<UUID, Bullet, BulletController> bulletControllerConstructor;
 
+    private final Timer reviveTimer;
+
     private final Random random;
 
     public World(BiFunction<Player, World<?>, TController> playerControllerConstructor,
                  BiFunction<UUID, Bullet, BulletController> bulletControllerConstructor) {
         this.controllerConstructor = playerControllerConstructor;
         this.bulletControllerConstructor = bulletControllerConstructor;
+        this.reviveTimer = new Timer();
         this.random = new Random();
     }
 
@@ -114,11 +119,21 @@ public class World<TController extends PlayerController> {
         if (cachedBullet.enabled()) {
             UUID bulletID = cachedBullet.getID();
             onBulletRemovedSubscribers.forEach(subscriber -> subscriber.accept(bulletID));
-
-            UUID shooterID = cachedBullet.getShooterID();
             cachedBullet.disable();
-            onRoundResultSubscribers.forEach(subscriber -> subscriber.accept(new RoundResult(shooterID)));
         }
+    }
+
+    public void killPlayer(UUID shooterID, UUID killedID) {
+        reviveTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                endRound(new RoundResult(shooterID, killedID));
+            }
+        }, 3000);
+    }
+
+    public void endRound(RoundResult roundResult) {
+        onRoundResultSubscribers.forEach(subscriber -> subscriber.accept(roundResult));
     }
 
     public void update(float delta) {
