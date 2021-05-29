@@ -41,13 +41,13 @@ public class CollisionWorld {
             return;
         }
 
+        // TODO: trim moveTimestamp to birthTimestamp
         if (bulletHistory != null && moveTimestamp >= bulletHistory.getHitbox().getBirthTimestamp()) {
             // Player: hitboxHistory.getPreviousPosition() -> hitboxHistory.getHitbox().getPosition()
-            // Bullet: bulletHistory.getPreviousPosition() -> bulletHistory.getPreviousPosition() + bullet.getDirection() * deltaTime
             // Bullet: bulletHistory.getPosition(timestamp) -> bulletHistory.getPosition(timestamp + deltaTime)
             Point2D bulletCurrentPosition = bulletHistory.getHitbox().getPosition(moveTimestamp);
             Point2D bulletTargetPosition = bulletHistory.getHitbox().getPosition(moveTimestamp + (long)(deltaTime * 1000.0f));
-            System.out.format("%s, %s, %f, %s, %s, %s, %s\n",
+            System.out.format("%s, %s, %s, %f, %s, %s, %s, %s\n", System.currentTimeMillis(),
                     moveTimestamp, (moveTimestamp + (long)(deltaTime * 1000.0f)), deltaTime,
                     hitboxHistory.getPreviousPosition(), hitboxHistory.getHitbox().getPosition(),
                     bulletCurrentPosition, bulletTargetPosition);

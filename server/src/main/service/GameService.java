@@ -50,6 +50,7 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
 
     public GameService() {
         this.inputLog = new ClientsInputLog();
+        logger.setLevel(Level.WARNING);
     }
 
     private final Lock queueLock = new ReentrantLock();
