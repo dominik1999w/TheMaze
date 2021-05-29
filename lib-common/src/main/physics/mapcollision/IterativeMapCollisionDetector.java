@@ -14,42 +14,13 @@ public class IterativeMapCollisionDetector extends MapCollisionDetector {
     }
 
     @Override
-    public MapCollisionInfo detectMapCollision(HitboxHistory history) {
-        Point2D initialPosition = history.getPreviousPosition();
-        Point2D deltaPosition = new Point2D(history.getHitbox().getPosition()).subtract(initialPosition);
-        return detectMapCollisions(initialPosition, deltaPosition, history.getHitbox().getRadius());
-    }
-
-    private boolean verticalWallCollision(Point2D position, float hitboxRadius) {
-        Point2D pos = new Point2D(position).divide(MapConfig.BOX_SIZE);
-        int vl_x = Math.round(pos.x());
-        float vl_half2 = hitboxRadius * hitboxRadius - (vl_x - pos.x()) * (vl_x - pos.x());
-        if (vl_half2 < 0) {
-            return false;
-        }
-        float vl_half = (float) Math.sqrt(vl_half2);
-        int vl_y_min = Math.round(pos.y() - vl_half - 0.5f);
-        int vl_y_max = Math.round(pos.y() + vl_half - 0.5f);
-        return map.hasWall(WallType.LEFT_WALL, vl_x, vl_y_min) || map.hasWall(WallType.LEFT_WALL, vl_x, vl_y_max);
-    }
-
-    private boolean horizontalWallCollision(Point2D position, float hitboxRadius) {
-        Point2D pos = new Point2D(position).divide(MapConfig.BOX_SIZE);
-        int hl_y = Math.round(pos.y());
-        float hl_half2 = hitboxRadius * hitboxRadius - (hl_y - pos.y()) * (hl_y - pos.y());
-        if (hl_half2 < 0) {
-            return false;
-        }
-        float hl_half = (float) Math.sqrt(hl_half2);
-        int hl_x_min = Math.round(pos.x() - hl_half - 0.5f);
-        int hl_x_max = Math.round(pos.x() + hl_half - 0.5f);
-        return map.hasWall(WallType.DOWN_WALL, hl_x_min, hl_y) || map.hasWall(WallType.DOWN_WALL, hl_x_max, hl_y);
-    }
-
-    public MapCollisionInfo detectMapCollisions(Point2D initial_position, Point2D delta_position, float hitboxRadius) {
-        Point2D position = new Point2D(initial_position);
-        Point2D projected_pos = new Point2D(initial_position);
+    public MapCollisionInfo detectMapCollision(HitboxHistory<?> history) {
+        Point2D delta_position = new Point2D(history.getHitbox().getPosition())
+                .subtract(history.getPreviousPosition());
+        Point2D position = new Point2D(history.getPreviousPosition());
+        Point2D projected_pos = new Point2D(history.getPreviousPosition());
         Point2D delta_position_fragment = new Point2D(delta_position).divide(FREQUENCY);
+        float hitboxRadius = history.getHitbox().getRadius();
 
         boolean hasCollided = false;
         for(int i = 0; i < FREQUENCY; i++) {
@@ -92,5 +63,31 @@ public class IterativeMapCollisionDetector extends MapCollisionDetector {
         }
 
         return new MapCollisionInfo(position, hasCollided);
+    }
+
+    private boolean verticalWallCollision(Point2D position, float hitboxRadius) {
+        Point2D pos = new Point2D(position).divide(MapConfig.BOX_SIZE);
+        int vl_x = Math.round(pos.x());
+        float vl_half2 = hitboxRadius * hitboxRadius - (vl_x - pos.x()) * (vl_x - pos.x());
+        if (vl_half2 < 0) {
+            return false;
+        }
+        float vl_half = (float) Math.sqrt(vl_half2);
+        int vl_y_min = Math.round(pos.y() - vl_half - 0.5f);
+        int vl_y_max = Math.round(pos.y() + vl_half - 0.5f);
+        return map.hasWall(WallType.LEFT_WALL, vl_x, vl_y_min) || map.hasWall(WallType.LEFT_WALL, vl_x, vl_y_max);
+    }
+
+    private boolean horizontalWallCollision(Point2D position, float hitboxRadius) {
+        Point2D pos = new Point2D(position).divide(MapConfig.BOX_SIZE);
+        int hl_y = Math.round(pos.y());
+        float hl_half2 = hitboxRadius * hitboxRadius - (hl_y - pos.y()) * (hl_y - pos.y());
+        if (hl_half2 < 0) {
+            return false;
+        }
+        float hl_half = (float) Math.sqrt(hl_half2);
+        int hl_x_min = Math.round(pos.x() - hl_half - 0.5f);
+        int hl_x_max = Math.round(pos.x() + hl_half - 0.5f);
+        return map.hasWall(WallType.DOWN_WALL, hl_x_min, hl_y) || map.hasWall(WallType.DOWN_WALL, hl_x_max, hl_y);
     }
 }

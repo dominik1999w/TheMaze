@@ -25,12 +25,12 @@ public class WorldView implements Renderable {
     public WorldView(World<?> world, Map map, OrthographicCamera camera, Player localPlayer, AssetManager assetManager, CollisionWorld collisionWorld) {
         this.mapView = new MapView(map, assetManager);
         this.camera = camera;
-        sightView = new SightView(collisionWorld, localPlayer, map.getMapLength());
+        sightView = new SightView(map, localPlayer, map.getMapLength());
         views.add(new SimpleView<>(localPlayer, assetManager.get(TextureType.PLAYER.getName())));
 
         world.subscribeOnPlayerAdded(newPlayer -> views.add(new SimpleView<Player>(newPlayer, assetManager.get(TextureType.PLAYER.getName()))));
         world.subscribeOnPlayerRemoved(playerID -> views.removeIf(view -> view.getId().equals(playerID)));
-        world.subscribeOnBulletAdded(newBullet -> views.add(new SimpleView<Bullet>(newBullet, assetManager.get(TextureType.BULLET.getName()))));
+        world.subscribeOnBulletAdded((shooterID, newBullet) -> views.add(new SimpleView<Bullet>(newBullet, assetManager.get(TextureType.BULLET.getName()))));
         world.subscribeOnBulletRemoved(bulletID -> views.removeIf(view -> view.getId().equals(bulletID)));
     }
 

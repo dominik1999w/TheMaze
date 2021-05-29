@@ -16,15 +16,9 @@ public class ClampMapCollisionDetector extends MapCollisionDetector {
     }
 
     @Override
-    public MapCollisionInfo detectMapCollision(HitboxHistory history) {
-        Point2D initialPosition = history.getPreviousPosition();
-        Point2D deltaPosition = new Point2D(history.getHitbox().getPosition()).subtract(initialPosition);
-        return detectMapCollisions(initialPosition, deltaPosition, history.getHitbox().getRadius());
-    }
-
-    public MapCollisionInfo detectMapCollisions(Point2D initialPosition, Point2D deltaPosition, float hitboxRadius) {
-        Point2D currentPosition = new Point2D(initialPosition);
-        Point2D targetPosition = new Point2D(initialPosition).add(deltaPosition);
+    public MapCollisionInfo detectMapCollision(HitboxHistory<?> history) {
+        Point2D currentPosition = new Point2D(history.getPreviousPosition());
+        Point2D targetPosition = new Point2D(history.getHitbox().getPosition());
 
         Point2Di currentTile = new Point2Di(
                 floor(currentPosition.x() / MapConfig.BOX_SIZE),
@@ -50,7 +44,7 @@ public class ClampMapCollisionDetector extends MapCollisionDetector {
                     clamp(targetPosition.x(), wallShape.getPositionX() * MapConfig.BOX_SIZE, wallShape.getPositionX() * MapConfig.BOX_SIZE + wallShape.getSizeX()),
                     clamp(targetPosition.y(), wallShape.getPositionY() * MapConfig.BOX_SIZE, wallShape.getPositionY() * MapConfig.BOX_SIZE + wallShape.getSizeY())
             ).subtract(targetPosition);
-            float overlap = hitboxRadius * MapConfig.BOX_SIZE - distanceDirection.mag();
+            float overlap = history.getHitbox().getRadius() * MapConfig.BOX_SIZE - distanceDirection.mag();
             if (Float.isNaN(overlap)) overlap = 0;
             if (overlap > 0) {
                 hasCollided = true;

@@ -46,5 +46,5 @@ message GameStateRequest {
 message GameStateResponse {
   uint64 timestamp = 1;
   repeated PlayerState players = 2;
-  repeated BulletState bullets = 3;
+  BulletState bullet = 3;
 }

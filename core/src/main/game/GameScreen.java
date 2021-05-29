@@ -17,7 +17,6 @@ import connection.state.StateClient;
 import connection.util.PlayerInputLog;
 import entity.bullet.Bullet;
 import entity.bullet.BulletController;
-import entity.bullet.BulletHitbox;
 import entity.player.Player;
 import entity.player.PlayerHitbox;
 import entity.player.PlayerInput;
@@ -62,16 +61,12 @@ public class GameScreen extends ScreenAdapter {
         gameClient.connect(playerID);
         stateClient.connect(playerID);
 
-        this.world = new World<>(AuthoritativePlayerController::new, BulletController::new);
+        this.world = new World<>(AuthoritativePlayerController::new, (playerID1, bullet) -> new BulletController(bullet));
 
         this.player = new Player(playerID, initialPosition);
         this.playerController = new LocalPlayerController(player, world);
         this.collisionWorld = new CollisionWorld(map);
-        // Uncomment this for CLIENT-SIDE PLAYER-MAP COLLISION HANDLING
-        //world.subscribeOnPlayerAdded(newPlayer -> collisionWorld.addHitbox(new PlayerHitbox(newPlayer)));
-        world.subscribeOnBulletAdded(newBullet -> collisionWorld.addHitbox(new BulletHitbox(newBullet, world)));
-        world.subscribeOnBulletRemoved(collisionWorld::removeHitbox);
-        collisionWorld.addHitbox(new PlayerHitbox(player));
+        collisionWorld.addPlayerHitbox(new PlayerHitbox(player));
 
         this.camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         this.worldView = new WorldView(world, map, camera, player, assetManager, collisionWorld);
@@ -88,7 +83,7 @@ public class GameScreen extends ScreenAdapter {
     }
 
     boolean newRoundStarting = true;
-    int countDownTime;
+    int countDownTime = 3;
 
     @Override
     public void render(float delta) {
@@ -111,21 +106,7 @@ public class GameScreen extends ScreenAdapter {
                 }
 
                 @Override
-                public void onActiveBullets(Collection<UUID> bulletIDs) {
-                    BulletController bulletController = world.getBulletController();
-                    if (bulletController != null) {
-                        UUID playerID = bulletController.getPlayerID();
-                        if (playerID.equals(player.getId())) return;
-
-                        UUID bulletID = bulletController.getBullet().getId();
-                        if (!bulletIDs.contains(bulletID)) {
-                            world.removeBulletController();
-                        }
-                    }
-                }
-
-                @Override
-                public void onPlayerState(long sequenceNumber, Player playerState) {
+                public void onPlayerState(long sequenceNumber, long timestamp, Player playerState) {
                     if (player.getId().equals(playerState.getId())) {
                     /*System.out.println(String.format(Locale.ENGLISH,
                             "Client: (%s, %d)    Server: (%s, %d)",
@@ -137,7 +118,7 @@ public class GameScreen extends ScreenAdapter {
                         for (PlayerInput playerInput : playerInputLog.getInputLog()) {
                             playerController.updateInput(playerInput);
                             playerController.update();
-                            collisionWorld.onPlayerMoved(player.getId());
+                            collisionWorld.onPlayerMoved(player.getId(), timestamp, playerInput.getDelta());
                         }
                     } else {
                         world.getPlayerController(playerState.getId(), playerState.getPosition())
@@ -147,7 +128,13 @@ public class GameScreen extends ScreenAdapter {
 
                 @Override
                 public void onBulletState(UUID playerID, Bullet bulletState) {
-                    world.onBulletFired(playerID, bulletState);
+                    //if (player.getId().equals(playerID)) return;
+
+                    if (playerID == null) {
+                        world.onBulletDied();
+                    } else {
+                        world.onBulletFired(playerID, bulletState);
+                    }
                 }
             });
 
@@ -157,13 +144,14 @@ public class GameScreen extends ScreenAdapter {
 
             // check for AFK (no reasonable input)
             if (!playerInput.isEmpty()) {
-                gameClient.syncState(playerInputLog.getCurrentSequenceNumber(), playerInput);
+//                gameClient.syncState(playerInputLog.getCurrentSequenceNumber(), playerInput);
                 playerInputLog.log(playerInput);
                 // update the player according to user input
                 playerController.updateInput(playerInput);
                 playerController.update();
-                collisionWorld.onPlayerMoved(player.getId());
+                collisionWorld.onPlayerMoved(player.getId(), System.currentTimeMillis(), playerInput.getDelta());
             }
+            gameClient.syncState(playerInputLog.getCurrentSequenceNumber(), playerInput);
 
             // update the world
             world.update(delta);
@@ -180,7 +168,6 @@ public class GameScreen extends ScreenAdapter {
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
         worldView.render(batch);
-
         if (newRoundStarting) {
             bitmapFont.setColor(1, 1, 1, 1);
             bitmapFont.draw(batch, String.valueOf(countDownTime), playerPosition.x(), playerPosition.y());

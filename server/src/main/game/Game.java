@@ -27,7 +27,7 @@ public class Game {
     private final StateService stateService;
 
     private Map<UUID, Position> initialPositions = new HashMap<>();
-    private Map<UUID, Integer> points = new HashMap<>();
+    private final Map<UUID, Integer> points = new HashMap<>();
     private final AtomicBoolean newRoundStarted = new AtomicBoolean(false);
 
     public Game(MapService mapService, StateService stateService, GameService gameService) {
@@ -61,12 +61,12 @@ public class Game {
                 newRoundStarted.set(false);
             }
 
-            gameService.dispatchMessages((sequenceNumber, id, playerInput) ->
+            gameService.dispatchMessages((sequenceNumber, timestamp, id, playerInput) ->
             {
                 InputPlayerController playerController = gameService.getWorld().getPlayerController(id);
                 playerController.updateInput(playerInput);
                 playerController.update();
-                gameService.getCollisionWorld().onPlayerMoved(playerController.getPlayer().getId());
+                gameService.getCollisionWorld().onPlayerMoved(playerController.getPlayer().getId(), timestamp, playerInput.getDelta());
             });
             gameService.getWorld().update(delta);
             gameService.getCollisionWorld().update();

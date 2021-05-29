@@ -35,6 +35,7 @@ import physics.CollisionWorld;
 import util.ClientsInputLog;
 import util.GRpcMapper;
 import util.Point2D;
+import util.Timestamp;
 import world.World;
 
 public class GameService extends TheMazeGrpc.TheMazeImplBase {
@@ -49,18 +50,21 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
 
     public GameService() {
         this.inputLog = new ClientsInputLog();
+        logger.setLevel(Level.WARNING);
     }
 
     private final Lock queueLock = new ReentrantLock();
-    private final Queue<GameStateRequest> requestQueue = new ArrayDeque<>();
+    private final Queue<Timestamp<GameStateRequest>> requestQueue = new ArrayDeque<>();
 
     public void dispatchMessages(ClientRequestHandler requestHandler) {
         queueLock.lock();
         while (!requestQueue.isEmpty()) {
-            GameStateRequest request = requestQueue.poll();
+            Timestamp<GameStateRequest> tRequest = requestQueue.poll();
+            GameStateRequest request = tRequest.get();
             LocalPlayerInput source = request.getPlayer();
             requestHandler.onClientRequest(
                     request.getSequenceNumber(),
+                    tRequest.getTimestamp(),
                     UUID.fromString(source.getId()),
                     GRpcMapper.playerInput(source)
             );
@@ -84,8 +88,9 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
         return new StreamObserver<GameStateRequest>() {
             @Override
             public void onNext(GameStateRequest value) {
+                Timestamp<GameStateRequest> tRequest = new Timestamp<>(value);
                 queueLock.lock();
-                requestQueue.add(value);
+                requestQueue.add(tRequest);
                 queueLock.unlock();
             }
 
@@ -118,17 +123,17 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
                     .setRotation(controller.getPlayerRotation())
                     .build());
         }
-        if (world.getBulletController() != null) {
-            UUID playerID = world.getBulletController().getPlayerID();
-            Bullet bullet = world.getBulletController().getBullet();
-            response.addBullets(BulletState.newBuilder()
+        world.getBullet().ifPresent(cachedBullet -> {
+            UUID playerID = cachedBullet.getShooterID();
+            Bullet bullet = cachedBullet.getController().getBullet();
+            response.setBullet(BulletState.newBuilder()
                     .setId(bullet.getId().toString())
                     .setPlayerId(playerID.toString())
                     .setPositionX(bullet.getPosition().x())
                     .setPositionY(bullet.getPosition().y())
                     .setRotation(bullet.getRotation())
                     .build());
-        }
+        });
         GameStateResponse stateResponse = response.build();
 
         for (Map.Entry<StreamObserver<GameStateResponse>, UUID> entry : responseObservers.entrySet()) {
@@ -149,12 +154,12 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
 
         world = new World<>(
                 InputPlayerController::new,
-                BulletController::new);
+                (playerID, bullet) -> new BulletController(bullet));
 
-        world.subscribeOnPlayerAdded(newPlayer -> collisionWorld.addHitbox(new PlayerHitbox(newPlayer)));
-        world.subscribeOnPlayerRemoved(collisionWorld::removeHitbox);
-        world.subscribeOnBulletAdded(newBullet -> collisionWorld.addHitbox(new BulletHitbox(newBullet, world)));
-        world.subscribeOnBulletRemoved(collisionWorld::removeHitbox);
+        world.subscribeOnPlayerAdded(newPlayer -> collisionWorld.addPlayerHitbox(new PlayerHitbox(newPlayer)));
+        world.subscribeOnPlayerRemoved(collisionWorld::removePlayerHitbox);
+        world.subscribeOnBulletAdded((shooterID, newBullet) -> collisionWorld.setBulletHitbox(new BulletHitbox(shooterID, newBullet, world)));
+        world.subscribeOnBulletRemoved(collisionWorld::removeBulletHitbox);
         world.subscribeOnRoundResult(game::endRound);
 
         for (Map.Entry<UUID, Position> entry : positions.entrySet()) {

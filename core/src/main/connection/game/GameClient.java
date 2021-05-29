@@ -11,9 +11,8 @@ import entity.player.PlayerInput;
 public interface GameClient extends Client {
     interface ServerResponseHandler {
         void onActivePlayers(Collection<UUID> playerIDs);
-        void onActiveBullets(Collection<UUID> activeBullets);
 
-        void onPlayerState(long sequenceNumber, Player playerState);
+        void onPlayerState(long sequenceNumber, long timestamp, Player playerState);
         void onBulletState(UUID shooterID, Bullet bulletState);
     }
 

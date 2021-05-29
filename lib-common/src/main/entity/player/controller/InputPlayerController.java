@@ -25,7 +25,7 @@ public class InputPlayerController extends PlayerController {
     public void update() {
         if (playerInput.isEmpty()) return;
 
-        if (playerInput.isShootPressed()) {
+        if (playerInput.isShootPressed() && !ignoreShootPressed) {
             world.onBulletFired(player);
         }
 
@@ -39,5 +39,10 @@ public class InputPlayerController extends PlayerController {
         }
 
         playerInput.clear();
+    }
+
+    private boolean ignoreShootPressed = false;
+    protected void setIgnoreShootPressed(boolean ignoreShootPressed) {
+        this.ignoreShootPressed = ignoreShootPressed;
     }
 }
