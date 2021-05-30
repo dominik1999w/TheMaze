@@ -2,7 +2,6 @@ package entity.player;
 
 import java.util.UUID;
 
-import entity.bullet.BulletHitbox;
 import physics.Hitbox;
 import physics.HitboxType;
 import util.Point2D;
@@ -45,12 +44,6 @@ public class PlayerHitbox implements Hitbox {
 
     @Override
     public void notifyEntityCollision(Hitbox hitbox) {
-        if(hitbox instanceof BulletHitbox && ((BulletHitbox)hitbox).getShooterID() != getId()) {
-            System.out.format("Player %s was hit by a bullet!\n", getId());
-            if(!player.isKilled()) {
-                player.kill();
-                world.killPlayer(hitbox.getId(), player.getId());
-            }
-        }
+        System.out.format("Player %s was hit by a bullet!\n", getId());
     }
 }

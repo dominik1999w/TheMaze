@@ -10,7 +10,6 @@ public class Player implements WorldEntity {
 
     private final Point2D position = new Point2D();
     private float rotation = 0;
-    private boolean killed;
 
     public Player() {
         this.id = UUID.randomUUID();
@@ -48,18 +47,6 @@ public class Player implements WorldEntity {
 
     public float getRotation() {
         return this.rotation;
-    }
-
-    public void kill() {
-        killed = true;
-    }
-
-    public void revive() {
-        killed = false;
-    }
-
-    public boolean isKilled() {
-        return killed;
     }
 
     @Override

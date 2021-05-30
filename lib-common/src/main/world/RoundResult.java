@@ -1,37 +1,51 @@
 package world;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public class RoundResult {
-    public UUID shooter;
-    public UUID killed;
-    public Integer shooterPoints;
-    public Integer killedPoints;
+    private Map<UUID, Integer> points;
 
-    public RoundResult(UUID shooter) {
-        this.shooter = shooter;
-        this.shooterPoints = -1;
+    private RoundResult() {
+        points = new HashMap<>();
     }
 
-    public RoundResult(UUID shooter, UUID killed) {
-        this.shooter = shooter;
-        this.shooterPoints = 3;
-        this.killed = killed;
-        this.killedPoints = -1;
+    private RoundResult givePoints(UUID playerID, int val) {
+        points.put(playerID, val);
+        return this;
     }
 
-    public Integer getShooterPoints() {
-        return shooterPoints;
+    public static RoundResult missed(UUID playerID) {
+        return new RoundResult()
+                .givePoints(playerID, -1);
     }
-    public Integer getKilledPoints() {
-        return killedPoints;
+
+    public static RoundResult killed(UUID shooterID, UUID killedID) {
+        return new RoundResult()
+                .givePoints(shooterID, 3)
+                .givePoints(killedID, -1);
+    }
+
+    public static RoundResult notFired(UUID playerID, List<UUID> allPlayerIDs) {
+        RoundResult result = new RoundResult();
+        for(UUID player : allPlayerIDs) {
+            result.givePoints(player, 1);
+        }
+        return result.givePoints(playerID, -1);
+    }
+
+    public Map<UUID, Integer> getPoints() {
+        return points;
     }
 
     @Override
     public String toString() {
-        String s = "-- Round results:\n" +
-                "Shooter: " + shooter + " = " + shooterPoints;
-        if(killed != null) s += "\n" + "Killed: " + killed + " = " + killedPoints;
-        return s;
+        StringBuilder s = new StringBuilder("-- Round results:\n");
+        for(Map.Entry<UUID, Integer> entry : points.entrySet()) {
+            s.append(entry.getKey()).append(" = ").append(entry.getValue()).append("\n");
+        }
+        return s.toString();
     }
 }

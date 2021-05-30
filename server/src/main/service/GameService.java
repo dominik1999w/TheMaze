@@ -179,7 +179,6 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
             Player player = world.getPlayerController(entry.getKey()).getPlayer();
             player.setPosition(new Point2D(pos.getPositionX(), pos.getPositionY()));
             player.setRotation(0);
-            player.revive(); // temporary
         }
         world.assignBulletRandomly();
     }

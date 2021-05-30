@@ -23,7 +23,7 @@ public class InputPlayerController extends PlayerController {
     }
 
     public void update() {
-        if (playerInput.isEmpty() || player.isKilled()) return;
+        if (playerInput.isEmpty()) return;
 
         if (playerInput.isShootPressed() && !ignoreShootPressed) {
             world.onBulletFired(player);

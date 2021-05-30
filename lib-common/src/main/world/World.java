@@ -24,7 +24,6 @@ import util.Point2D;
 public class World<TController extends PlayerController> {
 
     private final Map<UUID, TController> players = new HashMap<>(); //new ConcurrentHashMap<>();
-
     private final CachedBullet cachedBullet = new CachedBullet();
 
     private final List<Consumer<Player>> onPlayerAddedSubscribers = new ArrayList<>();
@@ -36,7 +35,8 @@ public class World<TController extends PlayerController> {
     private final BiFunction<Player, World<?>, TController> controllerConstructor;
     private final BiFunction<UUID, Bullet, BulletController> bulletControllerConstructor;
 
-    private final Timer reviveTimer;
+    private boolean roundInProgress;
+    private Timer roundTimer;
 
     private final Random random;
 
@@ -44,7 +44,7 @@ public class World<TController extends PlayerController> {
                  BiFunction<UUID, Bullet, BulletController> bulletControllerConstructor) {
         this.controllerConstructor = playerControllerConstructor;
         this.bulletControllerConstructor = bulletControllerConstructor;
-        this.reviveTimer = new Timer();
+        this.roundTimer = new Timer();
         this.random = new Random();
     }
 
@@ -93,7 +93,16 @@ public class World<TController extends PlayerController> {
 
     public void assignBulletRandomly() {
         List<UUID> playerIdsList = new ArrayList<>(players.keySet());
-        cachedBullet.passTo(playerIdsList.get(random.nextInt(playerIdsList.size())));
+        UUID playerAssigned = playerIdsList.get(random.nextInt(playerIdsList.size()));
+        cachedBullet.passTo(playerAssigned);
+        roundTimer = new Timer();
+        roundTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                endRound(RoundResult.notFired(playerAssigned, playerIdsList));
+            }
+        },30000);
+        roundInProgress = true;
     }
 
     public void onBulletFired(UUID shooterID, Bullet bullet) {
@@ -123,17 +132,12 @@ public class World<TController extends PlayerController> {
         }
     }
 
-    public void killPlayer(UUID shooterID, UUID killedID) {
-        reviveTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                endRound(new RoundResult(shooterID, killedID));
-            }
-        }, 3000);
-    }
-
     public void endRound(RoundResult roundResult) {
-        onRoundResultSubscribers.forEach(subscriber -> subscriber.accept(roundResult));
+        if(roundInProgress) {
+            roundInProgress = false;
+            roundTimer.cancel();
+            onRoundResultSubscribers.forEach(subscriber -> subscriber.accept(roundResult));
+        }
     }
 
     public void update(float delta) {

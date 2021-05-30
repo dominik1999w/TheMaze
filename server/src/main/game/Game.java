@@ -93,10 +93,8 @@ public class Game {
 
     public void endRound(RoundResult result) {
         System.out.println(result);
-        points.put(result.shooter, points.getOrDefault(result.shooter, 0) + result.getShooterPoints());
-        if (result.killed != null) {
-            points.put(result.killed, points.getOrDefault(result.killed, 0) + result.getKilledPoints());
-        }
+        result.getPoints().forEach(
+                (uuid, integer) -> points.merge(uuid, integer, Integer::sum));
         startNewRound();
     }
 
