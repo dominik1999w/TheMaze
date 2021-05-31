@@ -102,7 +102,7 @@ public class MenuScreen extends ScreenAdapter {
 
             mapClient.connect(playerID);
 
-            mapClient.updateName((name) -> this.name = name);
+            this.name = mapClient.getUserName();
 
             Gdx.app.postRunnable(() -> username.setText("name: " + name));
             return null;

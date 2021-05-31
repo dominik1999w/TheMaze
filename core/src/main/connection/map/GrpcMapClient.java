@@ -61,8 +61,8 @@ public class GrpcMapClient implements MapClient {
     }
 
     @Override
-    public void updateName(ServerResponseNameHandler handler) {
-        handler.updateName(name);
+    public String getUserName() {
+        return name;
     }
 
     @Override
