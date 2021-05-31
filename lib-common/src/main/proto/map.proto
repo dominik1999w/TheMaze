@@ -9,7 +9,16 @@ option java_outer_classname = "MapGrpcGdx";
 import "google/protobuf/empty.proto";
 
 service Map {
+  rpc Connect (NameRequest) returns (NameResponse) {}
   rpc SyncMapState (stream MapStateRequest) returns (stream MapStateResponse) {}
+}
+
+message NameRequest {
+  string id = 1;
+}
+
+message NameResponse {
+  string name = 1;
 }
 
 message MapStateRequest {

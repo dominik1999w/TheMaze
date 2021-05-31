@@ -15,6 +15,8 @@ import io.grpc.stub.StreamObserver;
 import lib.map.MapGrpc;
 import lib.map.MapStateRequest;
 import lib.map.MapStateResponse;
+import lib.map.NameRequest;
+import lib.map.NameResponse;
 import util.Point2D;
 
 public class GrpcMapClient implements MapClient {
@@ -24,6 +26,7 @@ public class GrpcMapClient implements MapClient {
     private final ManagedChannel channel;
 
     private UUID id;
+    private String name;
 
     private StreamObserver<MapStateRequest> stateRequestStream;
 
@@ -58,6 +61,11 @@ public class GrpcMapClient implements MapClient {
     }
 
     @Override
+    public void updateName(ServerResponseNameHandler handler) {
+        handler.updateName(name);
+    }
+
+    @Override
     public void connect(UUID id) {
         this.id = id;
 
@@ -80,6 +88,9 @@ public class GrpcMapClient implements MapClient {
 
                     }
                 }));
+        NameRequest request = NameRequest.newBuilder().setId(id.toString()).build();
+        NameResponse response = blockingStub.connect(request);
+        this.name = response.getName();
     }
 
     @Override
@@ -98,7 +109,7 @@ public class GrpcMapClient implements MapClient {
     public void disconnect() {
         ((ClientCallStreamObserver<MapStateRequest>) stateRequestStream).cancel("Disconnected", null);
         try {
-            channel.shutdownNow().awaitTermination(3, TimeUnit.SECONDS);
+            channel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS);
         } catch (InterruptedException ignored) {
         }
     }

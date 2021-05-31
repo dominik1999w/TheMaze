@@ -121,7 +121,7 @@ public class GrpcGameClient implements GameClient {
     @Override
     public void disconnect() {
         try {
-            channel.shutdownNow().awaitTermination(3, TimeUnit.SECONDS);
+            channel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS);
         } catch (InterruptedException ignored) {
         }
     }

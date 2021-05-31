@@ -21,8 +21,11 @@ import io.grpc.stub.StreamObserver;
 import lib.map.MapGrpc;
 import lib.map.MapStateRequest;
 import lib.map.MapStateResponse;
+import lib.map.NameRequest;
+import lib.map.NameResponse;
 import lib.map.Position;
 import map.MapConfig;
+import util.RandomNames;
 
 public class MapService extends MapGrpc.MapImplBase {
     private static final Logger logger = Logger.getLogger(MapService.class.getName());
@@ -34,6 +37,7 @@ public class MapService extends MapGrpc.MapImplBase {
 
     private final Map<StreamObserver<MapStateResponse>, UUID> clients = new ConcurrentHashMap<>();
     private final Map<StreamObserver<MapStateResponse>, UUID> disconnectedClients = new ConcurrentHashMap<>();
+    private final Map<UUID, String> names = new ConcurrentHashMap<>();
 
     public MapService() {
     }
@@ -55,6 +59,14 @@ public class MapService extends MapGrpc.MapImplBase {
             }
         }
         queueLock.unlock();
+    }
+
+    @Override
+    public void connect(NameRequest request, StreamObserver<NameResponse> responseObserver) {
+        String name = RandomNames.getNextName();
+        names.put(UUID.fromString(request.getId()), name);
+        responseObserver.onNext(NameResponse.newBuilder().setName(name).build());
+        responseObserver.onCompleted();
     }
 
     @Override
@@ -117,6 +129,10 @@ public class MapService extends MapGrpc.MapImplBase {
                         "Player {0} disconnected", entry.getValue());
             }
         }
+    }
+
+    public Map<UUID, String> getNames() {
+        return names;
     }
 
     private void handleDisconnectedClients() {

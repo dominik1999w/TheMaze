@@ -51,9 +51,20 @@ public class GameScreen extends ScreenAdapter {
     private final BitmapFont bitmapFont;
     private final DebugDrawer debugDrawer;
 
-    public GameScreen(UUID playerID, SpriteBatch batch, GameClient gameClient, StateClient stateClient, Point2D initialPosition, Map map, AssetManager assetManager) {
+    private final GameApp game;
+    private final AssetManager assetManager;
+    private ScoreScreen scoreScreen;
+
+    private final boolean isHost;
+
+    public GameScreen(UUID playerID, boolean isHost, SpriteBatch batch, GameApp game, GameClient gameClient, StateClient stateClient, Point2D initialPosition, Map map, AssetManager assetManager) {
+        this.isHost = isHost;
+
+        this.assetManager = assetManager;
         this.batch = batch;
         this.playerInputLog = new PlayerInputLog();
+
+        this.game = game;
 
         this.gameClient = gameClient;
         this.stateClient = stateClient;
@@ -178,9 +189,18 @@ public class GameScreen extends ScreenAdapter {
     }
 
     private void updateCountDown() {
-        stateClient.dispatchMessages(time -> {
-            countDownTime = (int)time;
-            newRoundStarting = (countDownTime > 0);
+        stateClient.dispatchMessages(new StateClient.ServerResponseHandler() {
+            @Override
+            public void showGameCountdown(float time) {
+                countDownTime = (int) time;
+                newRoundStarting = (countDownTime > 0);
+            }
+
+            @Override
+            public void endGame(java.util.Map<String, Integer> points) {
+                scoreScreen = new ScoreScreen(game, assetManager, points, isHost);
+                game.setScreen(scoreScreen);
+            }
         });
     }
 
@@ -193,5 +213,6 @@ public class GameScreen extends ScreenAdapter {
     public void dispose() {
         gameUI.dispose();
         bitmapFont.dispose();
+        scoreScreen.dispose();
     }
 }

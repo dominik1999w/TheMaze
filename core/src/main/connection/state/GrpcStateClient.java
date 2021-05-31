@@ -43,8 +43,11 @@ public class GrpcStateClient implements StateClient {
             StateResponse response = responseQueue.poll();
             float timeToStartRound = response.getTimeToStartRound();
             handler.showGameCountdown(timeToStartRound);
+            if (response.getGameEnded()) {
+                handler.endGame(response.getScoresMap());
+            }
             // TODO: showing points in UI
-            System.out.println("I have " + response.getScore() + " points!");
+//            System.out.println("I have " + response.getScore() + " points!");
         }
         queueLock.unlock();
     }
@@ -78,7 +81,7 @@ public class GrpcStateClient implements StateClient {
     public void disconnect() {
         ((ClientCallStreamObserver<Empty>) stateRequestStream).cancel("Disconnected", null);
         try {
-            channel.shutdownNow().awaitTermination(3, TimeUnit.SECONDS);
+            channel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS);
         } catch (InterruptedException ignored) {
         }
     }

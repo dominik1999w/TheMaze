@@ -14,5 +14,6 @@ service State {
 
 message StateResponse {
   float timeToStartRound = 1;
-  int32 score = 2;
+  map<string, int32> scores = 2;
+  bool gameEnded = 3;
 }

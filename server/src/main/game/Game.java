@@ -27,8 +27,10 @@ public class Game {
     private final StateService stateService;
 
     private Map<UUID, Position> initialPositions = new HashMap<>();
-    private final Map<UUID, Integer> points = new HashMap<>();
+    private final Map<String, Integer> points = new HashMap<>();
     private final AtomicBoolean newRoundStarted = new AtomicBoolean(false);
+
+    private CustomTimer gameTask = new CustomTimer();
 
     public Game(MapService mapService, StateService stateService, GameService gameService) {
         this.mapService = mapService;
@@ -47,6 +49,17 @@ public class Game {
                 e.printStackTrace();
             }
 
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    endGame();
+                }
+            }, 1 * 60 * 1000);
+
+            for (String name : mapService.getNames().values()) {
+                points.put(name, 0);
+            }
+
             new Thread(this::getGameTask).start();
 
             startNewRound();
@@ -55,7 +68,9 @@ public class Game {
     }
 
     private void getGameTask() {
-        CustomTimer.executeAtFixedRate(delta -> {
+
+        gameTask = new CustomTimer();
+        gameTask.executeAtFixedRate(delta -> {
             if (newRoundStarted.get()) {
                 gameService.startNewRound(initialPositions);
                 newRoundStarted.set(false);
@@ -94,8 +109,13 @@ public class Game {
     public void endRound(RoundResult result) {
         System.out.println(result);
         result.getPoints().forEach(
-                (uuid, integer) -> points.merge(uuid, integer, Integer::sum));
+                (uuid, integer) -> points.merge(mapService.getNames().get(uuid), integer, Integer::sum));
         startNewRound();
+    }
+
+    public void endGame() {
+        gameTask.cancel();
+        stateService.broadcastState(0.0f, points, true);
     }
 
     private TimerTask getCountdownTask(CountDownLatch latch) {
@@ -104,7 +124,7 @@ public class Game {
 
             @Override
             public void run() {
-                stateService.broadcastPreRoundState(remainingTime, points);
+                stateService.broadcastState(remainingTime, points, false);
                 logger.info(String.valueOf(remainingTime));
                 if (remainingTime == 0.0f) {
                     latch.countDown();

@@ -17,4 +17,10 @@ public interface MapClient extends Client {
     void syncState(int mapLength, int seed, boolean gameStarted);
 
     void dispatchMessages(ServerResponseHandler responseHandler);
+
+    interface ServerResponseNameHandler {
+        void updateName(String name);
+    }
+
+    void updateName(ServerResponseNameHandler handler);
 }
