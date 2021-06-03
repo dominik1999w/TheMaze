@@ -80,7 +80,7 @@ public class GameScreen extends ScreenAdapter {
         collisionWorld.addPlayerHitbox(new PlayerHitbox(player, world));
 
         this.camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        this.worldView = new WorldView(world, map, camera, player, assetManager, collisionWorld);
+        this.worldView = new WorldView(world, map, camera, player, assetManager);
 
         int mapWidth = 10; // temporary: number of boxes horizontal-wise
         camera.zoom = mapWidth * MapConfig.BOX_SIZE / (float) Gdx.graphics.getWidth();

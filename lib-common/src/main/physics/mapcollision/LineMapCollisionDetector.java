@@ -24,6 +24,7 @@ public class LineMapCollisionDetector extends MapCollisionDetector {
         Point2D targetPosition = new Point2D(history.getHitbox().getPosition());
         float distance = Point2D.dist(currentPosition, targetPosition);
         Point2D deltaPosition = targetPosition.subtract(currentPosition);
+
         float angle = (float)Math.atan2(deltaPosition.y(), deltaPosition.x());
         if (angle < 0) angle += 2 * Math.PI;
 

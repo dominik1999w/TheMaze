@@ -75,6 +75,7 @@ public class BulletHitbox implements Hitbox {
 
     @Override
     public void notifyEntityCollision(Hitbox hitbox) {
+        System.out.format("Bullet_EntityCollision: %s\n", getPosition());
         if (!shooterID.equals(hitbox.getId())) {
             System.out.format("Bullet_EntityCollision: %s\n", getPosition());
             world.onBulletDied();
