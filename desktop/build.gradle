@@ -4,7 +4,6 @@ sourceCompatibility = 1.8
 sourceSets.main.java.srcDirs = [ "src/" ]
 
 project.ext.mainClassName = "com.pz.themaze.DesktopLauncher"
-project.ext.debugMainClassName = "com.pz.themaze.DebugDesktopLauncher"
 project.ext.assetsDir = new File("../android/assets");
 
 task run(dependsOn: classes, type: JavaExec) {
