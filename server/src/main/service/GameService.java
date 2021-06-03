@@ -152,9 +152,7 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
         map.Map map = mapGenerator.generateMap(seed);
         collisionWorld = new CollisionWorld(map);
 
-        world = new World<>(
-                InputPlayerController::new,
-                (playerID, bullet) -> new BulletController(bullet));
+        world = new World<>(InputPlayerController::new, BulletController::new);
 
         world.subscribeOnPlayerAdded(newPlayer -> collisionWorld.addPlayerHitbox(new PlayerHitbox(newPlayer, world)));
         world.subscribeOnPlayerRemoved(collisionWorld::removePlayerHitbox);

@@ -14,6 +14,10 @@ public class MathUtils {
         return (int)(value + BIG_ENOUGH_FLOOR) - BIG_ENOUGH_INT;
     }
 
+    public static int ceil (float value) {
+        return BIG_ENOUGH_INT - (int)(BIG_ENOUGH_FLOOR - value);
+    }
+
     public static float clamp (float value, float min, float max) {
         if (value < min) return min;
         if (value > max) return max;

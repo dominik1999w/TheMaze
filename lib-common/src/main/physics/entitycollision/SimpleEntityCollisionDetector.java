@@ -38,7 +38,7 @@ public class SimpleEntityCollisionDetector implements EntityCollisionDetector {
         float deltaDeltaMag = deltaDelta.mag();
         float deltaDeltaSum = deltaDelta.x() + deltaDelta.y();
 
-        float quadraticDiscriminant = 4 * (
+        float quadraticDiscriminant = (
                 deltaDeltaSum * deltaDeltaSum - deltaDeltaMag * (deltaCurrent.mag() - sumRadiusSq)
         );
 

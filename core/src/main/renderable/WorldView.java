@@ -11,7 +11,6 @@ import entity.WorldEntity;
 import entity.bullet.Bullet;
 import entity.player.Player;
 import map.Map;
-import physics.CollisionWorld;
 import types.TextureType;
 import world.World;
 
@@ -22,10 +21,10 @@ public class WorldView implements Renderable {
     private final OrthographicCamera camera;
     private final SightView sightView;
 
-    public WorldView(World<?> world, Map map, OrthographicCamera camera, Player localPlayer, AssetManager assetManager, CollisionWorld collisionWorld) {
+    public WorldView(World<?> world, Map map, OrthographicCamera camera, Player localPlayer, AssetManager assetManager) {
         this.mapView = new MapView(map, assetManager);
         this.camera = camera;
-        sightView = new SightView(map, localPlayer, map.getMapLength());
+        sightView = new SightView(map, localPlayer.getPosition(), map.getMapLength());
         views.add(new SimpleView<>(localPlayer, assetManager.get(TextureType.PLAYER.getName())));
 
         world.subscribeOnPlayerAdded(newPlayer -> views.add(new SimpleView<Player>(newPlayer, assetManager.get(TextureType.PLAYER.getName()))));

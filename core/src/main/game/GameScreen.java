@@ -10,8 +10,9 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import connection.game.GameClient;
 import connection.state.StateClient;
@@ -72,7 +73,7 @@ public class GameScreen extends ScreenAdapter {
         gameClient.connect(playerID);
         stateClient.connect(playerID);
 
-        this.world = new World<>(AuthoritativePlayerController::new, (playerID1, bullet) -> new BulletController(bullet));
+        this.world = new World<>(AuthoritativePlayerController::new, BulletController::new);
 
         this.player = new Player(playerID, initialPosition);
         this.playerController = new LocalPlayerController(player, world);
@@ -80,7 +81,7 @@ public class GameScreen extends ScreenAdapter {
         collisionWorld.addPlayerHitbox(new PlayerHitbox(player, world));
 
         this.camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        this.worldView = new WorldView(world, map, camera, player, assetManager, collisionWorld);
+        this.worldView = new WorldView(world, map, camera, player, assetManager);
 
         int mapWidth = 10; // temporary: number of boxes horizontal-wise
         camera.zoom = mapWidth * MapConfig.BOX_SIZE / (float) Gdx.graphics.getWidth();
@@ -105,17 +106,10 @@ public class GameScreen extends ScreenAdapter {
             gameClient.dispatchMessages(new GameClient.ServerResponseHandler() {
                 @Override
                 public void onActivePlayers(Collection<UUID> playerIDs) {
-                    List<UUID> inactivePlayers = new ArrayList<>();
-
-                    world.getConnectedPlayers().forEach((entry) -> {
-                        if (!playerIDs.contains(entry.getKey())) {
-                            inactivePlayers.add(entry.getKey());
-                        }
-                    });
-
-                    for (UUID inactivePlayer : inactivePlayers) {
-                        world.removePlayerController(inactivePlayer);
-                    }
+                    StreamSupport.stream(world.getConnectedPlayers().spliterator(), false)
+                            .map(java.util.Map.Entry::getKey)
+                            .filter(playerID -> !playerIDs.contains(playerID))
+                            .collect(Collectors.toList()).forEach(world::removePlayerController);
                 }
 
                 @Override
