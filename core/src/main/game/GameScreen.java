@@ -9,8 +9,9 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import connection.game.GameClient;
 import connection.state.StateClient;
@@ -49,7 +50,6 @@ public class GameScreen extends ScreenAdapter {
     private final PlayerInputLog playerInputLog;
 
     private final BitmapFont bitmapFont;
-    private final DebugDrawer debugDrawer;
 
     private final GameApp game;
     private final AssetManager assetManager;
@@ -72,7 +72,7 @@ public class GameScreen extends ScreenAdapter {
         gameClient.connect(playerID);
         stateClient.connect(playerID);
 
-        this.world = new World<>(AuthoritativePlayerController::new, (playerID1, bullet) -> new BulletController(bullet));
+        this.world = new World<>(AuthoritativePlayerController::new, BulletController::new);
 
         this.player = new Player(playerID, initialPosition);
         this.playerController = new LocalPlayerController(player, world);
@@ -90,7 +90,6 @@ public class GameScreen extends ScreenAdapter {
         gameUI.build();
 
         this.bitmapFont = new BitmapFont();
-        this.debugDrawer = new DebugDrawer(camera, map, player);
     }
 
     boolean newRoundStarting = true;
@@ -105,15 +104,10 @@ public class GameScreen extends ScreenAdapter {
             gameClient.dispatchMessages(new GameClient.ServerResponseHandler() {
                 @Override
                 public void onActivePlayers(Collection<UUID> playerIDs) {
-                    // NOTE: need iterator here to avoid ConcurrentModificationException
-                    Iterator<java.util.Map.Entry<UUID, AuthoritativePlayerController>> iterator =
-                            world.getConnectedPlayers().iterator();
-                    while (iterator.hasNext()) {
-                        UUID playerID = iterator.next().getKey();
-                        if (!playerIDs.contains(playerID)) {
-                            world.removePlayerController(playerID);
-                        }
-                    }
+                    StreamSupport.stream(world.getConnectedPlayers().spliterator(), false)
+                            .map(java.util.Map.Entry::getKey)
+                            .filter(playerID -> !playerIDs.contains(playerID))
+                            .collect(Collectors.toList()).forEach(world::removePlayerController);
                 }
 
                 @Override

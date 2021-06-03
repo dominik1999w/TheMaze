@@ -8,9 +8,9 @@ import map.MapConfig;
 import physics.HitboxHistory;
 import types.WallType;
 import util.Point2D;
-import util.Point2Di;
 
 import static util.MathUtils.floor;
+import static util.MathUtils.ceil;
 
 public class LineMapCollisionDetector extends MapCollisionDetector {
 
@@ -22,70 +22,81 @@ public class LineMapCollisionDetector extends MapCollisionDetector {
     public MapCollisionInfo detectMapCollision(HitboxHistory<?> history) {
         Point2D currentPosition = history.getPreviousPosition();
         Point2D targetPosition = new Point2D(history.getHitbox().getPosition());
+        float distance = Point2D.dist(currentPosition, targetPosition);
+        Point2D deltaPosition = targetPosition.subtract(currentPosition);
+        float angle = (float)Math.atan(deltaPosition.y() / deltaPosition.x());
 
-        Point2Di currentTile = new Point2Di(
-                floor(currentPosition.x() / MapConfig.BOX_SIZE),
-                floor(currentPosition.y() / MapConfig.BOX_SIZE)
-        );
-        Point2Di targetTile = new Point2Di(
-                floor(targetPosition.x() / MapConfig.BOX_SIZE),
-                floor(targetPosition.y() / MapConfig.BOX_SIZE)
-        );
+        return castRayAtMap(history.getPreviousPosition(), angle, distance);
+    }
 
-        int xStep = 1, yStep = 1;
-        float dy = (targetPosition.y() - currentPosition.y());
-        float dx = (targetPosition.x() - currentPosition.x());
-        WallType xWallType = WallType.LEFT_WALL;
-        WallType yWallType = WallType.DOWN_WALL;
-        float horizontalStartX = currentTile.x() + 1;
-        float verticalStartY = currentTile.y() + 1;
-        Point2Di tileAreaSize = new Point2Di(targetTile).subtract(currentTile);
-        if (tileAreaSize.y() < 0) {
-            yStep = -1;
-            tileAreaSize.set(tileAreaSize.x(), -tileAreaSize.y());
-            verticalStartY -= 1;
-        }
-        if (tileAreaSize.x() < 0) {
-            xStep = -1;
-            tileAreaSize.set(-tileAreaSize.x(), tileAreaSize.y());
-            horizontalStartX -= 1;
-        }
+    /*
+     * @angle in radians
+     */
+    private MapCollisionInfo castRayAtMap(Point2D rayStart, float angle, float rayLength) {
+        int quadrant = (int) (2 * angle / Math.PI) + 1;
 
-        float x, y;
-        if (Math.abs(dx) > Float.MIN_VALUE) {
-            float dydx = dy / dx;
-            x = horizontalStartX;
-            y = (currentPosition.y() / MapConfig.BOX_SIZE) + dydx * (x - (currentPosition.x() / MapConfig.BOX_SIZE));
-            for (int i = 0; i < tileAreaSize.x(); i++) {
-                if (map.hasWall(xWallType, (int) x, floor(y))) {
-                    System.out.format("With (%s,%s): Bullet %s collision at (%f,%f)\n",
-                            currentPosition, targetPosition, xWallType, x, y);
-                    return new MapCollisionInfo(new Point2D(x, y), true);
+        rayStart = new Point2D(rayStart).divide(MapConfig.BOX_SIZE);
+        rayLength /= MapConfig.BOX_SIZE;
+        Point2D ray = new Point2D((float) (rayLength * Math.cos(angle)), (float) (rayLength * Math.sin(angle)));
+        Point2D collisionPoint = new Point2D(rayStart).add(ray);
+        float dist = rayLength;
+        boolean hasCollided = false;
+        Point2D cursor = new Point2D();
+
+        float dx = (ray.y() == 0) ? 0 : ray.x() / ray.y();
+        if (quadrant == 1 || quadrant == 2) {
+            int y = ceil(rayStart.y());
+            float x = (y - rayStart.y()) * dx + rayStart.x();
+            for (int yLast = floor(rayStart.y() + ray.y()); y <= yLast; y++, x += dx) {
+                cursor.set(x, y);
+                if (map.hasWall(WallType.UP_WALL, (int) x, y - 1)) { // OK
+                    hasCollided = true;
+                    dist = updateDist(dist, collisionPoint, rayStart, cursor);
+                    break;
                 }
-                x += xStep;
-                y += dydx;
             }
-        }
-        if (Math.abs(dy) > Float.MIN_VALUE) {
-            float dxdy = dx / dy;
-            y = verticalStartY;
-            x = (currentPosition.x() / MapConfig.BOX_SIZE) + dxdy * (y - (currentPosition.y() / MapConfig.BOX_SIZE));
-            for (int i = 0; i < tileAreaSize.y(); i++) {
-                if (map.hasWall(yWallType, floor(x), (int) y)) {
-                    System.out.format("With (%s,%s): Bullet %s collision at (%f,%f)\n",
-                            currentPosition, targetPosition, yWallType, x, y);
-                    return new MapCollisionInfo(new Point2D(x, y), true);
+        } else {
+            int y = floor(rayStart.y());
+            float x = (y - rayStart.y()) * dx + rayStart.x();
+            for (int yLast = ceil(rayStart.y() + ray.y()); y >= yLast; y--, x -= dx) {
+                cursor.set(x, y);
+                if (map.hasWall(WallType.DOWN_WALL, (int) x, y)) {
+                    hasCollided = true;
+                    dist = updateDist(dist, collisionPoint, rayStart, cursor);
+                    break;
                 }
-                y += yStep;
-                x += dxdy;
             }
         }
 
-        return new MapCollisionInfo(targetPosition, false);
+        float dy = (ray.x() == 0) ? 0 : ray.y() / ray.x();
+        if (quadrant == 1 || quadrant == 4) {
+            int x = ceil(rayStart.x());
+            float y = (x - rayStart.x()) * dy + rayStart.y();
+            for (int xLast = floor(rayStart.x() + ray.x()); x <= xLast; x++, y += dy) {
+                cursor.set(x, y);
+                if (map.hasWall(WallType.RIGHT_WALL, x - 1, (int) y)) { // OK
+                    hasCollided = true;
+                    dist = updateDist(dist, collisionPoint, rayStart, cursor);
+                    break;
+                }
+            }
+        } else {
+            int x = floor(rayStart.x());
+            float y = (x - rayStart.x()) * dy + rayStart.y();
+            for (int xLast = ceil(rayStart.x() + ray.x()); x >= xLast; x--, y -= dy) {
+                cursor.set(x, y);
+                if (map.hasWall(WallType.LEFT_WALL, x, (int) y)) {
+                    hasCollided = true;
+                    dist = updateDist(dist, collisionPoint, rayStart, cursor);
+                    break;
+                }
+            }
+        }
+        return new MapCollisionInfo(collisionPoint.multiply(MapConfig.BOX_SIZE), hasCollided);
     }
 
     public List<float[]> getSightTriangles(Point2D playerPosition, float viewRadius, int numberOfRays) {
-        List<Point2D> maxRange = new ArrayList<Point2D>();
+        List<Point2D> maxRange = new ArrayList<>();
         for (float i = 0; i < 360; i += (360.0 / numberOfRays)) {
             maxRange.add(detectLightingMapCollisions(playerPosition, i, viewRadius));
             //System.out.format("%f %f \n",maxRange.get(maxRange.size() - 1).x(), maxRange.get(maxRange.size() - 1).y());
@@ -101,61 +112,17 @@ public class LineMapCollisionDetector extends MapCollisionDetector {
         return sightTriangles;
     }
 
-    private float updateDist(float nDist, Point2D nCollision, Point2D nCurPos, float x, float y) {
-        float newDist = Point2D.dist(nCurPos, new Point2D(x, y));
-        if (newDist < nDist) {
-            nCollision.set(x, y);
+    private float updateDist(float oldDist, Point2D collisionPoint, Point2D rayStart, Point2D cursor) {
+        float newDist = Point2D.dist(rayStart, cursor);
+        if (newDist < oldDist) {
+            collisionPoint.set(cursor);
             return newDist;
         }
-        return nDist;
+        return oldDist;
     }
 
-    private Point2D detectLightingMapCollisions(Point2D currentPosition, double angle/*deg*/, float radius) {
-        angle = angle - (int) (angle / 360) * 360;
-        double radAngle = Math.toRadians(angle);
-        int quadrant = (int) (angle / 90) + 1;
-
-        Point2D nCurPos = new Point2D(currentPosition.x() / MapConfig.BOX_SIZE, currentPosition.y() / MapConfig.BOX_SIZE);
-        float nRadius = radius / MapConfig.BOX_SIZE;
-        Point2D nDelta = new Point2D((float) (nRadius * Math.cos(radAngle)), (float) (nRadius * Math.sin(radAngle)));
-        Point2D nCollision = new Point2D(nCurPos.x() + nDelta.x(), nCurPos.y() + nDelta.y());
-        float nDist = radius / MapConfig.BOX_SIZE;
-
-        if (quadrant == 1 || quadrant == 2) {
-            for (float y = (float) Math.ceil(nCurPos.y()); y <= Math.floor(nCurPos.y() + nDelta.y()); y++) {
-                float x = (y - nCurPos.y()) / nDelta.y() * nDelta.x() + nCurPos.x();
-                if (map.hasWall(WallType.UP_WALL, (int) x, (int) y - 1)) { // OK
-                    nDist = updateDist(nDist, nCollision, nCurPos, x, y);
-                    break;
-                }
-            }
-        } else {
-            for (float y = (float) Math.floor(nCurPos.y()); y >= Math.ceil(nCurPos.y() + nDelta.y()); y--) {
-                float x = (y - nCurPos.y()) / nDelta.y() * nDelta.x() + nCurPos.x();
-                if (map.hasWall(WallType.DOWN_WALL, (int) x, (int) y)) {
-                    nDist = updateDist(nDist, nCollision, nCurPos, x, y);
-                    break;
-                }
-            }
-        }
-
-        if (quadrant == 1 || quadrant == 4) {
-            for (float x = (float) Math.ceil(nCurPos.x()); x <= Math.floor(nCurPos.x() + nDelta.x()); x++) {
-                float y = (x - nCurPos.x()) / nDelta.x() * nDelta.y() + nCurPos.y();
-                if (map.hasWall(WallType.RIGHT_WALL, (int) x - 1, (int) y)) { // OK
-                    nDist = updateDist(nDist, nCollision, nCurPos, x, y);
-                    break;
-                }
-            }
-        } else {
-            for (float x = (float) Math.floor(nCurPos.x()); x >= Math.ceil(nCurPos.x() + nDelta.x()); x--) {
-                float y = (x - nCurPos.x()) / nDelta.x() * nDelta.y() + nCurPos.y();
-                if (map.hasWall(WallType.LEFT_WALL, (int) x, (int) y)) {
-                    nDist = updateDist(nDist, nCollision, nCurPos, x, y);
-                    break;
-                }
-            }
-        }
-        return new Point2D(nCollision.x() * MapConfig.BOX_SIZE, nCollision.y() * MapConfig.BOX_SIZE);
+    private Point2D detectLightingMapCollisions(Point2D currentPosition, float angle/*deg*/, float radius) {
+        angle -= (int) (angle / 360) * 360;
+        return castRayAtMap(currentPosition, (float)Math.toRadians(angle), radius).nextPosition;
     }
 }
