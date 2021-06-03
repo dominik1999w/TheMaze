@@ -115,8 +115,7 @@ public class World<TController extends PlayerController> {
     }
 
     public void onBulletFired(Player player) {
-        // NOTE: TEMP
-        if (!cachedBullet.enabled()/* && player.getId().equals(cachedBullet.getShooterID())*/) {
+        if (!cachedBullet.enabled() && player.getId().equals(cachedBullet.getShooterID())) {
             Point2D bulletPosition = new Point2D(player.getPosition())
                     .add(BulletConfig.textureDependentShift(player.getRotation()));
             Bullet bullet = new Bullet(bulletPosition, player.getRotation());
