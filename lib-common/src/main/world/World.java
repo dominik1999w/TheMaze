@@ -12,6 +12,7 @@ import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import entity.bullet.Bullet;
 import entity.bullet.BulletConfig;
@@ -33,7 +34,7 @@ public class World<TController extends PlayerController> {
     private final List<Consumer<RoundResult>> onRoundResultSubscribers = new ArrayList<>();
 
     private final BiFunction<Player, World<?>, TController> controllerConstructor;
-    private final BiFunction<UUID, Bullet, BulletController> bulletControllerConstructor;
+    private final Function<Bullet, BulletController> bulletControllerConstructor;
 
     private boolean roundInProgress;
     private Timer roundTimer;
@@ -41,7 +42,7 @@ public class World<TController extends PlayerController> {
     private final Random random;
 
     public World(BiFunction<Player, World<?>, TController> playerControllerConstructor,
-                 BiFunction<UUID, Bullet, BulletController> bulletControllerConstructor) {
+                 Function<Bullet, BulletController> bulletControllerConstructor) {
         this.controllerConstructor = playerControllerConstructor;
         this.bulletControllerConstructor = bulletControllerConstructor;
         this.roundTimer = new Timer();
@@ -108,7 +109,7 @@ public class World<TController extends PlayerController> {
     public void onBulletFired(UUID shooterID, Bullet bullet) {
         if (!cachedBullet.enabled()) {
             cachedBullet.passTo(shooterID);
-            cachedBullet.enable(bulletControllerConstructor.apply(shooterID, bullet));
+            cachedBullet.enable(bulletControllerConstructor.apply(bullet));
             onBulletAddedSubscribers.forEach(subscriber -> subscriber.accept(shooterID, bullet));
         }
     }
@@ -119,7 +120,7 @@ public class World<TController extends PlayerController> {
                     .add(BulletConfig.textureDependentShift(player.getRotation()));
             Bullet bullet = new Bullet(bulletPosition, player.getRotation());
 
-            cachedBullet.enable(bulletControllerConstructor.apply(player.getId(), bullet));
+            cachedBullet.enable(bulletControllerConstructor.apply(bullet));
             onBulletAddedSubscribers.forEach(subscriber -> subscriber.accept(player.getId(), bullet));
         }
     }
