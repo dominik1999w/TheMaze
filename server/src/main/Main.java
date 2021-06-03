@@ -102,7 +102,7 @@ public class Main {
         server.start();
 
         Game game = new Game(mapService, stateService, gameService);
-        game.startGame();
+        new Thread(game::startGame).start();
 
         server.blockUntilShutdown();
     }

@@ -2,13 +2,10 @@ package service;
 
 import com.google.protobuf.Empty;
 
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -23,21 +20,17 @@ import lib.state.StateResponse;
 public class StateService extends StateGrpc.StateImplBase {
     private static final Logger logger = Logger.getLogger(StateService.class.getName());
 
-    private final Map<StreamObserver<StateResponse>, UUID> clients = new HashMap<>();
-    private final Set<StreamObserver<StateResponse>> disconnectedClients = new HashSet<>();
+    private final Map<StreamObserver<StateResponse>, UUID> clients = new ConcurrentHashMap<>();
+    private final Set<StreamObserver<StateResponse>> disconnectedClients = ConcurrentHashMap.newKeySet();
 
     public StateService() {
     }
 
-    private final Lock lock = new ReentrantLock();
-
     @Override
     public StreamObserver<Empty> syncState(StreamObserver<StateResponse> responseObserver) {
-        lock.lock();
         clients.put(responseObserver, CallKey.PLAYER_ID.get());
         ((ServerCallStreamObserver<StateResponse>) responseObserver)
                 .setOnCancelHandler(() -> disconnectedClients.add(responseObserver));
-        lock.unlock();
 
         return new StreamObserver<Empty>() {
             @Override

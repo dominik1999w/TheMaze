@@ -92,6 +92,9 @@ public class World<TController extends PlayerController> {
     }
 
     public void assignBulletRandomly() {
+        if (players.keySet().size() == 0) {
+            return;
+        }
         List<UUID> playerIdsList = new ArrayList<>(players.keySet());
         UUID playerAssigned = playerIdsList.get(random.nextInt(playerIdsList.size()));
         cachedBullet.passTo(playerAssigned);
@@ -101,7 +104,7 @@ public class World<TController extends PlayerController> {
             public void run() {
                 endRound(RoundResult.notFired(playerAssigned, playerIdsList));
             }
-        },30000);
+        }, 30000);
         roundInProgress = true;
     }
 
@@ -133,7 +136,7 @@ public class World<TController extends PlayerController> {
     }
 
     public void endRound(RoundResult roundResult) {
-        if(roundInProgress) {
+        if (roundInProgress) {
             roundInProgress = false;
             roundTimer.cancel();
             onRoundResultSubscribers.forEach(subscriber -> subscriber.accept(roundResult));

@@ -8,8 +8,9 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
+import java.util.List;
 import java.util.UUID;
 
 import connection.game.GameClient;
@@ -53,12 +54,11 @@ public class GameScreen extends ScreenAdapter {
 
     private final GameApp game;
     private final AssetManager assetManager;
+    private final UUID playerID;
     private ScoreScreen scoreScreen;
 
-    private final boolean isHost;
-
-    public GameScreen(UUID playerID, boolean isHost, SpriteBatch batch, GameApp game, GameClient gameClient, StateClient stateClient, Point2D initialPosition, Map map, AssetManager assetManager) {
-        this.isHost = isHost;
+    public GameScreen(UUID playerID, SpriteBatch batch, GameApp game, GameClient gameClient, StateClient stateClient, Point2D initialPosition, Map map, AssetManager assetManager) {
+        this.playerID = playerID;
 
         this.assetManager = assetManager;
         this.batch = batch;
@@ -105,14 +105,16 @@ public class GameScreen extends ScreenAdapter {
             gameClient.dispatchMessages(new GameClient.ServerResponseHandler() {
                 @Override
                 public void onActivePlayers(Collection<UUID> playerIDs) {
-                    // NOTE: need iterator here to avoid ConcurrentModificationException
-                    Iterator<java.util.Map.Entry<UUID, AuthoritativePlayerController>> iterator =
-                            world.getConnectedPlayers().iterator();
-                    while (iterator.hasNext()) {
-                        UUID playerID = iterator.next().getKey();
-                        if (!playerIDs.contains(playerID)) {
-                            world.removePlayerController(playerID);
+                    List<UUID> inactivePlayers = new ArrayList<>();
+
+                    world.getConnectedPlayers().forEach((entry) -> {
+                        if (!playerIDs.contains(entry.getKey())) {
+                            inactivePlayers.add(entry.getKey());
                         }
+                    });
+
+                    for (UUID inactivePlayer : inactivePlayers) {
+                        world.removePlayerController(inactivePlayer);
                     }
                 }
 
@@ -198,7 +200,7 @@ public class GameScreen extends ScreenAdapter {
 
             @Override
             public void endGame(java.util.Map<String, Integer> points) {
-                scoreScreen = new ScoreScreen(game, assetManager, points, isHost);
+                scoreScreen = new ScoreScreen(playerID, game, batch, assetManager, points);
                 game.setScreen(scoreScreen);
             }
         });
@@ -211,8 +213,12 @@ public class GameScreen extends ScreenAdapter {
 
     @Override
     public void dispose() {
+        gameClient.disconnect();
+        stateClient.disconnect();
         gameUI.dispose();
         bitmapFont.dispose();
-        scoreScreen.dispose();
+        if (scoreScreen != null) {
+            scoreScreen.dispose();
+        }
     }
 }

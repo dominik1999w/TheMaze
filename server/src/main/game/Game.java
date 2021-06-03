@@ -1,16 +1,14 @@
 package game;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
 import entity.player.controller.InputPlayerController;
-import lib.map.Position;
 import service.GameService;
 import service.MapService;
 import service.StateService;
@@ -26,9 +24,9 @@ public class Game {
     private final MapService mapService;
     private final StateService stateService;
 
-    private Map<UUID, Position> initialPositions = new HashMap<>();
-    private final Map<String, Integer> points = new HashMap<>();
+    private final Map<String, Integer> points = new ConcurrentHashMap<>();
     private final AtomicBoolean newRoundStarted = new AtomicBoolean(false);
+    private final AtomicBoolean gameOver = new AtomicBoolean(true);
 
     private CustomTimer gameTask = new CustomTimer();
 
@@ -39,40 +37,33 @@ public class Game {
     }
 
     public void startGame() {
-        new Thread(() -> {
-            CountDownLatch latch = new CountDownLatch(1);
-            new Timer().scheduleAtFixedRate(getMapTask(latch), 0, 1000L);
+        points.clear();
+        mapService.prepareMapService();
+        CountDownLatch latch = new CountDownLatch(1);
+        new Timer().scheduleAtFixedRate(getMapTask(latch), 0, 1000L);
 
-            try {
-                latch.await();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
-            new Timer().schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    endGame();
-                }
-            }, 1 * 60 * 1000);
+        for (String name : mapService.getNames().values()) {
+            points.put(name, 0);
+        }
 
-            for (String name : mapService.getNames().values()) {
-                points.put(name, 0);
-            }
+        gameOver.set(false);
 
-            new Thread(this::getGameTask).start();
+        new Thread(this::getGameTask).start();
 
-            startNewRound();
-        }).start();
-
+        startNewRound();
     }
 
     private void getGameTask() {
-
         gameTask = new CustomTimer();
         gameTask.executeAtFixedRate(delta -> {
             if (newRoundStarted.get()) {
-                gameService.startNewRound(initialPositions);
+                gameService.startNewRound(mapService.updateInitialPositions());
                 newRoundStarted.set(false);
             }
 
@@ -90,6 +81,10 @@ public class Game {
     }
 
     public void startNewRound() {
+        if (gameOver.get()) {
+            return;
+        }
+
         logger.info("Starting new round...");
         CountDownLatch latch = new CountDownLatch(1);
         TimerTask task = getCountdownTask(latch);
@@ -107,15 +102,24 @@ public class Game {
     }
 
     public void endRound(RoundResult result) {
-        System.out.println(result);
-        result.getPoints().forEach(
-                (uuid, integer) -> points.merge(mapService.getNames().get(uuid), integer, Integer::sum));
-        startNewRound();
+        result.getPoints().forEach(((uuid, integer) -> {
+            points.merge(mapService.getNames().get(uuid), integer, Integer::sum);
+            if (points.get(mapService.getNames().get(uuid)) >= 10) {
+                gameOver.set(true);
+            }
+        }));
+
+        if (gameOver.get()) {
+            endGame();
+        } else {
+            startNewRound();
+        }
     }
 
     public void endGame() {
         gameTask.cancel();
         stateService.broadcastState(0.0f, points, true);
+        startGame();
     }
 
     private TimerTask getCountdownTask(CountDownLatch latch) {
@@ -142,8 +146,7 @@ public class Game {
             public void run() {
                 mapService.dispatchMessages();
                 mapService.broadcastMapState((mapLength, seed, initialPositions) -> {
-                    Game.this.initialPositions = initialPositions;
-                    gameService.initializeWorld(Game.this, mapLength, seed, initialPositions); // required for world preview during pregame countdown
+                    gameService.initializeWorld(Game.this, mapLength, seed, mapService.updateInitialPositions()); // required for world preview during pregame countdown
                     latch.countDown();
                     cancel();
                 });

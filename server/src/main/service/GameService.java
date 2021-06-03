@@ -2,11 +2,11 @@ package service;
 
 import java.util.ArrayDeque;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
@@ -21,6 +21,7 @@ import entity.player.PlayerHitbox;
 import entity.player.controller.InputPlayerController;
 import entity.player.controller.PlayerController;
 import game.Game;
+import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
@@ -51,7 +52,6 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
 
     public GameService() {
         this.inputLog = new ClientsInputLog();
-        logger.setLevel(Level.WARNING);
     }
 
     private final Lock queueLock = new ReentrantLock();
@@ -70,15 +70,15 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
                     GRpcMapper.playerInput(source)
             );
             inputLog.onInputProcessed(UUID.fromString(source.getId()), request.getSequenceNumber());
-            logger.log(Level.INFO,
-                    "Last acknowledged input for {0}: {1}", new Object[]{
-                            source.getId(), request.getSequenceNumber()
-                    });
+//            logger.log(Level.INFO,
+//                    "Last acknowledged input for {0}: {1}", new Object[]{
+//                            source.getId(), request.getSequenceNumber()
+//                    });
         }
         queueLock.unlock();
     }
 
-    private final Set<StreamObserver<GameStateResponse>> disconnectedObservers = new HashSet<>();
+    private final Set<StreamObserver<GameStateResponse>> disconnectedObservers = ConcurrentHashMap.newKeySet();
 
     @Override
     public StreamObserver<GameStateRequest> syncGameState(StreamObserver<GameStateResponse> responseObserver) {
@@ -97,8 +97,7 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
 
             @Override
             public void onError(Throwable t) {
-                logger.log(Level.WARNING, "SyncGameState failed: {0}", t);
-                //responseObserver.onError(t);
+                logger.log(Level.WARNING, "SyncGameState failed: {0}", Status.fromThrowable(t));
             }
 
             @Override
@@ -167,6 +166,8 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
             Position pos = entry.getValue();
             world.getPlayerController(entry.getKey(), new Point2D(pos.getPositionX(), pos.getPositionY()));
         }
+
+        requestQueue.clear();
     }
 
     public void startNewRound(Map<UUID, Position> positions) {
@@ -195,8 +196,9 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
     private void handleDisconnectedObservers() {
         for (StreamObserver<GameStateResponse> observer : disconnectedObservers) {
             UUID playerID = responseObservers.remove(observer);
-            if (playerID != null)
+            if (playerID != null) {
                 world.removePlayerController(playerID);
+            }
             logger.log(Level.INFO,
                     "Player {0} removed from the world", playerID);
         }

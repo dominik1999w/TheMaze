@@ -148,7 +148,6 @@ public class MenuScreen extends ScreenAdapter {
     public void dispose() {
         if (task.isDone()) {
             mapClient.disconnect();
-            gameClient.disconnect();
         }
         asyncExecutor.dispose();
         if (gameScreen != null) {
@@ -192,7 +191,7 @@ public class MenuScreen extends ScreenAdapter {
                     MapGenerator mapGenerator = new MapGenerator(mapLength);
                     Map map = mapGenerator.generateMap(seed);
                     gameScreen = new GameScreen(
-                            playerID, isHost, batch, game, gameClient, stateClient, initialPosition, map, assetManager
+                            playerID, batch, game, gameClient, stateClient, initialPosition, map, assetManager
                     );
                     game.setScreen(gameScreen);
                 }

@@ -102,18 +102,7 @@ public class MapService extends MapGrpc.MapImplBase {
     }
 
     public void broadcastMapState(StartGameHandler gameHandler) {
-        handleDisconnectedClients();
-
-        Map<UUID, Position> positions = new HashMap<>();
-        for (Map.Entry<StreamObserver<MapStateResponse>, UUID> entry : clients.entrySet()) {
-            UUID id = entry.getValue();
-            positions.put(id, getStartingPosition(id.toString()));
-        }
-
-        if (gameStarted) {
-            gameHandler.initializeGame(lastLength, lastSeed, positions);
-        }
-
+        Map<UUID, Position> positions = updateInitialPositions();
         for (Map.Entry<StreamObserver<MapStateResponse>, UUID> entry : clients.entrySet()) {
             try {
                 entry.getKey().onNext(
@@ -129,6 +118,33 @@ public class MapService extends MapGrpc.MapImplBase {
                         "Player {0} disconnected", entry.getValue());
             }
         }
+        if (gameStarted) {
+            gameStarted = false;
+            gameHandler.initializeGame(lastLength, lastSeed, positions);
+            queueLock.lock();
+            requestQueue.clear();
+            queueLock.unlock();
+        }
+    }
+
+    public void prepareMapService() {
+        host.set("");
+        clients.clear();
+        names.clear();
+        disconnectedClients.clear();
+        queueLock.lock();
+        requestQueue.clear();
+        queueLock.unlock();
+    }
+
+    public Map<UUID, Position> updateInitialPositions() {
+        handleDisconnectedClients();
+        Map<UUID, Position> positions = new HashMap<>();
+        for (Map.Entry<StreamObserver<MapStateResponse>, UUID> entry : clients.entrySet()) {
+            UUID id = entry.getValue();
+            positions.put(id, getStartingPosition(id.toString()));
+        }
+        return positions;
     }
 
     public Map<UUID, String> getNames() {
@@ -136,10 +152,12 @@ public class MapService extends MapGrpc.MapImplBase {
     }
 
     private void handleDisconnectedClients() {
-        for (StreamObserver<MapStateResponse> client : disconnectedClients.keySet()) {
-            UUID id = clients.remove(client);
+        for (Map.Entry<StreamObserver<MapStateResponse>, UUID> client : disconnectedClients.entrySet()) {
+            clients.remove(client.getKey());
+            names.remove(client.getValue());
             logger.log(Level.INFO,
-                    "Player {0} removed from the world", id);
+                    "Player {0} removed from the world", client.getValue());
+
         }
         disconnectedClients.clear();
     }
