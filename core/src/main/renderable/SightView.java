@@ -10,23 +10,23 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 
 import java.util.List;
 
-import entity.player.Player;
 import map.Map;
 import map.MapConfig;
 import physics.mapcollision.LineMapCollisionDetector;
+import util.Point2D;
 
 public class SightView implements Renderable {
     private final ShapeRenderer shapeRenderer = new ShapeRenderer();
     private final FrameBuffer fbo;
 
     private final LineMapCollisionDetector detector;
-    private final Player localPlayer;
+    private final Point2D localPlayerPosition;
     private final int mapSize;
     private final int quality = 1;
 
-    public SightView(Map map, Player localPlayer, int mapSize) {
+    public SightView(Map map, Point2D localPlayerPosition, int mapSize) {
         this.detector = new LineMapCollisionDetector(map);
-        this.localPlayer = localPlayer;
+        this.localPlayerPosition = localPlayerPosition;
         this.mapSize = mapSize;
         this.fbo = new FrameBuffer(Pixmap.Format.RGBA8888,
                 mapSize * MapConfig.BOX_SIZE  * quality,
@@ -50,7 +50,7 @@ public class SightView implements Renderable {
 
         //shapeRenderer.setColor(0.0f, 0.0f, 0.0f, 1.0f);
         Gdx.gl.glBlendFuncSeparate(GL20.GL_ZERO, GL20.GL_ZERO, GL20.GL_ONE_MINUS_SRC_ALPHA, GL20.GL_ONE_MINUS_DST_ALPHA);
-        List<float[]> triangles = detector.getSightTriangles(localPlayer.getPosition(), 128, 360);
+        List<float[]> triangles = detector.getSightTriangles(localPlayerPosition, 128, 360);
         for (float[] t : triangles){
             shapeRenderer.triangle(
                     (t[0] + (float)MapConfig.WALL_THICKNESS / 2) * quality,

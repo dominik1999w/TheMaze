@@ -133,6 +133,14 @@ public class World<TController extends PlayerController> {
         }
     }
 
+    // next frame death: otherwise, user will see bullet disappearing before hitting a wall
+    // I am not sure if this is necessary
+    private boolean delayedBulletDeath = false;
+    public void onBulletDiedDelayed() {
+        //delayedBulletDeath = true;
+        onBulletDied();
+    }
+
     public void endRound(RoundResult roundResult) {
         if(roundInProgress) {
             roundInProgress = false;
@@ -143,7 +151,10 @@ public class World<TController extends PlayerController> {
 
     public void update(float delta) {
         players.values().forEach(PlayerController::update);
-        if (cachedBullet.enabled()) {
+        if (delayedBulletDeath) {
+            onBulletDied();
+            delayedBulletDeath = false;
+        } else if (cachedBullet.enabled()) {
             cachedBullet.getController().update(delta);
         }
     }

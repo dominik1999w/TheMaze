@@ -44,6 +44,6 @@ public class PlayerHitbox implements Hitbox {
 
     @Override
     public void notifyEntityCollision(Hitbox hitbox) {
-        System.out.format("Player %s was hit by a bullet!\n", getId());
+        //System.out.format("Player %s was hit by a bullet!\n", getId());
     }
 }
