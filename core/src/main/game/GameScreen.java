@@ -8,7 +8,6 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -33,7 +32,6 @@ import util.Point2D;
 import world.World;
 
 public class GameScreen extends ScreenAdapter {
-
     private final OrthographicCamera camera;
     private final SpriteBatch batch;
 
@@ -51,15 +49,18 @@ public class GameScreen extends ScreenAdapter {
     private final PlayerInputLog playerInputLog;
 
     private final BitmapFont bitmapFont;
-    private final DebugDrawer debugDrawer;
 
     private final GameApp game;
     private final AssetManager assetManager;
     private final UUID playerID;
+    private final String playerName;
     private ScoreScreen scoreScreen;
 
-    public GameScreen(UUID playerID, SpriteBatch batch, GameApp game, GameClient gameClient, StateClient stateClient, Point2D initialPosition, Map map, AssetManager assetManager) {
+    boolean newRoundStarting = true;
+
+    public GameScreen(UUID playerID, String playerName, SpriteBatch batch, GameApp game, GameClient gameClient, StateClient stateClient, Point2D initialPosition, Map map, AssetManager assetManager) {
         this.playerID = playerID;
+        this.playerName = playerName;
 
         this.assetManager = assetManager;
         this.batch = batch;
@@ -91,15 +92,11 @@ public class GameScreen extends ScreenAdapter {
         gameUI.build();
 
         this.bitmapFont = new BitmapFont();
-        this.debugDrawer = new DebugDrawer(camera, map, player);
     }
-
-    boolean newRoundStarting = true;
-    int countDownTime = 3;
 
     @Override
     public void render(float delta) {
-        updateCountDown();
+        updateState();
 
         if (!newRoundStarting) {
             // dispatch server messages
@@ -175,21 +172,22 @@ public class GameScreen extends ScreenAdapter {
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
         worldView.render(batch);
-        if (newRoundStarting) {
-            bitmapFont.setColor(1, 1, 1, 1);
-            bitmapFont.draw(batch, String.valueOf(countDownTime), playerPosition.x(), playerPosition.y());
-        }
         batch.end();
 
         gameUI.render(delta);
     }
 
-    private void updateCountDown() {
+    private void updateState() {
         stateClient.dispatchMessages(new StateClient.ServerResponseHandler() {
             @Override
-            public void showGameCountdown(float time) {
-                countDownTime = (int) time;
-                newRoundStarting = (countDownTime > 0);
+            public void updatePoints(java.util.Map<String, Integer> points) {
+                gameUI.updatePoints(points.getOrDefault(playerName, -123));
+            }
+
+            @Override
+            public void updateCountdown(int time) {
+                gameUI.updateCountdown(time);
+                newRoundStarting = time > 0;
             }
 
             @Override

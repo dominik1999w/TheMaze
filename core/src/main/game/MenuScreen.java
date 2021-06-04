@@ -192,7 +192,7 @@ public class MenuScreen extends ScreenAdapter {
                     MapGenerator mapGenerator = new MapGenerator(mapLength);
                     Map map = mapGenerator.generateMap(seed);
                     gameScreen = new GameScreen(
-                            playerID, batch, game, gameClient, stateClient, initialPosition, map, assetManager
+                            playerID, name, batch, game, gameClient, stateClient, initialPosition, map, assetManager
                     );
                     game.setScreen(gameScreen);
                 }

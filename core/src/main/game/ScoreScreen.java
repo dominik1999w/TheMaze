@@ -58,12 +58,14 @@ public class ScoreScreen extends ScreenAdapter {
 
         int nr_players = points.size();
         float fontScale = Math.min((float) 10 / nr_players, 1.5f);
-        points.entrySet().stream().sorted(Map.Entry.comparingByValue()).forEach((Map.Entry<String, Integer> entry) -> scoresBuilder.addLabel(
-                entry.getKey() + ":  " + entry.getValue(),
-                skin,
-                "big",
-                fontScale
-        ).addPadding(0.0f));
+        points.entrySet().stream()
+                .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue()))
+                .forEach((Map.Entry<String, Integer> entry) -> scoresBuilder.addLabel(
+                    entry.getKey() + ":  " + entry.getValue(),
+                    skin,
+                    "big",
+                    fontScale
+                ).addPadding(0.0f));
 
         return scoresBuilder.build();
     }
