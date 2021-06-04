@@ -1,0 +1,3 @@
+[submodule "VoiceChat"]
+	path = VoiceChat
+	url = https://github.com/Epicguru/VoiceChat
