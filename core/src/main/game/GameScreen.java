@@ -51,7 +51,6 @@ public class GameScreen extends ScreenAdapter {
     private final PlayerInputLog playerInputLog;
 
     private final BitmapFont bitmapFont;
-    private final DebugDrawer debugDrawer;
 
     private final GameApp game;
     private final AssetManager assetManager;
@@ -91,7 +90,6 @@ public class GameScreen extends ScreenAdapter {
         gameUI.build();
 
         this.bitmapFont = new BitmapFont();
-        this.debugDrawer = new DebugDrawer(camera, map, player);
     }
 
     boolean newRoundStarting = true;

@@ -51,7 +51,7 @@ public class LineMapCollisionDetector extends MapCollisionDetector {
             float x = (y - rayStart.y()) * dx + rayStart.x();
             for (int yLast = floor(rayStart.y() + ray.y()); y <= yLast; y++, x += dx) {
                 cursor.set(x, y);
-                if (map.hasWall(WallType.UP_WALL, (int) x, y - 1)) { // OK
+                if (map.hasWall(WallType.UP_WALL, (int) x, y - 1)) {
                     hasCollided = true;
                     dist = updateDist(dist, collisionPoint, rayStart, cursor);
                     break;
@@ -76,7 +76,7 @@ public class LineMapCollisionDetector extends MapCollisionDetector {
             float y = (x - rayStart.x()) * dy + rayStart.y();
             for (int xLast = floor(rayStart.x() + ray.x()); x <= xLast; x++, y += dy) {
                 cursor.set(x, y);
-                if (map.hasWall(WallType.RIGHT_WALL, x - 1, (int) y)) { // OK
+                if (map.hasWall(WallType.RIGHT_WALL, x - 1, (int) y)) {
                     hasCollided = true;
                     dist = updateDist(dist, collisionPoint, rayStart, cursor);
                     break;

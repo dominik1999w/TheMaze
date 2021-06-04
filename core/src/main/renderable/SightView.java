@@ -22,15 +22,15 @@ public class SightView implements Renderable {
     private final LineMapCollisionDetector detector;
     private final Point2D localPlayerPosition;
     private final int mapSize;
-    private final int quality = 1;
+    private final int quality = 5;
 
     public SightView(Map map, Point2D localPlayerPosition, int mapSize) {
         this.detector = new LineMapCollisionDetector(map);
         this.localPlayerPosition = localPlayerPosition;
         this.mapSize = mapSize;
         this.fbo = new FrameBuffer(Pixmap.Format.RGBA8888,
-                mapSize * MapConfig.BOX_SIZE  * quality,
-                mapSize * MapConfig.BOX_SIZE  * quality, false);
+                Gdx.graphics.getWidth()  * quality,
+                Gdx.graphics.getHeight()  * quality, false);
     }
 
     @Override
@@ -45,20 +45,30 @@ public class SightView implements Renderable {
 
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_ONE, GL20.GL_ZERO);
-        shapeRenderer.rect(0,0, mapSize * MapConfig.BOX_SIZE * quality, mapSize * MapConfig.BOX_SIZE * quality);
+        shapeRenderer.rect(0,0, Gdx.graphics.getWidth() * quality, Gdx.graphics.getHeight() * quality);
         shapeRenderer.flush();
 
         //shapeRenderer.setColor(0.0f, 0.0f, 0.0f, 1.0f);
         Gdx.gl.glBlendFuncSeparate(GL20.GL_ZERO, GL20.GL_ZERO, GL20.GL_ONE_MINUS_SRC_ALPHA, GL20.GL_ONE_MINUS_DST_ALPHA);
+
+        float shiftX = - (float)Gdx.graphics.getWidth() / quality / 2 + localPlayerPosition.x();
+        float shiftY = - (float)Gdx.graphics.getHeight() / quality / 2 + localPlayerPosition.y();
+
+        shapeRenderer.rect(0, 0,Gdx.graphics.getWidth()* quality, -shiftY * quality);
+        shapeRenderer.rect(0, 0,-shiftX * quality, Gdx.graphics.getHeight() * quality);
+        shapeRenderer.rect(0, (mapSize * MapConfig.BOX_SIZE - shiftY + 0.5f) * quality,Gdx.graphics.getWidth() * quality,Gdx.graphics.getHeight() * quality);
+        shapeRenderer.rect((mapSize * MapConfig.BOX_SIZE - shiftX + 0.5f) * quality, 0,Gdx.graphics.getWidth() * quality,Gdx.graphics.getHeight() * quality);
+
+
         List<float[]> triangles = detector.getSightTriangles(localPlayerPosition, 128, 360);
         for (float[] t : triangles){
             shapeRenderer.triangle(
-                    (t[0] + (float)MapConfig.WALL_THICKNESS / 2) * quality,
-                    (t[1] + (float)MapConfig.WALL_THICKNESS / 2) * quality,
-                    (t[2] + (float)MapConfig.WALL_THICKNESS / 2) * quality,
-                    (t[3] + (float)MapConfig.WALL_THICKNESS / 2) * quality,
-                    (t[4] + (float)MapConfig.WALL_THICKNESS / 2) * quality,
-                    (t[5] + (float)MapConfig.WALL_THICKNESS / 2) * quality);
+                    (t[0] + (float)MapConfig.WALL_THICKNESS / 2 - shiftX) * quality,
+                    (t[1] + (float)MapConfig.WALL_THICKNESS / 2 - shiftY) * quality,
+                    (t[2] + (float)MapConfig.WALL_THICKNESS / 2 - shiftX) * quality,
+                    (t[3] + (float)MapConfig.WALL_THICKNESS / 2 - shiftY) * quality,
+                    (t[4] + (float)MapConfig.WALL_THICKNESS / 2 - shiftX) * quality,
+                    (t[5] + (float)MapConfig.WALL_THICKNESS / 2 - shiftY) * quality);
             //System.out.format("%f %f %f %f %f %f \n", t[0], t[1], t[2], t[3], t[4], t[5]);
         }
 
@@ -75,6 +85,8 @@ public class SightView implements Renderable {
         //texture.setFilter(Texture.TextureFilter.MipMapLinearLinear, Texture.TextureFilter.Linear);
 
         spriteBatch.begin();
-        spriteBatch.draw(texture, 0, 0, texture.getWidth(), texture.getHeight(), 0, 0, quality, quality);
+        //draw(Texture texture, float x, float y, float originX, float originY, float width, float height, float scaleX, float scaleY,
+        //          float rotation, int srcX, int srcY, int srcWidth, int srcHeight, boolean flipX, boolean flipY)
+        spriteBatch.draw(texture, shiftX, shiftY, texture.getWidth(), texture.getHeight(), 0, 0, quality, quality);
     }
 }
