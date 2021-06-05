@@ -20,13 +20,42 @@ public class MapGenerator {
     private Random random;
     private final float walls_to_remove = 0.5f;
     private final int length;
+    static int chosenGenerator = 1;
 
     public MapGenerator(int length) {
         this.length = length;
         graph = new Map.Node[length][length];
     }
 
-    public Map generateMap(int chosenGenerator, int seed) {
+    public static void chooseGenerator(int gen) {
+        chosenGenerator = gen;
+        System.out.println(chosenGenerator);
+    }
+
+    public Map generateMap(int seed) {
+        if (chosenGenerator == 1) {
+            return generateRandomMap(seed);
+        }
+        else if (chosenGenerator == 2) {
+            return generateFullMap(seed);
+        }
+        else { // (chosenGenerator == 3)
+            return generateFullMap(seed);
+        }
+    }
+
+    private Map generateFullMap(int seed) {
+        this.random = new Random(seed);
+        for (int i = 0; i < length; i++) {
+            for (int j = 0; j < length; j++) {
+                graph[i][j] = new Map.Node(i, j, new ArrayList<>(Arrays.asList(WallType.values())));
+            }
+        }
+        return new Map(graph);
+    }
+
+
+    private Map generateRandomMap(int seed) {
         this.random = new Random(seed);
         for (int i = 0; i < length; i++) {
             for (int j = 0; j < length; j++) {

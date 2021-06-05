@@ -193,7 +193,7 @@ public class MenuScreen extends ScreenAdapter {
                 @Override
                 public void startGame(int mapLength, int seed, boolean isHost) {
                     MapGenerator mapGenerator = new MapGenerator(mapLength);
-                    Map map = mapGenerator.generateMap(chosenGenerator, seed);
+                    Map map = mapGenerator.generateMap(seed);
                     gameScreen = new GameScreen(
                             playerID, name, batch, game, gameClient, stateClient, initialPosition, map, assetManager
                     );
@@ -234,21 +234,24 @@ public class MenuScreen extends ScreenAdapter {
         TextButton mapType1 = Menu.getTextButton("random", skin, new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-
+                MapGenerator.chooseGenerator(1);
+                calculateMap((int) slider.getValue(), random.nextInt());
             }
         });
 
         TextButton mapType2 = Menu.getTextButton("cheese", skin, new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-
+                MapGenerator.chooseGenerator(2);
+                calculateMap((int) slider.getValue(), random.nextInt());
             }
         });
 
         TextButton mapType3 = Menu.getTextButton("dungeon", skin, new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-
+                MapGenerator.chooseGenerator(3);
+                calculateMap((int) slider.getValue(), random.nextInt());
             }
         });
 
@@ -278,7 +281,7 @@ public class MenuScreen extends ScreenAdapter {
 
     private void buildMap() {
         camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        mapView = new MapView(new MapGenerator(minMapLength).generateMap(chosenGenerator, defaultSeed), assetManager);
+        mapView = new MapView(new MapGenerator(minMapLength).generateMap(defaultSeed), assetManager);
         calculateMap(minMapLength, defaultSeed);
     }
 
@@ -288,7 +291,7 @@ public class MenuScreen extends ScreenAdapter {
 
         updateCamera(length);
 
-        mapView.setMap(new MapGenerator(length).generateMap(chosenGenerator, seed));
+        mapView.setMap(new MapGenerator(length).generateMap(seed));
         mapView.setView(camera);
     }
 
