@@ -27,7 +27,7 @@ public class ImplVoiceClient implements VoiceClient {
         try {
             Log.set(0);
             client.start();
-            client.connect(5000, host, port, port+1);
+            client.connect(5000, host, port);
             this.sender = new VoiceChatClient(client.getKryo());
             sender.addReceiver(client);
         } catch (IOException e) {

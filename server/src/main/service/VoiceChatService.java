@@ -21,18 +21,13 @@ public class VoiceChatService {
 
     public void start() throws IOException {
         server.start();
-        server.bind(port, port+1);
+        server.bind(port);
 
         VoiceChatServer voiceServer = new VoiceChatServer(server.getKryo());
         server.addListener(new Listener() {
             @Override
             public void received(Connection connection, Object object) {
                 voiceServer.relayVoice(connection, object, server);
-            }
-
-            @Override
-            public void connected(Connection connection) {
-                System.out.println("Connected " + connection);
             }
         });
     }
