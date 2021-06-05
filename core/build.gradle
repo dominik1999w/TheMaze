@@ -1,7 +1,9 @@
 sourceCompatibility = 1.8
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
-sourceSets.main.java.srcDirs = [ "src/main/"/*, "../VoiceChat/Voice Chat/src/main/"*/ ]
+sourceSets.main.java.srcDirs = [ "src/main/", "../VoiceChat/Voice Chat/src/main/java/" ]
 sourceSets.test.java.srcDirs = [ "src/test/" ]
+
+sourceSets.main.java.exclude("**/example/TestGame.java")
 
 eclipse.project.name = appName + "-core"
