@@ -27,7 +27,7 @@ public class ImplVoiceClient implements VoiceClient {
         try {
             Log.set(0);
             client.start();
-            client.connect(5000, host, port);
+            client.connect(5000, host, port, port);
             this.sender = new VoiceChatClient(client.getKryo());
             sender.addReceiver(client);
         } catch (IOException e) {
@@ -47,6 +47,7 @@ public class ImplVoiceClient implements VoiceClient {
             client.dispose();
         } catch (IOException e) {
             System.err.println("Failed to disconnect from VoiceChat");
+            e.printStackTrace();
         }
     }
 }

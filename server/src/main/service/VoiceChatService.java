@@ -21,7 +21,7 @@ public class VoiceChatService {
 
     public void start() throws IOException {
         server.start();
-        server.bind(port);
+        server.bind(port, port);
 
         VoiceChatServer voiceServer = new VoiceChatServer(server.getKryo());
         server.addListener(new Listener() {
