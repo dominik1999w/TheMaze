@@ -24,7 +24,7 @@ public class ImplVoiceClient implements VoiceClient {
     @Override
     public void connect(UUID id) {
         try {
-            client.start();
+            //client.start();
             client.connect(5000, host, port, port);
             this.sender = new VoiceChatClient(client.getKryo());
             sender.addReceiver(client);
