@@ -1,7 +1,1 @@
 include 'android', 'desktop', 'core', 'server', 'lib-common'
-
-includeBuild('./VoiceChat/Voice Chat') {
-    dependencySubstitution {
-        substitute module('voice.chat:Voice_Chat') with project(':')
-    }
-}

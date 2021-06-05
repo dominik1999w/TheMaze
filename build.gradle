@@ -86,11 +86,12 @@ project(":core") {
 
     dependencies {
         implementation project(':lib-common')
-        implementation module('voice.chat:Voice_Chat')
         api "com.badlogicgames.gdx:gdx:$gdxVersion"
         api "com.badlogicgames.gdx:gdx-box2d:$gdxVersion"
         api "com.badlogicgames.gdx:gdx-bullet:$gdxVersion"
         api "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
+
+        implementation "com.esotericsoftware:kryonet:2.22.0-RC1"
 
         implementation 'io.grpc:grpc-netty-shaded:1.36.0'
         implementation 'io.grpc:grpc-protobuf:1.36.0'
