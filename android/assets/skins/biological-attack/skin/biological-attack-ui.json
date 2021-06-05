@@ -38,6 +38,24 @@ com.badlogic.gdx.graphics.Color: {
 		b: 0.5800001
 		a: 1
 	}
+	shoot-color: {
+		r: 1
+		g: 1
+		b: 0
+		a: 1
+	}
+	shoot-down: {
+		r: 1
+		g: 1
+		b: 1
+		a: 1
+	}
+	shoot-over: {
+		r: 1
+		g: 1
+		b: 1
+		a: 1
+	}
 }
 com.badlogic.gdx.scenes.scene2d.ui.Skin$TintedDrawable: {
 	clear: {
@@ -116,6 +134,10 @@ com.badlogic.gdx.scenes.scene2d.ui.Skin$TintedDrawable: {
 		name: icon-biohazard
 		color: color
 	}
+	icon-biohazard-shoot-c: {
+		name: icon-biohazard
+		color: shoot-color
+	}
 	checkbox-c: {
 		name: checkbox
 		color: color
@@ -156,9 +178,17 @@ com.badlogic.gdx.scenes.scene2d.ui.Skin$TintedDrawable: {
 		name: icon-biohazard
 		color: down
 	}
+	icon-biohazard-shoot-d: {
+		name: icon-biohazard
+		color: shoot-down
+	}
 	icon-biohazard-o: {
 		name: icon-biohazard
 		color: over
+	}
+	icon-biohazard-shoot-o: {
+		name: icon-biohazard
+		color: shoot-over
 	}
 	icon-warning-d: {
 		name: icon-warning
@@ -246,6 +276,15 @@ com.badlogic.gdx.scenes.scene2d.ui.ImageTextButton$ImageTextButtonStyle: {
 		imageUp: icon-biohazard-c
 		imageDown: icon-biohazard-d
 		imageOver: icon-biohazard-o
+		font: font
+		fontColor: color
+		downFontColor: down
+		overFontColor: over
+	}
+	shoot: {
+		imageUp: icon-biohazard-shoot-c
+		imageDown: icon-biohazard-shoot-d
+		imageOver: icon-biohazard-shoot-o
 		font: font
 		fontColor: color
 		downFontColor: down

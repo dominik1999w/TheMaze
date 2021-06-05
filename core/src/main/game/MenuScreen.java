@@ -46,10 +46,7 @@ public class MenuScreen extends ScreenAdapter {
 //            "54.177.126.239"
             ;
 
-    private static final int PORT =
-            50051
-            //8080
-            ;
+    private static final int PORT = 50051;
 
     private final UUID playerID;
     private String name;

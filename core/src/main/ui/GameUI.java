@@ -53,7 +53,7 @@ public class GameUI {
         movementTouchpad = new Touchpad(20, skin);
         table.add(movementTouchpad).width(400).height(400).left().bottom().padLeft(50).padBottom(50);
 
-        ImageTextButton shootButton = new ImageTextButton(null, skin);
+        ImageTextButton shootButton = new ImageTextButton(null, skin, "shoot");
         table.add(shootButton).width(200).height(200).right().bottom().padRight(100).padBottom(100);
 
         shootButton.addListener(new ClickListener() {
