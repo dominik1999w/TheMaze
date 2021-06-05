@@ -130,3 +130,5 @@ Thumbs.db
 
 ## auto-generated classes
 /lib-common/gen/
+/core/gen/
+/server/gen/
