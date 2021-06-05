@@ -1,9 +1,23 @@
 sourceCompatibility = 1.8
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
-sourceSets.main.java.srcDirs = [ "src/main/", "../VoiceChat/Voice Chat/src/main/java/" ]
+project.ext.generatedFilesBaseDir = "$projectDir/gen"
+
+sourceSets.main.java.srcDirs = [ "src/main/", "$generatedFilesBaseDir/main/" ]
 sourceSets.test.java.srcDirs = [ "src/test/" ]
 
-sourceSets.main.java.exclude("**/example/TestGame.java")
+task copyVoiceChat(type: Copy) {
+    from "../VoiceChat/Voice Chat/src"
+    into generatedFilesBaseDir
+    include "main/java/co/uk/epucguru/classes/VoiceChatClient.java"
+}
+
+tasks.getByName('compileJava') {
+    dependsOn copyVoiceChat
+}
 
 eclipse.project.name = appName + "-core"
+
+clean {
+    delete generatedFilesBaseDir
+}

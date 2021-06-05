@@ -4,6 +4,7 @@ import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 
 import game.GameApp;
+import game.Permissions;
 
 public class DesktopLauncher {
 
@@ -14,7 +15,19 @@ public class DesktopLauncher {
         config.height = 540;
         config.x = 50;
         config.y = 50;
-        new LwjglApplication(new GameApp(), config);
+        new LwjglApplication(new GameApp(DEFAULT_PERMISSIONS), config);
     }
+
+    private static final Permissions DEFAULT_PERMISSIONS = new Permissions() {
+        @Override
+        public boolean isAudioPermissionEnabled() {
+            return true;
+        }
+
+        @Override
+        public void requestAudioPermission() {
+
+        }
+    };
 
 }

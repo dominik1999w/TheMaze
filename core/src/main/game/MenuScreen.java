@@ -29,6 +29,7 @@ import connection.ClientFactory;
 import connection.game.GameClient;
 import connection.map.MapClient;
 import connection.state.StateClient;
+import connection.voice.VoiceClient;
 import map.Map;
 import map.MapConfig;
 import map.generator.MapGenerator;
@@ -39,11 +40,11 @@ import util.Point2D;
 
 public class MenuScreen extends ScreenAdapter {
     private static final String HOST =
-            "10.0.2.2"
+//            "10.0.2.2"
 //            "localhost"
 //            "10.232.0.13"
 //            "192.168.1.15"
-//            "54.177.126.239"
+            "54.177.126.239"
             ;
 
     private static final int PORT = 50051;
@@ -72,6 +73,7 @@ public class MenuScreen extends ScreenAdapter {
     private MapClient mapClient;
     private GameClient gameClient;
     private StateClient stateClient;
+    private VoiceClient voiceClient;
 
     /* UI specifications */
     private final int minMapLength = 5;
@@ -97,8 +99,10 @@ public class MenuScreen extends ScreenAdapter {
             gameClient = ClientFactory.newGameClient(HOST, PORT);
             mapClient = ClientFactory.newMapClient(HOST, PORT);
             stateClient = ClientFactory.newStateClient(HOST, PORT);
+            voiceClient = ClientFactory.newVoiceClient(HOST, PORT+1);
 
             mapClient.connect(playerID);
+            voiceClient.connect(playerID);
 
             this.name = mapClient.getUserName();
 
@@ -132,7 +136,7 @@ public class MenuScreen extends ScreenAdapter {
         Gdx.gl.glClearColor(.5f, .5f, .5f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        syncState();
+        syncState(delta);
 
         batch.begin();
         mapView.render(batch);
@@ -159,7 +163,7 @@ public class MenuScreen extends ScreenAdapter {
         stage.getViewport().update(width, height);
     }
 
-    private void syncState() {
+    private void syncState(float deltaTime) {
         if (task.isDone()) {
             mapClient.syncState(prevLength, prevSeed, startGameValue);
             mapClient.dispatchMessages(new MapClient.ServerResponseHandler() {
@@ -194,6 +198,8 @@ public class MenuScreen extends ScreenAdapter {
                     game.setScreen(gameScreen);
                 }
             });
+
+            voiceClient.syncState(deltaTime);
         }
     }
 

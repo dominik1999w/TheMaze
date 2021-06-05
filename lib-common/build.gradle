@@ -32,6 +32,16 @@ protobuf {
     generatedFilesBaseDir = "${projectDir}/gen"
 }
 
+task copyVoiceChat(type: Copy) {
+    from "../VoiceChat/Voice Chat/src"
+    into protobuf.generatedFilesBaseDir
+    include "main/java/co/uk/epucguru/classes/VoiceNetData.java"
+}
+
+tasks.getByName('compileJava') {
+    dependsOn copyVoiceChat
+}
+
 clean {
     delete protobuf.generatedFilesBaseDir
 }
