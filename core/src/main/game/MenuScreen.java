@@ -50,6 +50,7 @@ public class MenuScreen extends ScreenAdapter {
 
     private final UUID playerID;
     private String name;
+    int chosenGenerator = 0;
 
     private final GameApp game;
     private final SpriteBatch batch;
@@ -63,6 +64,7 @@ public class MenuScreen extends ScreenAdapter {
     /* UI Containers */
     private Container<Actor> menuContainer;
     private Container<Actor> sliderContainer;
+
     private TextButton startButton;
     private MapView mapView;
     private OrthographicCamera camera;
@@ -187,7 +189,7 @@ public class MenuScreen extends ScreenAdapter {
                 @Override
                 public void startGame(int mapLength, int seed, boolean isHost) {
                     MapGenerator mapGenerator = new MapGenerator(mapLength);
-                    Map map = mapGenerator.generateMap(seed);
+                    Map map = mapGenerator.generateMap(chosenGenerator, seed);
                     gameScreen = new GameScreen(
                             playerID, name, batch, game, gameClient, stateClient, initialPosition, map, assetManager
                     );
@@ -223,8 +225,31 @@ public class MenuScreen extends ScreenAdapter {
 
         final Slider slider = new Slider(minMapLength, maxMapLength, 1, false, skin);
 
+        TextButton mapType1 = Menu.getTextButton("random", skin, new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+
+            }
+        });
+
+        TextButton mapType2 = Menu.getTextButton("cheese", skin, new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+
+            }
+        });
+
+        TextButton mapType3 = Menu.getTextButton("dungeon", skin, new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+
+            }
+        });
+
+
         sliderContainer = new Menu.Builder()
-                .defaultSettings(width, height, menuContainer.getWidth(), (Gdx.graphics.getHeight() - height) / 2)
+                //.defaultSettings(width, height, menuContainer.getWidth(), (Gdx.graphics.getHeight() - height) / 2)
+                .defaultSettings(width, height,0,-(float)Gdx.graphics.getHeight()/2)
                 .addTable()
                 .addSlider(slider, new ChangeListener() {
                     @Override
@@ -235,6 +260,11 @@ public class MenuScreen extends ScreenAdapter {
                         calculateMap((int) slider.getValue(), random.nextInt());
                     }
                 })
+                .addPadding(10.0f)
+                //.addDefaultPadding(10.0f)
+                .addTextButton(mapType1,0.8f)
+                .addTextButton(mapType2,0.8f)
+                .addTextButton(mapType3,0.8f)
                 .build();
 
         sliderContainer.setVisible(false);
@@ -242,7 +272,7 @@ public class MenuScreen extends ScreenAdapter {
 
     private void buildMap() {
         camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        mapView = new MapView(new MapGenerator(minMapLength).generateMap(defaultSeed), assetManager);
+        mapView = new MapView(new MapGenerator(minMapLength).generateMap(chosenGenerator, defaultSeed), assetManager);
         calculateMap(minMapLength, defaultSeed);
     }
 
@@ -252,7 +282,7 @@ public class MenuScreen extends ScreenAdapter {
 
         updateCamera(length);
 
-        mapView.setMap(new MapGenerator(length).generateMap(seed));
+        mapView.setMap(new MapGenerator(length).generateMap(chosenGenerator, seed));
         mapView.setView(camera);
     }
 

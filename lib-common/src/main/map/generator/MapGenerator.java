@@ -26,7 +26,7 @@ public class MapGenerator {
         graph = new Map.Node[length][length];
     }
 
-    public Map generateMap(int seed) {
+    public Map generateMap(int chosenGenerator, int seed) {
         this.random = new Random(seed);
         for (int i = 0; i < length; i++) {
             for (int j = 0; j < length; j++) {
