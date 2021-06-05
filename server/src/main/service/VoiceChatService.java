@@ -1,6 +1,5 @@
 package service;
 
-import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
@@ -21,7 +20,6 @@ public class VoiceChatService {
     }
 
     public void start() throws IOException {
-        // TODO: consider only tcp connection
         server.bind(port, port);
         server.start();
 

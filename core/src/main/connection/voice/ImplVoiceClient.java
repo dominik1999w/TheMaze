@@ -19,18 +19,18 @@ public class ImplVoiceClient implements VoiceClient {
         this.host = host;
         this.port = port;
         this.client = new Client(BUFFER_SIZE, BUFFER_SIZE);
-        client.start();
     }
 
     @Override
     public void connect(UUID id) {
-        // TODO: consider only tcp connection
         try {
+            client.start();
             client.connect(5000, host, port, port);
             this.sender = new VoiceChatClient(client.getKryo());
             sender.addReceiver(client);
         } catch (IOException e) {
             System.err.println("Failed to connect to VoiceChat");
+            e.printStackTrace();
         }
     }
 

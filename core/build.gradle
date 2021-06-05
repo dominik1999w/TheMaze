@@ -15,7 +15,6 @@ task copyVoiceChat(type: Copy) {
 tasks.getByName('compileJava') {
     dependsOn copyVoiceChat
 }
-//compileJava.dependsOn(copyVoiceChat)
 
 eclipse.project.name = appName + "-core"
 
