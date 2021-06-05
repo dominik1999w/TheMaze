@@ -1,6 +1,7 @@
 package connection.voice;
 
 import com.esotericsoftware.kryonet.Client;
+import com.esotericsoftware.minlog.Log;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -24,8 +25,9 @@ public class ImplVoiceClient implements VoiceClient {
     @Override
     public void connect(UUID id) {
         try {
-            //client.start();
-            client.connect(5000, host, port, port);
+            Log.set(0);
+            client.start();
+            client.connect(5000, host, port, port+1);
             this.sender = new VoiceChatClient(client.getKryo());
             sender.addReceiver(client);
         } catch (IOException e) {
