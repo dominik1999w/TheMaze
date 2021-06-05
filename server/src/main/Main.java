@@ -102,7 +102,7 @@ public class Main {
         GameServer server = new GrpcServer(50051, gameService, mapService, stateService);
         server.start();
 
-        Log.set(0);
+        //Log.set(0);
         VoiceChatService voiceChatService = new VoiceChatService(50052);
         voiceChatService.start();
 

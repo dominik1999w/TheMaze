@@ -19,9 +19,18 @@ public class GameApp extends Game {
     private ScreenAdapter screen;
     private AssetManager assetManager;
 
+    private final Permissions permissions;
+
+    public GameApp(Permissions permissions) {
+        this.permissions = permissions;
+    }
+
     @Override
     public void create() {
         InternalLoggerFactory.setDefaultFactory(JdkLoggerFactory.INSTANCE);
+        if (!permissions.isAudioPermissionEnabled()) {
+            permissions.requestAudioPermission();
+        }
 
         UUID playerID = UUID.randomUUID();
         batch = new SpriteBatch();
