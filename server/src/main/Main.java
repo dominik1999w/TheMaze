@@ -14,6 +14,7 @@ import server.GrpcServer;
 import service.GameService;
 import service.MapService;
 import service.StateService;
+import service.VoiceChatService;
 import types.WallType;
 
 public class Main {
@@ -93,13 +94,14 @@ public class Main {
         }
 
         GameService gameService = new GameService();
-
         MapService mapService = new MapService();
-
         StateService stateService = new StateService();
 
         GameServer server = new GrpcServer(50051, gameService, mapService, stateService);
         server.start();
+
+        VoiceChatService voiceChatService = new VoiceChatService(50052);
+        voiceChatService.start();
 
         Game game = new Game(mapService, stateService, gameService);
         new Thread(game::startGame).start();
