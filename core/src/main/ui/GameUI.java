@@ -66,6 +66,7 @@ public class GameUI {
         table.add(movementTouchpad).width(400).height(400).left().bottom().padLeft(50).padBottom(50);
 
         this.micButton = new CheckBox("MIC", skin, "mic");
+        micButton.setChecked(true);
         table.add(micButton).width(100).height(100).right().bottom().padRight(100).padBottom(100);
 
         ImageTextButton shootButton = new ImageTextButton(null, skin, "shoot");
