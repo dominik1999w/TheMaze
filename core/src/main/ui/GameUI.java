@@ -2,13 +2,16 @@ package ui;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.CheckBox;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageTextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Align;
 
@@ -24,6 +27,7 @@ public class GameUI {
     private Label points;
     private Label countdown;
     private Touchpad movementTouchpad;
+    private CheckBox micButton;
 
     private boolean shootButtonPressed = false;
 
@@ -53,6 +57,9 @@ public class GameUI {
         movementTouchpad = new Touchpad(20, skin);
         table.add(movementTouchpad).width(400).height(400).left().bottom().padLeft(50).padBottom(50);
 
+        this.micButton = new CheckBox("MIC", skin, "mic");
+        table.add(micButton).width(100).height(100).right().bottom().padRight(100).padBottom(100);
+
         ImageTextButton shootButton = new ImageTextButton(null, skin, "shoot");
         table.add(shootButton).width(200).height(200).right().bottom().padRight(100).padBottom(100);
 
@@ -73,6 +80,10 @@ public class GameUI {
         } finally {
             shootButtonPressed = false;
         }
+    }
+
+    public boolean isMicActive() {
+        return micButton.isChecked();
     }
 
     public void updatePoints(int points) {

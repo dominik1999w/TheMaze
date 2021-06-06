@@ -16,6 +16,7 @@ import java.util.stream.StreamSupport;
 import connection.game.GameClient;
 import connection.state.StateClient;
 import connection.util.PlayerInputLog;
+import connection.voice.VoiceClient;
 import entity.bullet.Bullet;
 import entity.bullet.BulletController;
 import entity.player.Player;
@@ -45,6 +46,7 @@ public class GameScreen extends ScreenAdapter {
 
     private final GameClient gameClient;
     private final StateClient stateClient;
+    private final VoiceClient voiceClient;
 
     private final PlayerInputLog playerInputLog;
 
@@ -58,7 +60,9 @@ public class GameScreen extends ScreenAdapter {
 
     boolean newRoundStarting = true;
 
-    public GameScreen(UUID playerID, String playerName, SpriteBatch batch, GameApp game, GameClient gameClient, StateClient stateClient, Point2D initialPosition, Map map, AssetManager assetManager) {
+    public GameScreen(UUID playerID, String playerName, SpriteBatch batch, GameApp game,
+                      GameClient gameClient, StateClient stateClient, VoiceClient voiceClient,
+                      Point2D initialPosition, Map map, AssetManager assetManager) {
         this.playerID = playerID;
         this.playerName = playerName;
 
@@ -70,6 +74,7 @@ public class GameScreen extends ScreenAdapter {
 
         this.gameClient = gameClient;
         this.stateClient = stateClient;
+        this.voiceClient = voiceClient;
 
         gameClient.connect(playerID);
         stateClient.connect(playerID);
@@ -156,6 +161,10 @@ public class GameScreen extends ScreenAdapter {
                 collisionWorld.onPlayerMoved(player.getId(), System.currentTimeMillis(), playerInput.getDelta());
             }
             gameClient.syncState(playerInputLog.getCurrentSequenceNumber(), playerInput);
+
+            if (gameUI.isMicActive()) {
+                voiceClient.syncState(delta);
+            }
 
             // update the world
             world.update(delta);
