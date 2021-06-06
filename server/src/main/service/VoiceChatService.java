@@ -6,7 +6,7 @@ import com.esotericsoftware.kryonet.Server;
 
 import java.io.IOException;
 
-import co.uk.epucguru.classes.VoiceChatServer;
+import connection.voice.VoiceChatServer;
 
 public class VoiceChatService {
     private static final int BUFFER_SIZE = 22050;

@@ -1,12 +1,9 @@
 package connection.voice;
 
 import com.esotericsoftware.kryonet.Client;
-import com.esotericsoftware.minlog.Log;
 
 import java.io.IOException;
 import java.util.UUID;
-
-import co.uk.epucguru.classes.VoiceChatClient;
 
 public class ImplVoiceClient implements VoiceClient {
     private static final int BUFFER_SIZE = 22050;
