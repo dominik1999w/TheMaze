@@ -17,7 +17,7 @@ public final class PlayerMicsMap {
     }
 
     public boolean getMic(UUID playerID) {
-        return playerMics.get(playerID);
+        return playerMics.getOrDefault(playerID, false);
     }
 
     public Iterable<UUID> getActiveMics() {

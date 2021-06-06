@@ -74,7 +74,7 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
                     GRpcMapper.playerInput(source)
             );
             micsMap.setMic(playerID, source.getMicActive());
-            logger.log(Level.INFO, "Receiving Mic: {0} = {1}", new Object[]{playerID, source.getMicActive()});
+            logger.log(Level.SEVERE, "Receiving Mic: {0} = {1}", new Object[]{playerID, source.getMicActive()});
             inputLog.onInputProcessed(UUID.fromString(source.getId()), request.getSequenceNumber());
 //            logger.log(Level.INFO,
 //                    "Last acknowledged input for {0}: {1}", new Object[]{
@@ -129,7 +129,7 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
                     .setRotation(controller.getPlayerRotation())
                     .setMicActive(micsMap.getMic(id))
                     .build());
-            logger.log(Level.INFO, "Sending Mic: {0} = {1}", new Object[]{id, micsMap.getMic(id)});
+            logger.log(Level.SEVERE, "Sending Mic: {0} = {1}", new Object[]{id, micsMap.getMic(id)});
         }
         world.getBullet().ifPresent(cachedBullet -> {
             UUID playerID = cachedBullet.getShooterID();
