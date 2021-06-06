@@ -51,7 +51,6 @@ public class MenuScreen extends ScreenAdapter {
 
     private final UUID playerID;
     private String name;
-    int chosenGenerator = 0;
 
     private final GameApp game;
     private final SpriteBatch batch;
@@ -138,7 +137,7 @@ public class MenuScreen extends ScreenAdapter {
         Gdx.gl.glClearColor(.5f, .5f, .5f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        syncState(delta);
+        syncState();
 
         batch.begin();
         mapView.render(batch);
@@ -165,7 +164,7 @@ public class MenuScreen extends ScreenAdapter {
         stage.getViewport().update(width, height);
     }
 
-    private void syncState(float deltaTime) {
+    private void syncState() {
         if (task.isDone()) {
             mapClient.syncState(prevLength, prevSeed, startGameValue);
             mapClient.dispatchMessages(new MapClient.ServerResponseHandler() {
@@ -195,13 +194,11 @@ public class MenuScreen extends ScreenAdapter {
                     MapGenerator mapGenerator = new MapGenerator(mapLength);
                     Map map = mapGenerator.generateMap(seed);
                     gameScreen = new GameScreen(
-                            playerID, name, batch, game, gameClient, stateClient, initialPosition, map, assetManager
+                            playerID, name, batch, game, gameClient, stateClient, voiceClient, initialPosition, map, assetManager
                     );
                     game.setScreen(gameScreen);
                 }
             });
-
-            voiceClient.syncState(deltaTime);
         }
     }
 
