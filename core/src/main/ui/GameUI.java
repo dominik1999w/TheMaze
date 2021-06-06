@@ -8,12 +8,16 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.CheckBox;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageTextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.List;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
+import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Align;
+
+import java.util.UUID;
 
 import entity.player.PlayerInput;
 import types.SkinType;
@@ -28,6 +32,7 @@ public class GameUI {
     private Label countdown;
     private Touchpad movementTouchpad;
     private CheckBox micButton;
+    private VerticalGroup activePlayerMics;
 
     private boolean shootButtonPressed = false;
 
@@ -43,9 +48,12 @@ public class GameUI {
 
     public void build() {
         table.row().colspan(2);
-        points = new Label("", skin, "title");
+        this.points = new Label("", skin, "title");
         updatePoints(0);
         table.add(points).left().top().padTop(50).padLeft(50).padRight(50);
+
+        this.activePlayerMics = new VerticalGroup();
+        table.add(activePlayerMics).right().top().padTop(50).padRight(50).padLeft(50);
 
         table.row().colspan(2);
         countdown = new Label("", skin, "title-bg");
@@ -95,6 +103,13 @@ public class GameUI {
         if(time > 0) {
             String newText = "New round in:\n" + time + " second" + (time > 1 ? "s" : "");
             countdown.setText(newText);
+        }
+    }
+
+    public void updateActivePlayerMics(Iterable<UUID> activeMics) {
+        activePlayerMics.clear();
+        for (UUID activeMic : activeMics) {
+            activePlayerMics.addActor(new Label(activeMic.toString(), skin));
         }
     }
 

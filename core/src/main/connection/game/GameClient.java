@@ -12,10 +12,10 @@ public interface GameClient extends Client {
     interface ServerResponseHandler {
         void onActivePlayers(Collection<UUID> playerIDs);
 
-        void onPlayerState(long sequenceNumber, long timestamp, Player playerState);
+        void onPlayerState(long sequenceNumber, long timestamp, Player playerState, boolean micActive);
         void onBulletState(UUID shooterID, Bullet bulletState);
     }
 
     void dispatchMessages(ServerResponseHandler responseHandler);
-    void syncState(long sequenceNumber, PlayerInput playerInput);
+    void syncState(long sequenceNumber, PlayerInput playerInput, boolean micActive);
 }

@@ -18,6 +18,7 @@ message LocalPlayerInput {
   float inputX = 3;
   float inputY = 4;
   bool shootPressed = 5;
+  bool micActive = 6;
 }
 
 
@@ -27,6 +28,7 @@ message PlayerState {
   float positionX = 3;
   float positionY = 4;
   float rotation = 5;
+  bool micActive = 6;
 }
 
 message BulletState {
