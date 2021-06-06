@@ -20,6 +20,12 @@ com.badlogic.gdx.graphics.Color: {
 		b: 1
 		a: 0
 	}
+	white: {
+		r: 1
+		g: 1
+		b: 1
+		a: 1
+	}
 	color: {
 		r: 0
 		g: 0
@@ -148,11 +154,11 @@ com.badlogic.gdx.scenes.scene2d.ui.Skin$TintedDrawable: {
 	}
 	radio-b: {
 		name: radio
-		color: background
+		color: white
 	}
 	radio-off-b: {
 		name: radio-off
-		color: background
+		color: white
 	}
 	checkbox-off-o: {
 		name: checkbox-off
@@ -268,6 +274,13 @@ com.badlogic.gdx.scenes.scene2d.ui.CheckBox$CheckBoxStyle: {
 		checkboxOff: radio-off-b
 		font: font
 		fontColor: color
+		overFontColor: over
+	}
+	mic: {
+		checkboxOn: radio-b
+		checkboxOff: radio-off-b
+		font: font
+		fontColor: white
 		overFontColor: over
 	}
 }
