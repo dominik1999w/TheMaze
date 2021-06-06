@@ -9,7 +9,7 @@ import io.grpc.ServerBuilder;
 import io.grpc.ServerInterceptors;
 import service.GameService;
 import service.MapService;
-import service.PlayerIDInterceptor;
+import connection.PlayerIDInterceptor;
 import service.StateService;
 
 public class GrpcServer implements GameServer {

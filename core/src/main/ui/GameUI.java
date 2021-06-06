@@ -2,18 +2,15 @@ package ui;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
-import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.CheckBox;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageTextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.List;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
-import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Align;
 
@@ -42,7 +39,7 @@ public class GameUI {
         this.table = new Table();
         table.setFillParent(true);
         stage.addActor(table);
-        table.setDebug(true);
+        //table.setDebug(true);
         skin = assetManager.get(SkinType.ATTACK.getName());
     }
 
@@ -53,7 +50,7 @@ public class GameUI {
         table.add(points).left().top().padTop(50).padLeft(50).padRight(50);
 
         this.activePlayerMics = new VerticalGroup();
-        table.add(activePlayerMics).right().top().padTop(50).padRight(50).padLeft(50);
+        table.add(activePlayerMics).right().top().padTop(50).padRight(50).padLeft(50).fillY();
 
         table.row().colspan(2);
         countdown = new Label("", skin, "title-bg");
@@ -109,8 +106,9 @@ public class GameUI {
     public void updateActivePlayerMics(Iterable<UUID> activeMics) {
         activePlayerMics.clear();
         for (UUID activeMic : activeMics) {
-            activePlayerMics.addActor(new Label(activeMic.toString(), skin));
+            activePlayerMics.addActor(new Label(activeMic.toString().substring(0, 6), skin));
         }
+        activePlayerMics.layout();
     }
 
     public void render(float delta) {

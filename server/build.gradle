@@ -5,20 +5,8 @@ plugins {
 sourceCompatibility = 1.8
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
-project.ext.generatedFilesBaseDir = "$projectDir/gen"
-
-sourceSets.main.java.srcDirs = [ "src/main/", "$generatedFilesBaseDir/main/" ]
+sourceSets.main.java.srcDirs = [ "src/main/" ]
 sourceSets.test.java.srcDirs = ["src/test/"]
-
-task copyVoiceChat(type: Copy) {
-    from "../VoiceChat/Voice Chat/src"
-    into generatedFilesBaseDir
-    include "main/java/co/uk/epucguru/classes/VoiceChatServer.java"
-}
-
-tasks.getByName('compileJava') {
-    dependsOn copyVoiceChat
-}
 
 eclipse.project.name = appName + "-server"
 
@@ -28,8 +16,4 @@ ext {
 
 application {
     mainClassName = javaMainClass
-}
-
-clean {
-    delete generatedFilesBaseDir
 }
