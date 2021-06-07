@@ -139,5 +139,7 @@ project(':lib-common') {
         implementation 'io.grpc:grpc-protobuf:1.36.0'
         implementation 'io.grpc:grpc-stub:1.36.0'
         implementation 'javax.annotation:javax.annotation-api:1.2-b01'
+
+        implementation "com.esotericsoftware.kryo:kryo:2.24.0"
     }
 }

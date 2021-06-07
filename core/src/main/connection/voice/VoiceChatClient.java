@@ -12,6 +12,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import connection.VoiceNetData;
+import util.UUIDSerializer;
 
 /**
  * A class that is used to send and receive voice chat. Works using KryoNet and LibGDX.
@@ -58,7 +59,7 @@ public class VoiceChatClient implements Disposable{
 
 	protected void registerNetObjects(Kryo kryo){
 		kryo.register(short[].class);
-		kryo.register(UUID.class);
+		kryo.register(UUID.class, new UUIDSerializer());
 		kryo.register(VoiceNetData.class);
 	}
 	
