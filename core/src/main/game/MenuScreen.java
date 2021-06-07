@@ -42,9 +42,9 @@ public class MenuScreen extends ScreenAdapter {
     private static final String HOST =
 //            "10.0.2.2"
 //            "localhost"
-//            "10.232.0.13"
+            "10.232.0.13"
 //            "192.168.1.15"
-            "54.177.126.239"
+//            "54.177.126.239"
             ;
 
     private static final int PORT = 50051;
