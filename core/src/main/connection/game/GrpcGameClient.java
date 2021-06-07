@@ -60,8 +60,7 @@ public class GrpcGameClient implements GameClient {
                     responseHandler.onPlayerState(
                             playerState.getId().equals(id.toString()) ? playerState.getSequenceNumber() : response.getTimestamp(),
                             tResponse.getTimestamp(),
-                            GRpcMapper.playerState(playerState),
-                            playerState.getMicActive()
+                            GRpcMapper.playerState(playerState)
                     )
             );
 
@@ -113,7 +112,6 @@ public class GrpcGameClient implements GameClient {
                         .setInputX(playerInput.getX())
                         .setInputY(playerInput.getY())
                         .setShootPressed(playerInput.isShootPressed())
-                        .setMicActive(micActive)
                         .build())
                 .build();
 

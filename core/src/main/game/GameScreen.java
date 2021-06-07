@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import java.util.Collection;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -29,8 +30,8 @@ import map.MapConfig;
 import physics.CollisionWorld;
 import renderable.WorldView;
 import ui.GameUI;
-import util.PlayerMicsMap;
 import util.Point2D;
+import util.VoiceChatDevice;
 import world.World;
 
 public class GameScreen extends ScreenAdapter {
@@ -50,7 +51,7 @@ public class GameScreen extends ScreenAdapter {
     private final VoiceClient voiceClient;
 
     private final PlayerInputLog playerInputLog;
-    private final PlayerMicsMap playerMicsMap;
+    private final VoiceChatDevice voiceChatDevice;
 
     private final BitmapFont bitmapFont;
 
@@ -71,7 +72,7 @@ public class GameScreen extends ScreenAdapter {
         this.assetManager = assetManager;
         this.batch = batch;
         this.playerInputLog = new PlayerInputLog();
-        this.playerMicsMap = new PlayerMicsMap();
+        this.voiceChatDevice = new VoiceChatDevice();
 
         this.game = game;
 
@@ -119,8 +120,6 @@ public class GameScreen extends ScreenAdapter {
 
                 @Override
                 public void onPlayerState(long sequenceNumber, long timestamp, Player playerState, boolean micActive) {
-                    playerMicsMap.setMic(playerState.getId(), micActive);
-
                     if (player.getId().equals(playerState.getId())) {
                     /*System.out.println(String.format(Locale.ENGLISH,
                             "Client: (%s, %d)    Server: (%s, %d)",
@@ -152,6 +151,18 @@ public class GameScreen extends ScreenAdapter {
                 }
             });
 
+            voiceClient.dispatchMessages(new VoiceClient.ServerResponseHandler() {
+                @Override
+                public void updateActivePlayerMics(Collection<UUID> activePlayerMics) {
+                    gameUI.updateActivePlayerMics(activePlayerMics);
+                }
+
+                @Override
+                public void writeAudioSamples(Optional<short[]> audioSamples) {
+                    audioSamples.ifPresent(voiceChatDevice::writeSamples);
+                }
+            });
+
             // read player input
             PlayerInput playerInput = gameUI.readInput();
             playerInput.setDelta(delta);
@@ -167,9 +178,8 @@ public class GameScreen extends ScreenAdapter {
             }
             gameClient.syncState(playerInputLog.getCurrentSequenceNumber(), playerInput, gameUI.isMicActive());
 
-            gameUI.updateActivePlayerMics(playerMicsMap.getActiveMics());
             if (gameUI.isMicActive()) {
-                voiceClient.syncState(delta);
+                voiceClient.syncState(delta, voiceChatDevice::readSamples);
             }
 
             // update the world
@@ -227,5 +237,6 @@ public class GameScreen extends ScreenAdapter {
         if (scoreScreen != null) {
             scoreScreen.dispose();
         }
+        voiceChatDevice.dispose();
     }
 }
