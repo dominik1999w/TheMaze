@@ -119,7 +119,7 @@ public class GameScreen extends ScreenAdapter {
                 }
 
                 @Override
-                public void onPlayerState(long sequenceNumber, long timestamp, Player playerState, boolean micActive) {
+                public void onPlayerState(long sequenceNumber, long timestamp, Player playerState) {
                     if (player.getId().equals(playerState.getId())) {
                     /*System.out.println(String.format(Locale.ENGLISH,
                             "Client: (%s, %d)    Server: (%s, %d)",

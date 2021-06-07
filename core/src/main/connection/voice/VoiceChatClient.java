@@ -58,6 +58,7 @@ public class VoiceChatClient implements Disposable{
 
 	protected void registerNetObjects(Kryo kryo){
 		kryo.register(short[].class);
+		kryo.register(UUID.class);
 		kryo.register(VoiceNetData.class);
 	}
 	

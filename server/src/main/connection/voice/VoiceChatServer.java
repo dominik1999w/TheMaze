@@ -4,6 +4,8 @@ import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Server;
 
+import java.util.UUID;
+
 import connection.VoiceNetData;
 
 /**
@@ -31,6 +33,7 @@ public class VoiceChatServer {
 			
 	protected void registerClasses(Kryo kryo){	
 		kryo.register(short[].class);
+		kryo.register(UUID.class);
 		kryo.register(VoiceNetData.class);
 	}
 	
