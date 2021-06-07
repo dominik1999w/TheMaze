@@ -35,7 +35,6 @@ import lib.map.Position;
 import map.generator.MapGenerator;
 import physics.CollisionWorld;
 import util.ClientsInputLog;
-import util.PlayerMicsMap;
 import util.GRpcMapper;
 import util.Point2D;
 import util.Timestamp;
@@ -48,13 +47,11 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
     private World<InputPlayerController> world;
 
     private final ClientsInputLog inputLog;
-    private final PlayerMicsMap micsMap;
 
     private final Map<StreamObserver<GameStateResponse>, UUID> responseObservers = new HashMap<>();
 
     public GameService() {
         this.inputLog = new ClientsInputLog();
-        this.micsMap = new PlayerMicsMap();
     }
 
     private final Lock queueLock = new ReentrantLock();
@@ -73,7 +70,6 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
                     playerID,
                     GRpcMapper.playerInput(source)
             );
-            micsMap.setMic(playerID, source.getMicActive());
             inputLog.onInputProcessed(UUID.fromString(source.getId()), request.getSequenceNumber());
 //            logger.log(Level.INFO,
 //                    "Last acknowledged input for {0}: {1}", new Object[]{
@@ -126,7 +122,6 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
                     .setPositionX(controller.getPlayerPosition().x())
                     .setPositionY(controller.getPlayerPosition().y())
                     .setRotation(controller.getPlayerRotation())
-                    .setMicActive(micsMap.getMic(id))
                     .build());
         }
         world.getBullet().ifPresent(cachedBullet -> {

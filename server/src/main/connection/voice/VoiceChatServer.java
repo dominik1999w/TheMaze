@@ -1,10 +1,16 @@
 package connection.voice;
 
 import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.Serializer;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Server;
 
+import java.util.UUID;
+
 import connection.VoiceNetData;
+import util.UUIDSerializer;
 
 /**
  * A class that is used receive and bounce back audio from client. Works using KryoNet and LibGDX.
@@ -31,6 +37,7 @@ public class VoiceChatServer {
 			
 	protected void registerClasses(Kryo kryo){	
 		kryo.register(short[].class);
+		kryo.register(UUID.class, new UUIDSerializer());
 		kryo.register(VoiceNetData.class);
 	}
 	
