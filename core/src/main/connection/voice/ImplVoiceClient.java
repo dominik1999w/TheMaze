@@ -37,10 +37,7 @@ public class ImplVoiceClient implements VoiceClient {
             client.start();
             client.connect(5000, host, port, port);
             this.sender = new VoiceChatClient(id, client.getKryo());
-            sender.addReceiver(client, voiceSamples -> {
-                System.out.println(Thread.currentThread());
-                voiceSamplesSet.add(voiceSamples);
-            });
+            sender.addReceiver(client, voiceSamplesSet::add);
         } catch (IOException e) {
             System.err.println("Failed to connect to VoiceChat");
             e.printStackTrace();

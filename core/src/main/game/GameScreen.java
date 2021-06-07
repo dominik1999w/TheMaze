@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -31,6 +32,7 @@ import physics.CollisionWorld;
 import renderable.WorldView;
 import ui.GameUI;
 import util.Point2D;
+import util.Timestamp;
 import util.VoiceChatDevice;
 import world.World;
 
@@ -152,9 +154,23 @@ public class GameScreen extends ScreenAdapter {
             });
 
             voiceClient.dispatchMessages(new VoiceClient.ServerResponseHandler() {
+                private final Collection<Timestamp<UUID>> lastActivePlayerMics = new HashSet<>();
                 @Override
                 public void updateActivePlayerMics(Collection<UUID> activePlayerMics) {
-                    gameUI.updateActivePlayerMics(activePlayerMics);
+                    if (gameUI.isMicActive())
+                        lastActivePlayerMics.add(new Timestamp<>(playerID));
+
+                    activePlayerMics.forEach(pID -> lastActivePlayerMics.add(new Timestamp<>(pID)));
+
+                    long now = System.currentTimeMillis();
+
+                    System.out.println(lastActivePlayerMics);
+
+                    gameUI.updateActivePlayerMics(lastActivePlayerMics.stream()
+                            .filter(tPlayerID -> (now - tPlayerID.getTimestamp() <= 1000)) // at most 0.5s old
+                            .map(Timestamp::get)
+                            .collect(Collectors.toSet())
+                    );
                 }
 
                 @Override
