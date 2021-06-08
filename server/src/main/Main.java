@@ -1,5 +1,3 @@
-import com.esotericsoftware.minlog.Log;
-
 import game.Game;
 import lib.connection.BulletState;
 import lib.connection.GameStateRequest;
@@ -7,8 +5,8 @@ import lib.connection.GameStateResponse;
 import lib.connection.LocalPlayerInput;
 import lib.connection.PlayerState;
 import lib.map.Position;
-import lib.map.MapStateRequest;
-import lib.map.MapStateResponse;
+import lib.map.StateRequest;
+import lib.map.StateResponse;
 import map.Map;
 import physics.mapcollision.MapCollisionDetector;
 import server.GameServer;
@@ -40,8 +38,8 @@ public class Main {
             LocalPlayerInput.newBuilder();
             PlayerState.newBuilder();
             Position.newBuilder();
-            MapStateRequest.newBuilder();
-            MapStateResponse.newBuilder();
+            StateRequest.newBuilder();
+            StateResponse.newBuilder();
 
             loadClasses(
                     connection.CallKey.class,
@@ -66,8 +64,8 @@ public class Main {
                     lib.connection.TheMazeGrpcGdx.class,
                     lib.map.MapGrpcGdx.class,
                     lib.map.Position.class,
-                    lib.map.MapStateRequest.class,
-                    lib.map.MapStateResponse.class,
+                    lib.map.StateRequest.class,
+                    lib.map.StateResponse.class,
                     map.generator.MapGenerator.class,
                     map.Map.class,
                     Map.Node.class,

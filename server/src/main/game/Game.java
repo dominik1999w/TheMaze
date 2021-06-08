@@ -103,8 +103,8 @@ public class Game {
 
     public void endRound(RoundResult result) {
         result.getPoints().forEach(((uuid, integer) -> {
-            points.merge(mapService.getNames().get(uuid), integer, Integer::sum);
-            if (points.get(mapService.getNames().get(uuid)) >= 10) {
+            points.merge(mapService.getNames().get(uuid.toString()), integer, Integer::sum);
+            if (points.get(mapService.getNames().get(uuid.toString())) >= 10) {
                 gameOver.set(true);
             }
         }));

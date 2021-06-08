@@ -40,9 +40,9 @@ import util.Point2D;
 
 public class MenuScreen extends ScreenAdapter {
     private static final String HOST =
-//            "10.0.2.2"
+            "10.0.2.2"
 //            "localhost"
-            "10.232.0.13"
+//            "10.232.0.13"
 //            "192.168.1.15"
 //            "54.177.126.239"
             ;
@@ -51,6 +51,7 @@ public class MenuScreen extends ScreenAdapter {
 
     private final UUID playerID;
     private String name;
+    private java.util.Map<String, String> clientsNames;
 
     private final GameApp game;
     private final SpriteBatch batch;
@@ -58,7 +59,7 @@ public class MenuScreen extends ScreenAdapter {
     private final Skin skin;
     private final Stage stage;
     private final AsyncExecutor asyncExecutor;
-    private AsyncResult<Void> task;
+    private AsyncResult<String> connectionResult;
     private GameScreen gameScreen;
 
     /* UI Containers */
@@ -96,19 +97,16 @@ public class MenuScreen extends ScreenAdapter {
     }
 
     void connect() {
-        task = asyncExecutor.submit(() -> {
+        connectionResult = asyncExecutor.submit(() -> {
             gameClient = ClientFactory.newGameClient(HOST, PORT);
             mapClient = ClientFactory.newMapClient(HOST, PORT);
             stateClient = ClientFactory.newStateClient(HOST, PORT);
-            voiceClient = ClientFactory.newVoiceClient(HOST, PORT+1);
+            voiceClient = ClientFactory.newVoiceClient(HOST, PORT + 1);
 
             mapClient.connect(playerID);
             voiceClient.connect(playerID);
 
-            this.name = mapClient.getUserName();
-
-            Gdx.app.postRunnable(() -> username.setText("name: " + name));
-            return null;
+            return mapClient.getUserName();
         });
     }
 
@@ -149,7 +147,7 @@ public class MenuScreen extends ScreenAdapter {
 
     @Override
     public void dispose() {
-        if (task.isDone()) {
+        if (connectionResult.isDone()) {
             mapClient.disconnect();
         }
         asyncExecutor.dispose();
@@ -165,7 +163,12 @@ public class MenuScreen extends ScreenAdapter {
     }
 
     private void syncState() {
-        if (task.isDone()) {
+        if (connectionResult.isDone()) {
+            if (name == null) {
+                name = connectionResult.get();
+                username.setText("name: " + name);
+            }
+
             mapClient.syncState(prevLength, prevSeed, startGameValue);
             mapClient.dispatchMessages(new MapClient.ServerResponseHandler() {
                 @Override
@@ -190,11 +193,16 @@ public class MenuScreen extends ScreenAdapter {
                 }
 
                 @Override
+                public void updateClientsNames(java.util.Map<String, String> names) {
+                    MenuScreen.this.clientsNames = names;
+                }
+
+                @Override
                 public void startGame(int mapLength, int seed, boolean isHost) {
                     MapGenerator mapGenerator = new MapGenerator(mapLength);
                     Map map = mapGenerator.generateMap(seed);
                     gameScreen = new GameScreen(
-                            playerID, name, batch, game, gameClient, stateClient, voiceClient, initialPosition, map, assetManager
+                            playerID, clientsNames, batch, game, gameClient, stateClient, voiceClient, initialPosition, map, assetManager
                     );
                     game.setScreen(gameScreen);
                 }
@@ -255,7 +263,7 @@ public class MenuScreen extends ScreenAdapter {
 
         sliderContainer = new Menu.Builder()
                 //.defaultSettings(width, height, menuContainer.getWidth(), (Gdx.graphics.getHeight() - height) / 2)
-                .defaultSettings(width, height,0,-(float)Gdx.graphics.getHeight()/2)
+                .defaultSettings(width, height, 0, -(float) Gdx.graphics.getHeight() / 2)
                 .addTable()
                 .addSlider(slider, new ChangeListener() {
                     @Override
@@ -268,9 +276,9 @@ public class MenuScreen extends ScreenAdapter {
                 })
                 .addPadding(10.0f)
                 //.addDefaultPadding(10.0f)
-                .addTextButton(mapType1,0.8f)
-                .addTextButton(mapType2,0.8f)
-                .addTextButton(mapType3,0.8f)
+                .addTextButton(mapType1, 0.8f)
+                .addTextButton(mapType2, 0.8f)
+                .addTextButton(mapType3, 0.8f)
                 .build();
 
         sliderContainer.setVisible(false);

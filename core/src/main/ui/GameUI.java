@@ -14,6 +14,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Align;
 
+import java.util.Map;
 import java.util.UUID;
 
 import entity.player.PlayerInput;
@@ -97,16 +98,16 @@ public class GameUI {
 
     public void updateCountdown(int time) {
         countdown.setVisible(time > 0);
-        if(time > 0) {
+        if (time > 0) {
             String newText = "New round in:\n" + time + " second" + (time > 1 ? "s" : "");
             countdown.setText(newText);
         }
     }
 
-    public void updateActivePlayerMics(Iterable<UUID> activeMics) {
+    public void updateActivePlayerMics(Map<String, String> clientsNames, Iterable<UUID> activeMics) {
         activePlayerMics.clear();
         for (UUID activeMic : activeMics) {
-            activePlayerMics.addActor(new Label(activeMic.toString().substring(0, 6), skin));
+            activePlayerMics.addActor(new Label(clientsNames.get(activeMic.toString()), skin));
         }
         activePlayerMics.layout();
     }

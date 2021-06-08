@@ -60,16 +60,16 @@ public class GameScreen extends ScreenAdapter {
     private final GameApp game;
     private final AssetManager assetManager;
     private final UUID playerID;
-    private final String playerName;
+    private final java.util.Map<String, String> clientsNames;
     private ScoreScreen scoreScreen;
 
     boolean newRoundStarting = true;
 
-    public GameScreen(UUID playerID, String playerName, SpriteBatch batch, GameApp game,
+    public GameScreen(UUID playerID, java.util.Map<String, String> names, SpriteBatch batch, GameApp game,
                       GameClient gameClient, StateClient stateClient, VoiceClient voiceClient,
                       Point2D initialPosition, Map map, AssetManager assetManager) {
         this.playerID = playerID;
-        this.playerName = playerName;
+        this.clientsNames = names;
 
         this.assetManager = assetManager;
         this.batch = batch;
@@ -166,7 +166,7 @@ public class GameScreen extends ScreenAdapter {
 
                     System.out.println(lastActivePlayerMics);
 
-                    gameUI.updateActivePlayerMics(lastActivePlayerMics.stream()
+                    gameUI.updateActivePlayerMics(clientsNames, lastActivePlayerMics.stream()
                             .filter(tPlayerID -> (now - tPlayerID.getTimestamp() <= 1000)) // at most 0.5s old
                             .map(Timestamp::get)
                             .collect(Collectors.toSet())
@@ -222,7 +222,7 @@ public class GameScreen extends ScreenAdapter {
         stateClient.dispatchMessages(new StateClient.ServerResponseHandler() {
             @Override
             public void updatePoints(java.util.Map<String, Integer> points) {
-                gameUI.updatePoints(points.getOrDefault(playerName, -123));
+                gameUI.updatePoints(points.getOrDefault(clientsNames.get(playerID.toString()), -123));
             }
 
             @Override
