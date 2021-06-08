@@ -10,7 +10,7 @@ import "google/protobuf/empty.proto";
 
 service Map {
   rpc Connect (NameRequest) returns (NameResponse) {}
-  rpc SyncMapState (stream MapStateRequest) returns (stream MapStateResponse) {}
+  rpc SyncMapState (stream StateRequest) returns (stream StateResponse) {}
 }
 
 message NameRequest {
@@ -21,11 +21,20 @@ message NameResponse {
   string name = 1;
 }
 
-message MapStateRequest {
+message StateRequest {
   string id = 1;
   int32 length = 2;
   int32 seed = 3;
   bool started = 4;
+}
+
+message StateResponse {
+  MapStateResponse mapResponse = 1;
+  NamesResponse namesResponse = 2;
+}
+
+message NamesResponse {
+  map<string, string> names = 1;
 }
 
 message MapStateResponse {

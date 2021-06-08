@@ -13,10 +13,12 @@ import io.grpc.ManagedChannel;
 import io.grpc.stub.ClientCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import lib.map.MapGrpc;
-import lib.map.MapStateRequest;
 import lib.map.MapStateResponse;
 import lib.map.NameRequest;
 import lib.map.NameResponse;
+import lib.map.NamesResponse;
+import lib.map.StateRequest;
+import lib.map.StateResponse;
 import util.Point2D;
 
 public class GrpcMapClient implements MapClient {
@@ -28,10 +30,10 @@ public class GrpcMapClient implements MapClient {
     private UUID id;
     private String name;
 
-    private StreamObserver<MapStateRequest> stateRequestStream;
+    private StreamObserver<StateRequest> stateRequestStream;
 
     private final Lock queueLock = new ReentrantLock();
-    private final Queue<MapStateResponse> responseQueue = new ArrayDeque<>();
+    private final Queue<StateResponse> responseQueue = new ArrayDeque<>();
 
     public GrpcMapClient(ManagedChannel channel) {
         this.channel = channel;
@@ -43,18 +45,21 @@ public class GrpcMapClient implements MapClient {
     public void dispatchMessages(ServerResponseHandler responseHandler) {
         queueLock.lock();
         while (!responseQueue.isEmpty()) {
-            MapStateResponse response = responseQueue.poll();
+            StateResponse response = responseQueue.poll();
+            MapStateResponse mapResponse = response.getMapResponse();
+            NamesResponse namesResponse = response.getNamesResponse();
 
+            responseHandler.updateClientsNames(namesResponse.getNamesMap());
             responseHandler.updateInitialPosition(
-                    new Point2D(response.getPosition().getPositionX(), response.getPosition().getPositionY())
+                    new Point2D(mapResponse.getPosition().getPositionX(), mapResponse.getPosition().getPositionY())
             );
-            if (response.getIsHost()) {
+            if (mapResponse.getIsHost()) {
                 responseHandler.displayAdminUI();
             } else {
-                responseHandler.updateMap(response.getLength(), response.getSeed());
+                responseHandler.updateMap(mapResponse.getLength(), mapResponse.getSeed());
             }
-            if (response.getStarted()) {
-                responseHandler.startGame(response.getLength(), response.getSeed(), response.getIsHost());
+            if (mapResponse.getStarted()) {
+                responseHandler.startGame(mapResponse.getLength(), mapResponse.getSeed(), mapResponse.getIsHost());
             }
         }
         queueLock.unlock();
@@ -70,9 +75,9 @@ public class GrpcMapClient implements MapClient {
         this.id = id;
 
         Context.current().withValue(CallKey.PLAYER_ID, id).run(() ->
-                stateRequestStream = asyncStub.syncMapState(new StreamObserver<MapStateResponse>() {
+                stateRequestStream = asyncStub.syncMapState(new StreamObserver<StateResponse>() {
                     @Override
-                    public void onNext(MapStateResponse value) {
+                    public void onNext(StateResponse value) {
                         queueLock.lock();
                         responseQueue.add(value);
                         queueLock.unlock();
@@ -95,7 +100,7 @@ public class GrpcMapClient implements MapClient {
 
     @Override
     public void syncState(int length, int seed, boolean gameStarted) {
-        MapStateRequest request = MapStateRequest.newBuilder()
+        StateRequest request = StateRequest.newBuilder()
                 .setId(id.toString())
                 .setLength(length)
                 .setSeed(seed)
@@ -107,7 +112,7 @@ public class GrpcMapClient implements MapClient {
 
     @Override
     public void disconnect() {
-        ((ClientCallStreamObserver<MapStateRequest>) stateRequestStream).cancel("Disconnected", null);
+        ((ClientCallStreamObserver<StateRequest>) stateRequestStream).cancel("Disconnected", null);
         try {
             channel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS);
         } catch (InterruptedException ignored) {
