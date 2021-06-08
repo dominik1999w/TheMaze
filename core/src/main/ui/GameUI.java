@@ -112,9 +112,13 @@ public class GameUI {
         activePlayerMics.layout();
     }
 
-    public void render(float delta) {
+    public void render(float delta, boolean resetInput) {
         stage.act(delta);
         stage.draw();
+
+        if (resetInput) {
+            shootButtonPressed = false;
+        }
     }
 
     public void resize(int width, int height) {

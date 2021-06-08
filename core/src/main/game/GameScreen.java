@@ -105,79 +105,87 @@ public class GameScreen extends ScreenAdapter {
         this.bitmapFont = new BitmapFont();
     }
 
+    private final GameClient.ServerResponseHandler gameServerResponseHandler = new GameClient.ServerResponseHandler() {
+        @Override
+        public void onActivePlayers(Collection<UUID> playerIDs) {
+            StreamSupport.stream(world.getConnectedPlayers().spliterator(), false)
+                    .map(java.util.Map.Entry::getKey)
+                    .filter(playerID -> !playerIDs.contains(playerID))
+                    .collect(Collectors.toList()).forEach(world::removePlayerController);
+        }
+
+        @Override
+        public void onPlayerState(long sequenceNumber, long timestamp, Player playerState) {
+            if (player.getId().equals(playerState.getId())) {
+                    /*System.out.println(String.format(Locale.ENGLISH,
+                            "Client: (%s, %d)    Server: (%s, %d)",
+                            playerController.getPlayerPosition(), playerInputLog.getCurrentSequenceNumber(),
+                            playerState.getPosition(), sequenceNumber));*/
+
+                playerInputLog.discardLogUntil(sequenceNumber);
+                playerController.setNextState(0, playerState);
+                for (PlayerInput playerInput : playerInputLog.getInputLog()) {
+                    playerController.updateInput(playerInput);
+                    playerController.update();
+                    collisionWorld.onPlayerMoved(player.getId(), timestamp, playerInput.getDelta());
+                }
+            } else {
+                world.getPlayerController(playerState.getId(), playerState.getPosition())
+                        .setNextState(sequenceNumber, playerState);
+            }
+        }
+
+        @Override
+        public void onBulletState(UUID playerID, Bullet bulletState) {
+            //if (player.getId().equals(playerID)) return;
+
+            if (playerID == null) {
+                world.onBulletDied();
+            } else {
+                world.onBulletFired(playerID, bulletState);
+            }
+        }
+    };
+
+    private final VoiceClient.ServerResponseHandler voiceServerResponseHandler = new VoiceClient.ServerResponseHandler() {
+        private final Collection<Timestamp<UUID>> lastActivePlayerMics = new HashSet<>();
+        @Override
+        public void updateActivePlayerMics(Collection<UUID> activePlayerMics) {
+            if (gameUI.isMicActive()) {
+                updateTimestamp(playerID);
+            }
+
+            activePlayerMics.forEach(this::updateTimestamp);
+
+            long now = System.currentTimeMillis();
+
+            gameUI.updateActivePlayerMics(clientsNames, lastActivePlayerMics.stream()
+                    .filter(tPlayerID -> (now - tPlayerID.getTimestamp() <= 1000)) // at most 0.5s old
+                    .map(Timestamp::get)
+                    .collect(Collectors.toSet())
+            );
+        }
+
+        @Override
+        public void writeAudioSamples(Optional<short[]> audioSamples) {
+            audioSamples.ifPresent(voiceChatDevice::writeSamples);
+        }
+
+        private void updateTimestamp(UUID plID) {
+            Timestamp<UUID> tPlID = new Timestamp<>(plID);
+            lastActivePlayerMics.remove(tPlID);
+            lastActivePlayerMics.add(tPlID);
+        }
+    };
+
     @Override
     public void render(float delta) {
         updateState();
 
         if (!newRoundStarting) {
             // dispatch server messages
-            gameClient.dispatchMessages(new GameClient.ServerResponseHandler() {
-                @Override
-                public void onActivePlayers(Collection<UUID> playerIDs) {
-                    StreamSupport.stream(world.getConnectedPlayers().spliterator(), false)
-                            .map(java.util.Map.Entry::getKey)
-                            .filter(playerID -> !playerIDs.contains(playerID))
-                            .collect(Collectors.toList()).forEach(world::removePlayerController);
-                }
-
-                @Override
-                public void onPlayerState(long sequenceNumber, long timestamp, Player playerState) {
-                    if (player.getId().equals(playerState.getId())) {
-                    /*System.out.println(String.format(Locale.ENGLISH,
-                            "Client: (%s, %d)    Server: (%s, %d)",
-                            playerController.getPlayerPosition(), playerInputLog.getCurrentSequenceNumber(),
-                            playerState.getPosition(), sequenceNumber));*/
-
-                        playerInputLog.discardLogUntil(sequenceNumber);
-                        playerController.setNextState(0, playerState);
-                        for (PlayerInput playerInput : playerInputLog.getInputLog()) {
-                            playerController.updateInput(playerInput);
-                            playerController.update();
-                            collisionWorld.onPlayerMoved(player.getId(), timestamp, playerInput.getDelta());
-                        }
-                    } else {
-                        world.getPlayerController(playerState.getId(), playerState.getPosition())
-                                .setNextState(sequenceNumber, playerState);
-                    }
-                }
-
-                @Override
-                public void onBulletState(UUID playerID, Bullet bulletState) {
-                    //if (player.getId().equals(playerID)) return;
-
-                    if (playerID == null) {
-                        world.onBulletDied();
-                    } else {
-                        world.onBulletFired(playerID, bulletState);
-                    }
-                }
-            });
-
-            voiceClient.dispatchMessages(new VoiceClient.ServerResponseHandler() {
-                private final Collection<Timestamp<UUID>> lastActivePlayerMics = new HashSet<>();
-                @Override
-                public void updateActivePlayerMics(Collection<UUID> activePlayerMics) {
-                    if (gameUI.isMicActive())
-                        lastActivePlayerMics.add(new Timestamp<>(playerID));
-
-                    activePlayerMics.forEach(pID -> lastActivePlayerMics.add(new Timestamp<>(pID)));
-
-                    long now = System.currentTimeMillis();
-
-                    System.out.println(lastActivePlayerMics);
-
-                    gameUI.updateActivePlayerMics(clientsNames, lastActivePlayerMics.stream()
-                            .filter(tPlayerID -> (now - tPlayerID.getTimestamp() <= 1000)) // at most 0.5s old
-                            .map(Timestamp::get)
-                            .collect(Collectors.toSet())
-                    );
-                }
-
-                @Override
-                public void writeAudioSamples(Optional<short[]> audioSamples) {
-                    audioSamples.ifPresent(voiceChatDevice::writeSamples);
-                }
-            });
+            gameClient.dispatchMessages(gameServerResponseHandler);
+            voiceClient.dispatchMessages(voiceServerResponseHandler);
 
             // read player input
             PlayerInput playerInput = gameUI.readInput();
@@ -215,7 +223,7 @@ public class GameScreen extends ScreenAdapter {
         worldView.render(batch);
         batch.end();
 
-        gameUI.render(delta);
+        gameUI.render(delta, newRoundStarting);
     }
 
     private void updateState() {

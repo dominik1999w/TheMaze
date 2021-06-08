@@ -32,4 +32,12 @@ public final class Timestamp<T> {
     public int hashCode() {
         return Objects.hash(object);
     }
+
+    @Override
+    public String toString() {
+        return "Timestamp{" +
+                "timestamp=" + timestamp +
+                ", object=" + object +
+                '}';
+    }
 }
