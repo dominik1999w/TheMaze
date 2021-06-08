@@ -8,14 +8,10 @@ import static util.ServerConfig.SERVER_UPDATE_RATE;
 
 public class AuthoritativePlayerController extends PlayerController implements GameAuthoritativeListener {
 
-    private final World<?> world;
-
     private final PlayerInterpolator playerInterpolator;
-    private boolean nextFireBullet;
 
     public AuthoritativePlayerController(Player player, World<?> world) {
         super(player);
-        this.world = world;
         this.playerInterpolator = new PlayerInterpolator(SERVER_UPDATE_RATE);
     }
 

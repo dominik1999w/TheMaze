@@ -20,6 +20,8 @@ import static util.ServerConfig.SERVER_UPDATE_RATE;
 public class Game {
     private static final Logger logger = Logger.getLogger(Game.class.getName());
 
+    private final int tickRate;
+
     private final GameService gameService;
     private final MapService mapService;
     private final StateService stateService;
@@ -30,10 +32,11 @@ public class Game {
 
     private CustomTimer gameTask = new CustomTimer();
 
-    public Game(MapService mapService, StateService stateService, GameService gameService) {
+    public Game(MapService mapService, StateService stateService, GameService gameService, int tickRate) {
         this.mapService = mapService;
         this.stateService = stateService;
         this.gameService = gameService;
+        this.tickRate = tickRate;
     }
 
     public void startGame() {
@@ -77,7 +80,7 @@ public class Game {
             gameService.getWorld().update(delta);
             gameService.getCollisionWorld().update();
             gameService.broadcastGameState(System.currentTimeMillis());
-        }, 1.0f / SERVER_UPDATE_RATE);
+        }, 1.0f / tickRate);
     }
 
     public void startNewRound() {

@@ -2,7 +2,7 @@ package util;
 
 public final class ServerConfig {
 
-    public static final int SERVER_UPDATE_RATE = 40;
+    public static int SERVER_UPDATE_RATE;
 
     private ServerConfig() {}
 }

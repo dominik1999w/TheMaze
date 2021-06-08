@@ -1,3 +1,5 @@
+import java.util.Properties;
+
 import game.Game;
 import lib.connection.BulletState;
 import lib.connection.GameStateRequest;
@@ -16,6 +18,7 @@ import service.MapService;
 import service.StateService;
 import service.VoiceChatService;
 import types.WallType;
+import util.ServerConfig;
 
 public class Main {
     private static void loadClasses(Class<?>... classes) {
@@ -97,14 +100,22 @@ public class Main {
         MapService mapService = new MapService();
         StateService stateService = new StateService();
 
-        GameServer server = new GrpcServer(50051, gameService, mapService, stateService);
+        Properties serverProperties = new Properties();
+        serverProperties.load(Main.class.getClassLoader().getResourceAsStream("server.properties"));
+
+        int portMain = Integer.parseInt(serverProperties.getProperty("port-main"));
+        int portVoice = Integer.parseInt(serverProperties.getProperty("port-voice"));
+        int tickRate = Integer.parseInt(serverProperties.getProperty("tick-rate"));
+        ServerConfig.SERVER_UPDATE_RATE = tickRate;
+
+        GameServer server = new GrpcServer(portMain, gameService, mapService, stateService);
         server.start();
 
         //Log.set(0);
-        VoiceChatService voiceChatService = new VoiceChatService(50052);
+        VoiceChatService voiceChatService = new VoiceChatService(portVoice);
         voiceChatService.start();
 
-        Game game = new Game(mapService, stateService, gameService);
+        Game game = new Game(mapService, stateService, gameService, tickRate);
         new Thread(game::startGame).start();
 
         server.blockUntilShutdown();

@@ -22,6 +22,7 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.Random;
 import java.util.UUID;
 
@@ -39,16 +40,6 @@ import util.Menu;
 import util.Point2D;
 
 public class MenuScreen extends ScreenAdapter {
-    private static final String HOST =
-//            "10.0.2.2"
-//            "localhost"
-//            "10.232.0.13"
-//            "192.168.1.15"
-            "54.177.126.239"
-            ;
-
-    private static final int PORT = 50051;
-
     private final UUID playerID;
     private String name;
     private java.util.Map<String, String> clientsNames;
@@ -98,10 +89,17 @@ public class MenuScreen extends ScreenAdapter {
 
     void connect() {
         connectionResult = asyncExecutor.submit(() -> {
-            gameClient = ClientFactory.newGameClient(HOST, PORT);
-            mapClient = ClientFactory.newMapClient(HOST, PORT);
-            stateClient = ClientFactory.newStateClient(HOST, PORT);
-            voiceClient = ClientFactory.newVoiceClient(HOST, PORT + 1);
+            Properties serverProperties = new Properties();
+            serverProperties.load(Gdx.files.internal("server.properties").read());
+
+            String host = serverProperties.getProperty("host");
+            int portMain = Integer.parseInt(serverProperties.getProperty("port-main"));
+            int portVoice = Integer.parseInt(serverProperties.getProperty("port-voice"));
+
+            gameClient = ClientFactory.newGameClient(host, portMain);
+            mapClient = ClientFactory.newMapClient(host, portMain);
+            stateClient = ClientFactory.newStateClient(host, portMain);
+            voiceClient = ClientFactory.newVoiceClient(host, portVoice);
 
             mapClient.connect(playerID);
             voiceClient.connect(playerID);
