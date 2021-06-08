@@ -64,4 +64,16 @@ public class Point2Di {
     public String toString() {
         return String.format(Locale.ENGLISH, "Point2Di(%d,%d)", x, y);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null)
+            return false;
+        if (getClass() != o.getClass())
+            return false;
+        Point2Di po = (Point2Di) o;
+        return x == po.x && y == po.y;
+    }
 }

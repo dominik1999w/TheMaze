@@ -34,10 +34,12 @@ public class MapGenerator {
 
     public static void chooseGenerator(int gen) {
         chosenGenerator = gen;
-        System.out.println(chosenGenerator);
+        //System.out.println(chosenGenerator);
     }
 
     public Map generateMap(int seed) {
+        this.random = new Random(seed);
+
         if (chosenGenerator == 1) {
             return generateRandomMap(seed);
         }
@@ -49,8 +51,103 @@ public class MapGenerator {
         }
     }
 
+    class Edge {
+        Point2Di u;
+        Point2Di v;
+
+        Edge(Point2Di u, Point2Di v){
+            this.u = new Point2Di(u);
+            this.v = new Point2Di(v);
+        }
+    }
+
+    private ArrayList<Edge> primMST(ArrayList<Point2Di> pivots) {
+        float[][] adj = new float[pivots.size()][pivots.size()];
+        int P = pivots.size();
+
+        for (int i = 0; i < P; i++) {
+            for (int j = 0; j < P; j++) {
+                adj[i][j] = Point2D.dist(new Point2D(pivots.get(i).x(), pivots.get(i).y()), new Point2D(pivots.get(j).x(), pivots.get(j).y()));
+            }
+        }
+
+        int[] parent = new int[P];
+        float[] key = new float[P];
+        Boolean[] mstSet = new Boolean[P];
+        for (int i = 0; i < P; i++) {
+            key[i] = Integer.MAX_VALUE;
+            mstSet[i] = false;
+        }
+
+        key[0] = 0;
+        parent[0] = -1;
+        for (int count = 0; count < P - 1; count++) {
+            int u = -1;
+            float min = Float.MAX_VALUE;
+
+            for (int v = 0; v < P; v++) {
+                if (!mstSet[v] && key[v] < min) {
+                    min = key[v];
+                    u = v;
+                }
+            }
+
+            mstSet[u] = true;
+            for (int v = 0; v < P; v++) {
+                if (adj[u][v] != 0 && !mstSet[v] && adj[u][v] < key[v]) {
+                    parent[v] = u;
+                    key[v] = adj[u][v];
+                }
+            }
+        }
+
+        ArrayList<Edge> result = new ArrayList<>();
+        for (int i = 1; i < P; i++) {
+            result.add(new Edge(pivots.get(i), pivots.get(parent[i])));
+
+             ; // indexes of first and second point
+            //System.out.println(parent[i] + " - " + i + "\t" + adj[i][parent[i]]);
+        }
+        return result;
+    }
+
+    static boolean onSegment(Point2Di p, Point2Di q, Point2Di r) {
+        if (q.x() <= Math.max(p.x(), r.x()) && q.x() >= Math.min(p.x(), r.x()) &&
+                q.y() <= Math.max(p.y(), r.y()) && q.y() >= Math.min(p.y(), r.y())) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    static int orientation(Point2Di p, Point2Di q, Point2Di r) {
+        int val = (q.y() - p.y()) * (r.x() - q.x()) -(q.x() - p.x()) * (r.y() - q.y());
+
+        if (val == 0) {
+            return 0;
+        }
+        return (val > 0)? 1: 2;
+    }
+
+    private static boolean doIntersect(Point2Di p1, Point2Di q1, Point2Di p2, Point2Di q2) {
+        int o1 = orientation(p1, q1, p2);
+        int o2 = orientation(p1, q1, q2);
+        int o3 = orientation(p2, q2, p1);
+        int o4 = orientation(p2, q2, q1);
+
+        if (o1 != o2 && o3 != o4) return true;
+        if (o1 == 0 && onSegment(p1, p2, q1)) return true;
+        if (o2 == 0 && onSegment(p1, q2, q1)) return true;
+        if (o3 == 0 && onSegment(p2, p1, q2)) return true;
+        if (o4 == 0 && onSegment(p2, q1, q2)) return true;
+
+        return false;
+    }
+
     private Map generateCaves(int seed) {
-        this.random = new Random(seed);
+        float pivotFill = 0.1f * (float) length * length;
+        int randomEdges = (int)Math.sqrt(pivotFill/2) + 1;
 
         for (int i = 0; i < length; i++) {
             for (int j = 0; j < length; j++) {
@@ -58,77 +155,52 @@ public class MapGenerator {
             }
         }
 
-        float pivotFill = 0.1f;
         int[][] grid = new int[length][length];
 
         ArrayList<Point2Di> pivots = new ArrayList<Point2Di>();
-        for (int i = 0; i < (float) length * length * pivotFill; i++) {
+        for (int i = 0; i < pivotFill; i++) {
             pivots.add(new Point2Di((random.nextInt() & Integer.MAX_VALUE) % length, (random.nextInt() & Integer.MAX_VALUE) % length));
         }
-        int V = pivots.size();
 
         for (Point2Di p : pivots) {
             grid[p.x()][p.y()] = 1;
         }
 
-        class MST {
-            ArrayList<Point2Di> primMST(float[][] adj) {
-                int[] parent = new int[V];
-                float[] key = new float[V];
-                Boolean[] mstSet = new Boolean[V];
-                for (int i = 0; i < V; i++) {
-                    key[i] = Integer.MAX_VALUE;
-                    mstSet[i] = false;
-                }
+        ArrayList<Edge> edges = primMST(pivots);
 
-                key[0] = 0;
-                parent[0] = -1;
-                for (int count = 0; count < V - 1; count++) {
-                    int u = -1;
-                    float min = Float.MAX_VALUE;
+        for (int i = 0; i < randomEdges;){
+            Point2Di u = pivots.get((random.nextInt() & Integer.MAX_VALUE) % pivots.size());
+            Point2Di v = pivots.get((random.nextInt() & Integer.MAX_VALUE) % pivots.size());
+            if (u == v){
+                continue;
+            }
 
-                    for (int v = 0; v < V; v++) {
-                        if (!mstSet[v] && key[v] < min) {
-                            min = key[v];
-                            u = v;
-                        }
-                    }
+            Edge uv = new Edge(u, v);
+            if (edges.contains(uv)) {
+                continue;
+            }
 
-                    mstSet[u] = true;
-                    for (int v = 0; v < V; v++) {
-                        if (adj[u][v] != 0 && !mstSet[v] && adj[u][v] < key[v]) {
-                            parent[v] = u;
-                            key[v] = adj[u][v];
-                        }
+            boolean intersect = false;
+            for(Edge e : edges) {
+
+                if (!u.equals(e.u) && !u.equals(e.v) && !v.equals(e.u) && !v.equals(e.v)) {
+                    if(doIntersect(u, v, e.u, e.v)) {
+                        intersect = true;
+                        break;
                     }
                 }
-
-                ArrayList<Point2Di> result = new ArrayList<>();
-                for (int i = 1; i < V; i++) {
-                    result.add(new Point2Di(i, parent[i])); // indexes of first and second point
-                    //System.out.println(parent[i] + " - " + i + "\t" + adj[i][parent[i]]);
-                }
-                return result;
+            }
+            if (!intersect) {
+                edges.add(uv);
+                i++;
             }
         }
 
-        MST t = new MST();
-        float[][] adj = new float[pivots.size()][pivots.size()];
-        for (int i = 0; i < pivots.size(); i++) {
-            for (int j = 0; j < pivots.size(); j++) {
-                adj[i][j] = Point2D.dist(new Point2D(pivots.get(i).x(), pivots.get(i).y()), new Point2D(pivots.get(j).x(), pivots.get(j).y()));
-            }
-        }
-
-        ArrayList<Point2Di> edges = t.primMST(adj);
-        //for (int i = 0; i < edges.size(); i++) System.out.println("(" + pivots.get(edges.get(i).x()).x()+ "," + pivots.get(edges.get(i).x()).y() + ") (" + pivots.get(edges.get(i).y()).x()+ "," + pivots.get(edges.get(i).y()).y() + ")");
-
-
-        for (Point2Di e : edges) {
-            float p1x = pivots.get(e.x()).x();
-            float p1y = pivots.get(e.x()).y();
-            float p2x = pivots.get(e.y()).x();
-            float p2y = pivots.get(e.y()).y();
+        for (Edge e : edges) {
+            float p1x = e.u.x();
+            float p1y = e.u.y();
+            float p2x = e.v.x();
+            float p2y = e.v.y();
 
             float dx = Math.signum(p2x - p1x);
             float dy = Math.signum(p2y - p1y);
@@ -153,7 +225,6 @@ public class MapGenerator {
                 }
             }
         }
-
 
         for (int i = 0; i < length; i++) {
             for (int j = 0; j < length; j++) {
@@ -184,7 +255,6 @@ public class MapGenerator {
                             graph[i][j+1].removeWall(DOWN_WALL);
                         }
                     }
-
                 }
             }
 
@@ -207,7 +277,6 @@ public class MapGenerator {
 
 
     private Map generateRandomMap(int seed) {
-        this.random = new Random(seed);
         for (int i = 0; i < length; i++) {
             for (int j = 0; j < length; j++) {
                 graph[i][j] = new Map.Node(i, j, new ArrayList<>(Arrays.asList(WallType.values())));
