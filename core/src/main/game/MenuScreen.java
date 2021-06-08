@@ -244,7 +244,7 @@ public class MenuScreen extends ScreenAdapter {
             }
         });
 
-        TextButton mapType2 = Menu.getTextButton("cheese", skin, new ClickListener() {
+        TextButton mapType2 = Menu.getTextButton("caves", skin, new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 MapGenerator.chooseGenerator(2);
