@@ -105,6 +105,8 @@ public class Main {
 
         int portMain = Integer.parseInt(serverProperties.getProperty("port-main"));
         int portVoice = Integer.parseInt(serverProperties.getProperty("port-voice"));
+        int tickRate = Integer.parseInt(serverProperties.getProperty("tick-rate"));
+        ServerConfig.SERVER_UPDATE_RATE = tickRate;
 
         GameServer server = new GrpcServer(portMain, gameService, mapService, stateService);
         server.start();
