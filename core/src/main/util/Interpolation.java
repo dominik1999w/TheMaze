@@ -9,9 +9,20 @@ public class Interpolation {
         );
     }
 
-    // TODO: fix rotation interpolation (-180 == 180)
-    public static float interpolate(float rotationA, float rotationB, float factor) {
-        return rotationA + (rotationB - rotationA) * factor;
+    public static float interpolate(float valueA, float valueB, float factor) {
+        return valueA + (valueB - valueA) * factor;
+    }
+
+    /*
+     * -180 < rotation < 180
+     */
+    public static float interpolateRotation(float rotationA, float rotationB, float factor) {
+        if (rotationB - rotationA > 180) {
+            rotationA += 360;
+        } else if (rotationA - rotationB > 180) {
+            rotationB += 360;
+        }
+        return interpolate(rotationA, rotationB, factor);
     }
 
     private Interpolation() {}
