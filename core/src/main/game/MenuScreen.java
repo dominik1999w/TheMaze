@@ -38,6 +38,7 @@ import renderable.MapView;
 import types.SkinType;
 import util.Menu;
 import util.Point2D;
+import util.ServerConfig;
 
 public class MenuScreen extends ScreenAdapter {
     private final UUID playerID;
@@ -97,7 +98,7 @@ public class MenuScreen extends ScreenAdapter {
             int portVoice = Integer.parseInt(serverProperties.getProperty("port-voice"));
             int serverTickRate = Integer.parseInt(serverProperties.getProperty("tick-rate"));
 
-            ServerConfig.SERVER_UPDATE_RATE = tickRate;
+            ServerConfig.SERVER_UPDATE_RATE = serverTickRate;
 
             gameClient = ClientFactory.newGameClient(host, portMain);
             mapClient = ClientFactory.newMapClient(host, portMain);
