@@ -2,6 +2,7 @@ package ui;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.CheckBox;
@@ -46,7 +47,7 @@ public class GameUI {
 
     public void build() {
         table.row().colspan(2);
-        this.points = new Label("", skin, "title");
+        this.points = new Label("", skin, "title", Color.YELLOW);
         updatePoints(0);
         table.add(points).left().top().padTop(50).padLeft(50).padRight(50);
 
@@ -107,7 +108,7 @@ public class GameUI {
     public void updateActivePlayerMics(Map<String, String> clientsNames, Iterable<UUID> activeMics) {
         activePlayerMics.clear();
         for (UUID activeMic : activeMics) {
-            activePlayerMics.addActor(new Label(clientsNames.get(activeMic.toString()), skin));
+            activePlayerMics.addActor(new Label(clientsNames.get(activeMic.toString()), skin, "font", Color.YELLOW));
         }
         activePlayerMics.layout();
     }

@@ -1,5 +1,7 @@
 package game;
 
+import com.google.common.collect.Iterables;
+
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -14,8 +16,6 @@ import service.MapService;
 import service.StateService;
 import time.CustomTimer;
 import world.RoundResult;
-
-import static util.ServerConfig.SERVER_UPDATE_RATE;
 
 public class Game {
     private static final Logger logger = Logger.getLogger(Game.class.getName());
@@ -68,6 +68,11 @@ public class Game {
             if (newRoundStarted.get()) {
                 gameService.startNewRound(mapService.updateInitialPositions());
                 newRoundStarted.set(false);
+            }
+            if (Iterables.isEmpty(gameService.getWorld().getConnectedPlayers())) {
+                gameService.endGame();
+                gameOver.set(true);
+                endGame();
             }
 
             gameService.dispatchMessages((sequenceNumber, timestamp, id, playerInput) ->
