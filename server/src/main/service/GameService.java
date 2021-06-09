@@ -183,6 +183,10 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
         world.assignBulletRandomly();
     }
 
+    public void endGame() {
+        world.endGame();
+    }
+
     private void onPlayerJoined(UUID playerID, StreamObserver<GameStateResponse> responseObserver) {
         queueLock.lock();
         responseObservers.put(responseObserver, playerID);

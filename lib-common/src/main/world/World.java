@@ -152,6 +152,11 @@ public class World<TController extends PlayerController> {
         }
     }
 
+    public void endGame() {
+        roundInProgress = false;
+        roundTimer.cancel();
+    }
+
     public void update(float delta) {
         players.values().forEach(PlayerController::update);
         if (delayedBulletDeath) {
