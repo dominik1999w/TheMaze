@@ -6,6 +6,7 @@ import java.util.List;
 import util.Point2D;
 
 import static util.Interpolation.interpolate;
+import static util.Interpolation.interpolateRotation;
 
 public class PlayerInterpolator {
 
@@ -67,7 +68,7 @@ public class PlayerInterpolator {
         float rotationB = playerStateTimeStampB.playerState.getRotation();
         float smoothFactor = ((float)(renderTimestamp - timestampA)) / ((float)(timestampB - timestampA));
         out.setPosition(interpolate(out.getPosition(), interpolate(positionA, positionB, smoothFactor), 0.25f));
-        out.setRotation(interpolate(out.getRotation(), interpolate(rotationA, rotationB, smoothFactor), 0.25f));
+        out.setRotation(interpolateRotation(out.getRotation(), interpolateRotation(rotationA, rotationB, smoothFactor), 0.25f));
 
         //log.append("    outPosition=").append(out.getPosition()).append('\n');
 
