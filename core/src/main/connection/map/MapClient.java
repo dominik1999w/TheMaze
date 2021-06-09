@@ -9,16 +9,16 @@ public interface MapClient extends Client {
     interface ServerResponseHandler {
         void displayAdminUI();
 
-        void startGame(int mapLength, int seed, boolean isHost);
+        void startGame(int mapLength, int seed, int generatorType, boolean isHost);
 
-        void updateMap(int mapLength, int seed);
+        void updateMap(int mapLength, int seed, int generatorType);
 
         void updateInitialPosition(Point2D position);
 
         void updateClientsNames(Map<String, String> names);
     }
 
-    void syncState(int mapLength, int seed, boolean gameStarted);
+    void syncState(int mapLength, int seed, int generatorType, boolean gameStarted);
 
     void dispatchMessages(ServerResponseHandler responseHandler);
 

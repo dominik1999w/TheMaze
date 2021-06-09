@@ -56,10 +56,10 @@ public class GrpcMapClient implements MapClient {
             if (mapResponse.getIsHost()) {
                 responseHandler.displayAdminUI();
             } else {
-                responseHandler.updateMap(mapResponse.getLength(), mapResponse.getSeed());
+                responseHandler.updateMap(mapResponse.getLength(), mapResponse.getSeed(), mapResponse.getGeneratorType());
             }
             if (mapResponse.getStarted()) {
-                responseHandler.startGame(mapResponse.getLength(), mapResponse.getSeed(), mapResponse.getIsHost());
+                responseHandler.startGame(mapResponse.getLength(), mapResponse.getSeed(), mapResponse.getGeneratorType(), mapResponse.getIsHost());
             }
         }
         queueLock.unlock();
@@ -99,11 +99,12 @@ public class GrpcMapClient implements MapClient {
     }
 
     @Override
-    public void syncState(int length, int seed, boolean gameStarted) {
+    public void syncState(int length, int seed, int generatorType, boolean gameStarted) {
         StateRequest request = StateRequest.newBuilder()
                 .setId(id.toString())
                 .setLength(length)
                 .setSeed(seed)
+                .setGeneratorType(generatorType)
                 .setStarted(gameStarted)
                 .build();
 

@@ -26,6 +26,7 @@ message StateRequest {
   int32 length = 2;
   int32 seed = 3;
   bool started = 4;
+  int32 generatorType = 5;
 }
 
 message StateResponse {
@@ -43,6 +44,7 @@ message MapStateResponse {
   Position position = 3;
   bool started = 4;
   bool isHost = 5;
+  int32 generatorType = 6;
 }
 
 message Position {

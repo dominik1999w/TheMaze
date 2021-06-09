@@ -26,28 +26,22 @@ public class MapGenerator {
     private Random random;
     private final float walls_to_remove = 0.5f;
     private final int length;
-    static int chosenGenerator = 1;
 
     public MapGenerator(int length) {
         this.length = length;
         graph = new Map.Node[length][length];
     }
 
-    public static void chooseGenerator(int gen) {
-        chosenGenerator = gen;
-        //System.out.println(chosenGenerator);
-    }
-
-    public Map generateMap(int seed) {
+    public Map generateMap(int seed, int generatorType) {
         this.random = new Random(seed);
 
-        if (chosenGenerator == 1) {
+        if (generatorType == 1) {
             return generateRandomMap();
         }
-        else if (chosenGenerator == 2) {
+        else if (generatorType == 2) {
             return generateCaves();
         }
-        else { // (chosenGenerator == 3)
+        else { // (generatorType == 3)
             return generateDungeon();
         }
     }
@@ -85,7 +79,6 @@ public class MapGenerator {
                 this.w = w;
                 this.h = h;
             }
-
         }
 
         ArrayList<Room> rooms = new ArrayList<>();
@@ -206,8 +199,6 @@ public class MapGenerator {
     }
 
 
-
-
     private ArrayList<Edge> primMST(ArrayList<Point2Di> pivots) {
         float[][] adj = new float[pivots.size()][pivots.size()];
         int P = pivots.size();
@@ -251,9 +242,6 @@ public class MapGenerator {
         ArrayList<Edge> result = new ArrayList<>();
         for (int i = 1; i < P; i++) {
             result.add(new Edge(pivots.get(i), pivots.get(parent[i])));
-
-             ; // indexes of first and second point
-            //System.out.println(parent[i] + " - " + i + "\t" + adj[i][parent[i]]);
         }
         return result;
     }

@@ -148,9 +148,9 @@ public class GameService extends TheMazeGrpc.TheMazeImplBase {
         }
     }
 
-    public void initializeWorld(Game game, int length, int seed, Map<UUID, Position> positions) {
+    public void initializeWorld(Game game, int length, int seed, int generatorType, Map<UUID, Position> positions) {
         MapGenerator mapGenerator = new MapGenerator(length);
-        map.Map map = mapGenerator.generateMap(seed);
+        map.Map map = mapGenerator.generateMap(seed, generatorType);
         collisionWorld = new CollisionWorld(map);
 
         world = new World<>(InputPlayerController::new, BulletController::new);
