@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Random;
@@ -41,13 +42,13 @@ public class MapGenerator {
         this.random = new Random(seed);
 
         if (chosenGenerator == 1) {
-            return generateRandomMap(seed);
+            return generateRandomMap();
         }
         else if (chosenGenerator == 2) {
-            return generateCaves(seed);
+            return generateCaves();
         }
         else { // (chosenGenerator == 3)
-            return generateCaves(seed);
+            return generateDungeon();
         }
     }
 
@@ -60,6 +61,152 @@ public class MapGenerator {
             this.v = new Point2Di(v);
         }
     }
+
+    private Map generateDungeon() {
+        int numberOfRooms = (int) length/3 + 1;
+        int minRoomLength = (int) length/9 + 1;;
+        int maxRoomLength = (int) length/3 + 1;
+        int maxNumberOfTries = length * length;
+
+        int[][] grid = new int[length][length];
+
+        class Room{
+            int index;
+            int x;
+            int y;
+            int w;
+            int h;
+            LinkedList<Integer> visited = new LinkedList<>();
+
+            Room(int index, int x, int y, int w, int h){
+                this.index = index;
+                this.x = x;
+                this.y = y;
+                this.w = w;
+                this.h = h;
+            }
+
+        }
+
+        ArrayList<Room> rooms = new ArrayList<>();
+
+        for(int r=0, k = 0; r<numberOfRooms && k < maxNumberOfTries; k++){
+            int w = (random.nextInt() & Integer.MAX_VALUE) % (maxRoomLength - minRoomLength + 1) + minRoomLength;
+            int h = (random.nextInt() & Integer.MAX_VALUE) % (maxRoomLength - minRoomLength + 1) + minRoomLength;
+            int x = (random.nextInt() & Integer.MAX_VALUE) % (length - w);
+            int y = (random.nextInt() & Integer.MAX_VALUE) % (length - h);
+
+            boolean legitRoom = true;
+            for(int i = Math.max(x - 1, 0); i<= Math.min(x+w, length - 1); i++) {
+                for(int j=Math.max(y-1, 0); j<=Math.min(y+h,length - 1); j++) {
+                    if(grid[i][j] != 0){
+                        legitRoom = false;
+                        break;
+                    }
+                }
+            }
+
+            if(legitRoom) {
+                r++;
+                for(int i = x; i<x+w; i++) {
+                    for(int j=y; j<y+h; j++) {
+                        grid[i][j] = r;
+                    }
+                }
+                rooms.add(new Room(r, x, y, w, h));
+            }
+        }
+
+        ArrayList<Integer> roomPointers = new ArrayList<Integer>();
+        for(int i=0; i<rooms.size(); i++){
+            roomPointers.add(i);
+        }
+        Collections.shuffle(roomPointers);
+
+
+        // grid=[1-n]   room.index=[1-n]   room.visited=[1-n]   arrayindex=[0 - n-1]
+        for(int r=0; r<rooms.size(); r++) {
+            Room room = rooms.get(roomPointers.get(r));
+
+            for(int tries = 0, paths = 0; tries< 100 && paths < 2; tries++){
+                int startX = (random.nextInt() & Integer.MAX_VALUE) % room.w + room.x;
+                int startY = (random.nextInt() & Integer.MAX_VALUE) % room.h + room.y;
+
+                int dir = (random.nextInt() & Integer.MAX_VALUE) % 4;
+                int dx = 0;
+                int dy = 0;
+
+                if (dir == 0) dx = 1;
+                else if (dir == 1) dy = 1;
+                else if (dir == 2) dx = -1;
+                else dy = -1;
+
+                int tx = startX;
+                int ty = startY;
+
+                int borderX = -1;
+                if(dx == 1) borderX = length;
+                int borderY = -1;
+                if(dy == 1) borderY = length;
+
+                while(tx!=borderX && ty!=borderY && (grid[tx][ty] == room.index || grid[tx][ty] == 0)) {
+                    tx+=dx;
+                    ty+=dy;
+                }
+
+                if(tx != borderX && ty != borderY){
+                    if(grid[tx][ty] > 0) {
+                        if (rooms.get(grid[tx][ty] - 1).visited.contains(room.index)) {
+                            continue;
+                        }
+                        else {
+                            rooms.get(grid[tx][ty] - 1).visited.add(room.index);
+                            room.visited.add(grid[tx][ty]);
+                        }
+                    }
+
+                    tx-=dx;
+                    ty-=dy;
+                    while (grid[tx][ty] != room.index) {
+                        grid[tx][ty] = -1;
+                        tx -= dx;
+                        ty -= dy;
+                    }
+
+                    paths++;
+                }
+            }
+        }
+
+
+        for (int i = 0; i < length; i++) {
+            for (int j = 0; j < length; j++) {
+                graph[i][j] = new Map.Node(i, j, new ArrayList<>(Arrays.asList(WallType.values())));
+            }
+        }
+
+        for (int i = 0; i < length; i++) { // horizontal walls
+            for (int j = 0; j < length - 1; j++) {
+                if (grid[i][j] != 0 && grid[i][j+1] != 0) {
+                    graph[i][j].removeWall(UP_WALL);
+                    graph[i][j+1].removeWall(DOWN_WALL);
+                }
+            }
+        }
+        for (int i = 0; i < length - 1; i++) { // vertical walls
+            for (int j = 0; j < length; j++) {
+                if (grid[i][j] != 0 && grid[i+1][j] != 0) {
+                    graph[i][j].removeWall(RIGHT_WALL);
+                    graph[i + 1][j].removeWall(LEFT_WALL);
+                }
+            }
+        }
+
+        return new Map(graph);
+    }
+
+
+
 
     private ArrayList<Edge> primMST(ArrayList<Point2Di> pivots) {
         float[][] adj = new float[pivots.size()][pivots.size()];
@@ -145,7 +292,8 @@ public class MapGenerator {
         return false;
     }
 
-    private Map generateCaves(int seed) {
+
+    private Map generateCaves() {
         float pivotFill = 0.1f * (float) length * length;
         int randomEdges = (int)Math.sqrt(pivotFill/2) + 1;
 
@@ -275,8 +423,7 @@ public class MapGenerator {
         return new Map(graph);
     }
 
-
-    private Map generateRandomMap(int seed) {
+    private Map generateRandomMap() {
         for (int i = 0; i < length; i++) {
             for (int j = 0; j < length; j++) {
                 graph[i][j] = new Map.Node(i, j, new ArrayList<>(Arrays.asList(WallType.values())));
