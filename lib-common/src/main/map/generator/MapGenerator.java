@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Random;
@@ -25,29 +26,31 @@ public class MapGenerator {
     private Random random;
     private final float walls_to_remove = 0.5f;
     private final int length;
-    static int chosenGenerator = 1;
 
     public MapGenerator(int length) {
         this.length = length;
         graph = new Map.Node[length][length];
     }
 
-    public static void chooseGenerator(int gen) {
-        chosenGenerator = gen;
-        //System.out.println(chosenGenerator);
-    }
-
-    public Map generateMap(int seed) {
+    public Map generateMap(int seed, int generatorType) {
         this.random = new Random(seed);
 
-        if (chosenGenerator == 1) {
-            return generateRandomMap(seed);
+        if (generatorType == 1) {
+            return generateRandomMap();
         }
-        else if (chosenGenerator == 2) {
-            return generateCaves(seed);
+        else if (generatorType == 2) {
+            return generateCaves();
         }
-        else { // (chosenGenerator == 3)
-            return generateCaves(seed);
+        else if (generatorType == 3) {
+            return generateDungeon();
+        }
+        else {
+            for (int i = 0; i < length; i++) {
+                for (int j = 0; j < length; j++) {
+                    graph[i][j] = new Map.Node(i, j, new ArrayList<>(Arrays.asList(WallType.values())));
+                }
+            }
+            return new Map(graph);
         }
     }
 
@@ -60,6 +63,121 @@ public class MapGenerator {
             this.v = new Point2Di(v);
         }
     }
+
+    private Map generateDungeon() {
+        int numberOfRooms = (int) length / 3 + 1;
+        int minRoomLength = (int) length / 9 + 1;
+        ;
+        int maxRoomLength = (int) length / 3 + 1;
+        int maxNumberOfTries = 100;
+
+        // -1=empty, -2=room_border, non-negative=rooms
+        int[][] grid = new int[length][length];
+
+        for(int i=0 ; i<length; i++) {
+            for(int j=0; j<length; j++) {
+                grid[i][j] = -1;
+            }
+        }
+
+        class Room{
+            int index;
+            int x;
+            int y;
+            int w;
+            int h;
+            LinkedList<Integer> visited = new LinkedList<>();
+
+            Room(int index, int x, int y, int w, int h){
+                this.index = index;
+                this.x = x;
+                this.y = y;
+                this.w = w;
+                this.h = h;
+            }
+        }
+
+        ArrayList<Room> rooms = new ArrayList<>();
+
+        for(int r = 0, tries = 0; r < numberOfRooms; tries++){
+            if (tries >= maxNumberOfTries) {
+                break;
+            }
+
+            int w = random.nextInt(maxRoomLength - minRoomLength + 1) + minRoomLength;
+            int h = random.nextInt(maxRoomLength - minRoomLength + 1) + minRoomLength;
+            int x = random.nextInt(length - w + 1);
+            int y = random.nextInt(length - h + 1);
+
+            boolean legitRoom = true;
+            for (int i = x; i < x + w && legitRoom; i++) {
+                for (int j = y; j < y + h; j++) {
+                    if (grid[i][j] != -1) {
+                        legitRoom = false;
+                        break;
+                    }
+                }
+            }
+
+            if (legitRoom) {
+                for (int i = Math.max(0, x - 1); i < Math.min(x + w + 1, length); i++) { // can be optimized
+                    for(int j = Math.max(0, y - 1); j < Math.min(y + h + 1, length); j++) {
+                        grid[i][j] = -2;
+                    }
+                }
+
+                for(int i = x; i<x+w; i++) {
+                    for(int j=y; j<y+h; j++) {
+                        grid[i][j] = r;
+                    }
+                }
+
+                rooms.add(new Room(r, x, y, w, h));
+                r++;
+                tries = 0;
+            }
+        }
+/*
+        ArrayList<Integer> roomPointers = new ArrayList<Integer>();
+        for(int i=0; i<rooms.size(); i++){
+            roomPointers.add(i);
+        }
+        Collections.shuffle(roomPointers);
+*/
+        for (int i = 0; i < length; i++) {
+            for (int j = 0; j < length; j++) {
+                graph[i][j] = new Map.Node(i, j, new ArrayList<>(Arrays.asList(WallType.values())));
+            }
+        }
+
+        for(int i=0 ; i<length; i++) {
+            for(int j=0; j<length; j++) {
+                if (grid[i][j] == -2) {
+                    grid[i][j] = -1;
+                }
+            }
+        }
+
+        for (int i = 0; i < length; i++) { // horizontal walls
+            for (int j = 0; j < length - 1; j++) {
+                if (grid[i][j] != -1 && grid[i][j + 1] != -1) {
+                    graph[i][j].removeWall(UP_WALL);
+                    graph[i][j + 1].removeWall(DOWN_WALL);
+                }
+            }
+        }
+        for (int i = 0; i < length - 1; i++) { // vertical walls
+            for (int j = 0; j < length; j++) {
+                if (grid[i][j] != -1 && grid[i + 1][j] != -1) {
+                    graph[i][j].removeWall(RIGHT_WALL);
+                    graph[i + 1][j].removeWall(LEFT_WALL);
+                }
+            }
+        }
+
+        return new Map(graph);
+    }
+
 
     private ArrayList<Edge> primMST(ArrayList<Point2Di> pivots) {
         float[][] adj = new float[pivots.size()][pivots.size()];
@@ -104,9 +222,6 @@ public class MapGenerator {
         ArrayList<Edge> result = new ArrayList<>();
         for (int i = 1; i < P; i++) {
             result.add(new Edge(pivots.get(i), pivots.get(parent[i])));
-
-             ; // indexes of first and second point
-            //System.out.println(parent[i] + " - " + i + "\t" + adj[i][parent[i]]);
         }
         return result;
     }
@@ -145,7 +260,8 @@ public class MapGenerator {
         return false;
     }
 
-    private Map generateCaves(int seed) {
+
+    private Map generateCaves() {
         float pivotFill = 0.1f * (float) length * length;
         int randomEdges = (int)Math.sqrt(pivotFill/2) + 1;
 
@@ -275,8 +391,7 @@ public class MapGenerator {
         return new Map(graph);
     }
 
-
-    private Map generateRandomMap(int seed) {
+    private Map generateRandomMap() {
         for (int i = 0; i < length; i++) {
             for (int j = 0; j < length; j++) {
                 graph[i][j] = new Map.Node(i, j, new ArrayList<>(Arrays.asList(WallType.values())));

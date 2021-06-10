@@ -99,7 +99,7 @@ public class LineMapCollisionDetector extends MapCollisionDetector {
 
     public List<float[]> getSightTriangles(Point2D playerPosition, float viewRadius, int numberOfRays) {
         List<Point2D> maxRange = new ArrayList<>();
-        for (float i = 0; i < 360; i += (360.0 / numberOfRays)) {
+        for (float i = 0.5f; i < 360.5; i += (360.0 / numberOfRays)) {
             maxRange.add(detectLightingMapCollisions(playerPosition, i, viewRadius));
             //System.out.format("%f %f \n",maxRange.get(maxRange.size() - 1).x(), maxRange.get(maxRange.size() - 1).y());
         }

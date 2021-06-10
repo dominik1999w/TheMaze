@@ -35,6 +35,7 @@ public class MapService extends MapGrpc.MapImplBase {
     private final AtomicReference<String> host = new AtomicReference<>("");
     private int lastSeed = 0;
     private int lastLength = 5;
+    private int lastGeneratorType = 1;
     private boolean gameStarted = false;
 
     private final Map<StreamObserver<StateResponse>, UUID> clients = new ConcurrentHashMap<>();
@@ -57,6 +58,7 @@ public class MapService extends MapGrpc.MapImplBase {
             if (request.getId().equals(host.get())) {
                 lastLength = request.getLength();
                 lastSeed = request.getSeed();
+                lastGeneratorType = request.getGeneratorType();
                 gameStarted = request.getStarted();
             }
         }
@@ -113,6 +115,7 @@ public class MapService extends MapGrpc.MapImplBase {
                                         MapStateResponse.newBuilder()
                                                 .setLength(lastLength)
                                                 .setSeed(lastSeed)
+                                                .setGeneratorType(lastGeneratorType)
                                                 .setPosition(positions.get(entry.getValue()))
                                                 .setStarted(gameStarted)
                                                 .setIsHost(entry.getValue().toString().equals(host.get()))
@@ -129,7 +132,7 @@ public class MapService extends MapGrpc.MapImplBase {
         }
         if (gameStarted) {
             gameStarted = false;
-            gameHandler.initializeGame(lastLength, lastSeed, positions);
+            gameHandler.initializeGame(lastLength, lastSeed, lastGeneratorType, positions);
             queueLock.lock();
             requestQueue.clear();
             queueLock.unlock();

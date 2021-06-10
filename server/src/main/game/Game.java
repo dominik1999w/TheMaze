@@ -153,8 +153,8 @@ public class Game {
             @Override
             public void run() {
                 mapService.dispatchMessages();
-                mapService.broadcastMapState((mapLength, seed, initialPositions) -> {
-                    gameService.initializeWorld(Game.this, mapLength, seed, mapService.updateInitialPositions()); // required for world preview during pregame countdown
+                mapService.broadcastMapState((mapLength, seed, generatorType, initialPositions) -> {
+                    gameService.initializeWorld(Game.this, mapLength, seed, generatorType, mapService.updateInitialPositions()); // required for world preview during pregame countdown
                     latch.countDown();
                     cancel();
                 });

@@ -73,6 +73,7 @@ public class MenuScreen extends ScreenAdapter {
     private final int minMapLength = 5;
     private final int maxMapLength = 50;
     private final int defaultSeed = 0;
+    private final int defaultGeneratorType = 1;
     private final Random random = new Random();
     private boolean startGameValue;
 
@@ -129,6 +130,7 @@ public class MenuScreen extends ScreenAdapter {
 
     int prevLength = minMapLength;
     int prevSeed = defaultSeed;
+    int prevGeneratorType = defaultGeneratorType;
     boolean sliderShown = false;
     Point2D initialPosition = new Point2D(3.5f * MapConfig.BOX_SIZE, 2.5f * MapConfig.BOX_SIZE);
 
@@ -171,7 +173,7 @@ public class MenuScreen extends ScreenAdapter {
                 username.setText("name: " + name);
             }
 
-            mapClient.syncState(prevLength, prevSeed, startGameValue);
+            mapClient.syncState(prevLength, prevSeed, prevGeneratorType, startGameValue);
             mapClient.dispatchMessages(new MapClient.ServerResponseHandler() {
                 @Override
                 public void displayAdminUI() {
@@ -183,9 +185,9 @@ public class MenuScreen extends ScreenAdapter {
                 }
 
                 @Override
-                public void updateMap(int mapLength, int seed) {
-                    if (prevLength != mapLength || prevSeed != seed) {
-                        calculateMap(mapLength, seed);
+                public void updateMap(int mapLength, int seed, int generatorType) {
+                    if (prevLength != mapLength || prevSeed != seed || prevGeneratorType != generatorType) {
+                        calculateMap(mapLength, seed, generatorType);
                     }
                 }
 
@@ -200,9 +202,9 @@ public class MenuScreen extends ScreenAdapter {
                 }
 
                 @Override
-                public void startGame(int mapLength, int seed, boolean isHost) {
+                public void startGame(int mapLength, int seed, int generatorType, boolean isHost) {
                     MapGenerator mapGenerator = new MapGenerator(mapLength);
-                    Map map = mapGenerator.generateMap(seed);
+                    Map map = mapGenerator.generateMap(seed, generatorType);
                     gameScreen = new GameScreen(
                             playerID, clientsNames, batch, game, gameClient, stateClient, voiceClient, initialPosition, map, assetManager
                     );
@@ -237,35 +239,33 @@ public class MenuScreen extends ScreenAdapter {
         float height = menuContainer.getHeight();
 
         final Slider slider = new Slider(minMapLength, maxMapLength, 1, false, skin);
+        slider.setWidth(400);
 
         TextButton mapType1 = Menu.getTextButton("random", skin, new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                MapGenerator.chooseGenerator(1);
-                calculateMap((int) slider.getValue(), random.nextInt());
+                calculateMap((int) slider.getValue(), random.nextInt(), 1);
             }
         });
 
         TextButton mapType2 = Menu.getTextButton("caves", skin, new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                MapGenerator.chooseGenerator(2);
-                calculateMap((int) slider.getValue(), random.nextInt());
+                calculateMap((int) slider.getValue(), random.nextInt(), 2);
             }
         });
 
         TextButton mapType3 = Menu.getTextButton("dungeon", skin, new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                MapGenerator.chooseGenerator(3);
-                calculateMap((int) slider.getValue(), random.nextInt());
+                calculateMap((int) slider.getValue(), random.nextInt(), 3);
             }
         });
 
 
         sliderContainer = new Menu.Builder()
                 //.defaultSettings(width, height, menuContainer.getWidth(), (Gdx.graphics.getHeight() - height) / 2)
-                .defaultSettings(width, height, 0, -(float) Gdx.graphics.getHeight() / 2)
+                .defaultSettings(menuContainer.getWidth() * 0.65f, height, menuContainer.getX() + 0.175f * menuContainer.getWidth(), -(float) Gdx.graphics.getHeight() / 2)
                 .addTable()
                 .addSlider(slider, new ChangeListener() {
                     @Override
@@ -273,13 +273,14 @@ public class MenuScreen extends ScreenAdapter {
                         if (!slider.isDragging()) {
                             return;
                         }
-                        calculateMap((int) slider.getValue(), random.nextInt());
+                        calculateMap((int) slider.getValue(), random.nextInt(), prevGeneratorType);
                     }
                 })
                 .addPadding(10.0f)
-                //.addDefaultPadding(10.0f)
                 .addTextButton(mapType1, 0.8f)
+                .addPadding(3.0f)
                 .addTextButton(mapType2, 0.8f)
+                .addPadding(3.0f)
                 .addTextButton(mapType3, 0.8f)
                 .build();
 
@@ -288,17 +289,18 @@ public class MenuScreen extends ScreenAdapter {
 
     private void buildMap() {
         camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        mapView = new MapView(new MapGenerator(minMapLength).generateMap(defaultSeed), assetManager);
-        calculateMap(minMapLength, defaultSeed);
+        mapView = new MapView(new MapGenerator(minMapLength).generateMap(defaultSeed, defaultGeneratorType), assetManager);
+        calculateMap(minMapLength, defaultSeed, defaultGeneratorType);
     }
 
-    private void calculateMap(int length, int seed) {
+    private void calculateMap(int length, int seed, int generatorType) {
         prevLength = length;
         prevSeed = seed;
+        prevGeneratorType = generatorType;
 
         updateCamera(length);
 
-        mapView.setMap(new MapGenerator(length).generateMap(seed));
+        mapView.setMap(new MapGenerator(length).generateMap(seed, generatorType));
         mapView.setView(camera);
     }
 
