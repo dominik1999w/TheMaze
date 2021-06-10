@@ -1,6 +1,7 @@
 package map.generator;
 
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -64,14 +65,87 @@ public class MapGenerator {
         }
     }
 
-    private Map generateDungeon() {
-        int numberOfRooms = (int) length / 3 + 1;
-        int minRoomLength = (int) length / 9 + 1;
-        ;
-        int maxRoomLength = (int) length / 3 + 1;
-        int maxNumberOfTries = 100;
 
-        // -1=empty, -2=room_border, non-negative=rooms
+    class Path {
+        int from;
+        ArrayList<Point2Di> steps;
+        int to;
+
+        Path(int from, ArrayList<Point2Di> steps, int to) {
+            this.from = from;
+            this.steps = steps;
+            this.to = to;
+        }
+    }
+
+    class Room{
+        int index;
+        int x;
+        int y;
+        int w;
+        int h;
+        ArrayList<Path> paths = new ArrayList<>();
+
+        Room(int index, int x, int y, int w, int h){
+            this.index = index;
+            this.x = x;
+            this.y = y;
+            this.w = w;
+            this.h = h;
+        }
+    }
+
+    void findRoomsOnLine(int beginX, int beginY, int endX, int endY, int[][] grid, ArrayList<Room> rooms) {
+        int lastRoomIndex = -1;
+        boolean legitLine = false;
+        int numberOfBorders = 0;
+
+        int i = beginX;
+        int j = beginY;
+        int di = (int)Math.signum(endX - beginX);
+        int dj = (int)Math.signum(endY - beginY);
+
+        ArrayList<Point2Di> pathSteps = new ArrayList<>();
+
+        for(;i != endX || j != endY; i+=di, j+=dj) {
+            if (grid[i][j] >= 0) { // room
+                if (legitLine && grid[i][j] != lastRoomIndex) {
+                    //rooms.get(grid[i][j]).paths.add(new Path(lastRoomIndex, pathSteps, grid[i][j])); // reverse it probably
+                    rooms.get(lastRoomIndex).paths.add(new Path(lastRoomIndex, pathSteps, grid[i][j]));
+                    pathSteps = new ArrayList<>();
+                }
+                lastRoomIndex = grid[i][j];
+                legitLine = true;
+                numberOfBorders = 0;
+            }
+            else if(grid[i][j] == -1) { // empty
+                if (legitLine) {
+                    pathSteps.add(new Point2Di(i, j));
+                }
+            }
+            else { // room border
+                if (legitLine) {
+                    numberOfBorders++;
+
+                    if (numberOfBorders > 2) {
+                        legitLine = false;
+                        pathSteps = new ArrayList<>();
+                    }
+                    else {
+                        pathSteps.add(new Point2Di(i, j));
+                    }
+                }
+            }
+        }
+    }
+
+    private Map generateDungeon() {
+        int numberOfRooms = (int) length + 1;
+        int minRoomLength = (int) length / 14 + 2;
+        int maxRoomLength = (int) length / 7 + 2;
+        int maxNumberOfTries = 100;
+        int longPathRemove = (int) Math.sqrt(length) + 2;
+        // -1=empty, -2=room_border, 999=paths, non-negative=rooms
         int[][] grid = new int[length][length];
 
         for(int i=0 ; i<length; i++) {
@@ -80,25 +154,7 @@ public class MapGenerator {
             }
         }
 
-        class Room{
-            int index;
-            int x;
-            int y;
-            int w;
-            int h;
-            LinkedList<Integer> visited = new LinkedList<>();
-
-            Room(int index, int x, int y, int w, int h){
-                this.index = index;
-                this.x = x;
-                this.y = y;
-                this.w = w;
-                this.h = h;
-            }
-        }
-
         ArrayList<Room> rooms = new ArrayList<>();
-
         for(int r = 0, tries = 0; r < numberOfRooms; tries++){
             if (tries >= maxNumberOfTries) {
                 break;
@@ -120,7 +176,7 @@ public class MapGenerator {
             }
 
             if (legitRoom) {
-                for (int i = Math.max(0, x - 1); i < Math.min(x + w + 1, length); i++) { // can be optimized
+                for (int i = Math.max(0, x - 1); i < Math.min(x + w + 1, length); i++) { // can be optimized (borders only)
                     for(int j = Math.max(0, y - 1); j < Math.min(y + h + 1, length); j++) {
                         grid[i][j] = -2;
                     }
@@ -137,30 +193,92 @@ public class MapGenerator {
                 tries = 0;
             }
         }
-/*
-        ArrayList<Integer> roomPointers = new ArrayList<Integer>();
-        for(int i=0; i<rooms.size(); i++){
-            roomPointers.add(i);
+
+        for(int i=0; i<length; i+=2) { // reverse lists?
+            findRoomsOnLine(i, 0, i, length, grid, rooms);
+            findRoomsOnLine(0, i, length, i, grid, rooms);
+            //findRoomsOnLine(i, length - 1, i, -1, grid, rooms);
+            //findRoomsOnLine(length - 1, i,-1, i, grid, rooms);
         }
-        Collections.shuffle(roomPointers);
-*/
+
+        for (Room r : rooms) {
+            Iterator itr = r.paths.iterator();
+            while (itr.hasNext()) {
+                int len = ((Path)itr.next()).steps.size();
+                if (len > longPathRemove)
+                    itr.remove();
+            }
+        }
+
+        for (Room r : rooms) {
+            r.paths.sort((o1, o2) -> o1.to - o2.to);
+        }
+
+        for (Room r : rooms) {
+            for (int i = 0; i < r.paths.size(); i++) {
+                int j = i + 1;
+                for (; j < r.paths.size(); j++) {
+                    if (r.paths.get(i).to != r.paths.get(j).to) {
+                        break;
+                    }
+                }
+                // [i,j-1]
+                ArrayList<Point2Di> path = r.paths.get(random.nextInt(j - i) + i).steps;
+                for (Point2Di p : path) {
+                    grid[p.x()][p.y()] = 99999;
+                }
+                i = j - 1;
+            }
+        }
+
         for (int i = 0; i < length; i++) {
             for (int j = 0; j < length; j++) {
                 graph[i][j] = new Map.Node(i, j, new ArrayList<>(Arrays.asList(WallType.values())));
             }
         }
 
-        for(int i=0 ; i<length; i++) {
-            for(int j=0; j<length; j++) {
-                if (grid[i][j] == -2) {
-                    grid[i][j] = -1;
+        for(int i=0 ; i < length; i++) {
+            for(int j=0; j < length; j++) {
+                if (grid[i][j] >= 0) {
+                    grid[i][j] = 0; // empty
+                }
+                else {
+                    grid[i][j] = 1; // walls
+                }
+            }
+        }
+
+        int currentIndex = 2;
+        int biggestIndex = -1;
+        int biggestSize = -1;
+
+        for(int i = 0 ; i < length; i++) {
+            for(int j = 0; j < length; j++) {
+                if (grid[i][j] == 0) {
+                    int size = findBiggestDfs(grid, i, j, currentIndex);
+                    if (size > biggestSize) {
+                        biggestIndex = currentIndex;
+                        biggestSize = size;
+                    }
+                    currentIndex++;
+                }
+            }
+        }
+
+        for(int i=0 ; i < length; i++) {
+            for(int j=0; j < length; j++) {
+                if (grid[i][j] == biggestIndex) {
+                    grid[i][j] = 0; // empty
+                }
+                else {
+                    grid[i][j] = 1; // walls
                 }
             }
         }
 
         for (int i = 0; i < length; i++) { // horizontal walls
             for (int j = 0; j < length - 1; j++) {
-                if (grid[i][j] != -1 && grid[i][j + 1] != -1) {
+                if (grid[i][j] == 0 && grid[i][j + 1] == 0) {
                     graph[i][j].removeWall(UP_WALL);
                     graph[i][j + 1].removeWall(DOWN_WALL);
                 }
@@ -168,7 +286,7 @@ public class MapGenerator {
         }
         for (int i = 0; i < length - 1; i++) { // vertical walls
             for (int j = 0; j < length; j++) {
-                if (grid[i][j] != -1 && grid[i + 1][j] != -1) {
+                if (grid[i][j] == 0 && grid[i + 1][j] == 0) {
                     graph[i][j].removeWall(RIGHT_WALL);
                     graph[i + 1][j].removeWall(LEFT_WALL);
                 }
@@ -178,6 +296,18 @@ public class MapGenerator {
         return new Map(graph);
     }
 
+    int findBiggestDfs(int[][] grid, int i, int j, int currentIndex) {
+        if (i<0 || j<0 || i>=length || j>=length || grid[i][j] != 0) {
+            return 0;
+        }
+        grid[i][j] = currentIndex;
+
+        return 1 +
+                findBiggestDfs(grid, i - 1, j, currentIndex) +
+                findBiggestDfs(grid, i, j - 1, currentIndex) +
+                findBiggestDfs(grid, i + 1, j, currentIndex) +
+                findBiggestDfs(grid, i, j + 1, currentIndex);
+    }
 
     private ArrayList<Edge> primMST(ArrayList<Point2Di> pivots) {
         float[][] adj = new float[pivots.size()][pivots.size()];
