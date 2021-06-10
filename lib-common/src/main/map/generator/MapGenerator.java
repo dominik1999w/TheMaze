@@ -41,8 +41,16 @@ public class MapGenerator {
         else if (generatorType == 2) {
             return generateCaves();
         }
-        else { // (generatorType == 3)
+        else if (generatorType == 3) {
             return generateDungeon();
+        }
+        else {
+            for (int i = 0; i < length; i++) {
+                for (int j = 0; j < length; j++) {
+                    graph[i][j] = new Map.Node(i, j, new ArrayList<>(Arrays.asList(WallType.values())));
+                }
+            }
+            return new Map(graph);
         }
     }
 
@@ -57,12 +65,20 @@ public class MapGenerator {
     }
 
     private Map generateDungeon() {
-        int numberOfRooms = (int) length/3 + 1;
-        int minRoomLength = (int) length/9 + 1;;
-        int maxRoomLength = (int) length/3 + 1;
-        int maxNumberOfTries = length * length;
+        int numberOfRooms = (int) length / 3 + 1;
+        int minRoomLength = (int) length / 9 + 1;
+        ;
+        int maxRoomLength = (int) length / 3 + 1;
+        int maxNumberOfTries = 100;
 
+        // -1=empty, -2=room_border, non-negative=rooms
         int[][] grid = new int[length][length];
+
+        for(int i=0 ; i<length; i++) {
+            for(int j=0; j<length; j++) {
+                grid[i][j] = -1;
+            }
+        }
 
         class Room{
             int index;
@@ -83,112 +99,76 @@ public class MapGenerator {
 
         ArrayList<Room> rooms = new ArrayList<>();
 
-        for(int r=0, k = 0; r<numberOfRooms && k < maxNumberOfTries; k++){
-            int w = (random.nextInt() & Integer.MAX_VALUE) % (maxRoomLength - minRoomLength + 1) + minRoomLength;
-            int h = (random.nextInt() & Integer.MAX_VALUE) % (maxRoomLength - minRoomLength + 1) + minRoomLength;
-            int x = (random.nextInt() & Integer.MAX_VALUE) % (length - w);
-            int y = (random.nextInt() & Integer.MAX_VALUE) % (length - h);
+        for(int r = 0, tries = 0; r < numberOfRooms; tries++){
+            if (tries >= maxNumberOfTries) {
+                break;
+            }
+
+            int w = random.nextInt(maxRoomLength - minRoomLength + 1) + minRoomLength;
+            int h = random.nextInt(maxRoomLength - minRoomLength + 1) + minRoomLength;
+            int x = random.nextInt(length - w + 1);
+            int y = random.nextInt(length - h + 1);
 
             boolean legitRoom = true;
-            for(int i = Math.max(x - 1, 0); i<= Math.min(x+w, length - 1); i++) {
-                for(int j=Math.max(y-1, 0); j<=Math.min(y+h,length - 1); j++) {
-                    if(grid[i][j] != 0){
+            for (int i = x; i < x + w && legitRoom; i++) {
+                for (int j = y; j < y + h; j++) {
+                    if (grid[i][j] != -1) {
                         legitRoom = false;
                         break;
                     }
                 }
             }
 
-            if(legitRoom) {
-                r++;
+            if (legitRoom) {
+                for (int i = Math.max(0, x - 1); i < Math.min(x + w + 1, length); i++) { // can be optimized
+                    for(int j = Math.max(0, y - 1); j < Math.min(y + h + 1, length); j++) {
+                        grid[i][j] = -2;
+                    }
+                }
+
                 for(int i = x; i<x+w; i++) {
                     for(int j=y; j<y+h; j++) {
                         grid[i][j] = r;
                     }
                 }
+
                 rooms.add(new Room(r, x, y, w, h));
+                r++;
+                tries = 0;
             }
         }
-
+/*
         ArrayList<Integer> roomPointers = new ArrayList<Integer>();
         for(int i=0; i<rooms.size(); i++){
             roomPointers.add(i);
         }
         Collections.shuffle(roomPointers);
-
-
-        // grid=[1-n]   room.index=[1-n]   room.visited=[1-n]   arrayindex=[0 - n-1]
-        for(int r=0; r<rooms.size(); r++) {
-            Room room = rooms.get(roomPointers.get(r));
-
-            for(int tries = 0, paths = 0; tries< 100 && paths < 2; tries++){
-                int startX = (random.nextInt() & Integer.MAX_VALUE) % room.w + room.x;
-                int startY = (random.nextInt() & Integer.MAX_VALUE) % room.h + room.y;
-
-                int dir = (random.nextInt() & Integer.MAX_VALUE) % 4;
-                int dx = 0;
-                int dy = 0;
-
-                if (dir == 0) dx = 1;
-                else if (dir == 1) dy = 1;
-                else if (dir == 2) dx = -1;
-                else dy = -1;
-
-                int tx = startX;
-                int ty = startY;
-
-                int borderX = -1;
-                if(dx == 1) borderX = length;
-                int borderY = -1;
-                if(dy == 1) borderY = length;
-
-                while(tx!=borderX && ty!=borderY && (grid[tx][ty] == room.index || grid[tx][ty] == 0)) {
-                    tx+=dx;
-                    ty+=dy;
-                }
-
-                if(tx != borderX && ty != borderY){
-                    if(grid[tx][ty] > 0) {
-                        if (rooms.get(grid[tx][ty] - 1).visited.contains(room.index)) {
-                            continue;
-                        }
-                        else {
-                            rooms.get(grid[tx][ty] - 1).visited.add(room.index);
-                            room.visited.add(grid[tx][ty]);
-                        }
-                    }
-
-                    tx-=dx;
-                    ty-=dy;
-                    while (grid[tx][ty] != room.index) {
-                        grid[tx][ty] = -1;
-                        tx -= dx;
-                        ty -= dy;
-                    }
-
-                    paths++;
-                }
-            }
-        }
-
-
+*/
         for (int i = 0; i < length; i++) {
             for (int j = 0; j < length; j++) {
                 graph[i][j] = new Map.Node(i, j, new ArrayList<>(Arrays.asList(WallType.values())));
             }
         }
 
+        for(int i=0 ; i<length; i++) {
+            for(int j=0; j<length; j++) {
+                if (grid[i][j] == -2) {
+                    grid[i][j] = -1;
+                }
+            }
+        }
+
         for (int i = 0; i < length; i++) { // horizontal walls
             for (int j = 0; j < length - 1; j++) {
-                if (grid[i][j] != 0 && grid[i][j+1] != 0) {
+                if (grid[i][j] != -1 && grid[i][j + 1] != -1) {
                     graph[i][j].removeWall(UP_WALL);
-                    graph[i][j+1].removeWall(DOWN_WALL);
+                    graph[i][j + 1].removeWall(DOWN_WALL);
                 }
             }
         }
         for (int i = 0; i < length - 1; i++) { // vertical walls
             for (int j = 0; j < length; j++) {
-                if (grid[i][j] != 0 && grid[i+1][j] != 0) {
+                if (grid[i][j] != -1 && grid[i + 1][j] != -1) {
                     graph[i][j].removeWall(RIGHT_WALL);
                     graph[i + 1][j].removeWall(LEFT_WALL);
                 }

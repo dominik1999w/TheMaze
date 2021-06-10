@@ -40,7 +40,7 @@ public class SightView implements Renderable {
 
         Gdx.gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-        shapeRenderer.setColor(0.0f, 0.0f, 0.0f, 1.0f);
+        shapeRenderer.setColor(0.2f, 0.2f, 0.2f, 1f);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
         Gdx.gl.glEnable(GL20.GL_BLEND);
@@ -63,12 +63,12 @@ public class SightView implements Renderable {
         List<float[]> triangles = detector.getSightTriangles(localPlayerPosition, 128, 360);
         for (float[] t : triangles){
             shapeRenderer.triangle(
-                    (t[0] + (float)MapConfig.WALL_THICKNESS / 2 - shiftX) * quality,
-                    (t[1] + (float)MapConfig.WALL_THICKNESS / 2 - shiftY) * quality,
-                    (t[2] + (float)MapConfig.WALL_THICKNESS / 2 - shiftX) * quality,
-                    (t[3] + (float)MapConfig.WALL_THICKNESS / 2 - shiftY) * quality,
-                    (t[4] + (float)MapConfig.WALL_THICKNESS / 2 - shiftX) * quality,
-                    (t[5] + (float)MapConfig.WALL_THICKNESS / 2 - shiftY) * quality);
+                    (t[0] - shiftX) * quality,
+                    (t[1] - shiftY) * quality,
+                    (t[2] - shiftX) * quality,
+                    (t[3] - shiftY) * quality,
+                    (t[4] - shiftX) * quality,
+                    (t[5] - shiftY) * quality);
             //System.out.format("%f %f %f %f %f %f \n", t[0], t[1], t[2], t[3], t[4], t[5]);
         }
 
@@ -87,6 +87,6 @@ public class SightView implements Renderable {
         spriteBatch.begin();
         //draw(Texture texture, float x, float y, float originX, float originY, float width, float height, float scaleX, float scaleY,
         //          float rotation, int srcX, int srcY, int srcWidth, int srcHeight, boolean flipX, boolean flipY)
-        spriteBatch.draw(texture, shiftX, shiftY, texture.getWidth(), texture.getHeight(), 0, 0, quality, quality);
+        spriteBatch.draw(texture, shiftX + (float)MapConfig.WALL_THICKNESS / 2, shiftY + (float)MapConfig.WALL_THICKNESS / 2, texture.getWidth(), texture.getHeight(), 0, 0, quality, quality);
     }
 }
