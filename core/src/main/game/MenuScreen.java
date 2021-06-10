@@ -239,6 +239,7 @@ public class MenuScreen extends ScreenAdapter {
         float height = menuContainer.getHeight();
 
         final Slider slider = new Slider(minMapLength, maxMapLength, 1, false, skin);
+        slider.setWidth(400);
 
         TextButton mapType1 = Menu.getTextButton("random", skin, new ClickListener() {
             @Override
@@ -264,7 +265,7 @@ public class MenuScreen extends ScreenAdapter {
 
         sliderContainer = new Menu.Builder()
                 //.defaultSettings(width, height, menuContainer.getWidth(), (Gdx.graphics.getHeight() - height) / 2)
-                .defaultSettings(width, height, 0, -(float) Gdx.graphics.getHeight() / 2)
+                .defaultSettings(menuContainer.getWidth() * 0.65f, height, menuContainer.getX() + 0.175f * menuContainer.getWidth(), -(float) Gdx.graphics.getHeight() / 2)
                 .addTable()
                 .addSlider(slider, new ChangeListener() {
                     @Override
@@ -276,9 +277,10 @@ public class MenuScreen extends ScreenAdapter {
                     }
                 })
                 .addPadding(10.0f)
-                //.addDefaultPadding(10.0f)
                 .addTextButton(mapType1, 0.8f)
+                .addPadding(3.0f)
                 .addTextButton(mapType2, 0.8f)
+                .addPadding(3.0f)
                 .addTextButton(mapType3, 0.8f)
                 .build();
 
