@@ -56,8 +56,8 @@ public class SightView implements Renderable {
 
         shapeRenderer.rect(0, 0,Gdx.graphics.getWidth()* quality, -shiftY * quality);
         shapeRenderer.rect(0, 0,-shiftX * quality, Gdx.graphics.getHeight() * quality);
-        shapeRenderer.rect(0, (mapSize * MapConfig.BOX_SIZE - shiftY + 0.5f) * quality,Gdx.graphics.getWidth() * quality,Gdx.graphics.getHeight() * quality);
-        shapeRenderer.rect((mapSize * MapConfig.BOX_SIZE - shiftX + 0.5f) * quality, 0,Gdx.graphics.getWidth() * quality,Gdx.graphics.getHeight() * quality);
+        shapeRenderer.rect(0, (mapSize * MapConfig.BOX_SIZE - shiftY - 1.5f + (float)MapConfig.WALL_THICKNESS / 2) * quality,Gdx.graphics.getWidth() * quality,Gdx.graphics.getHeight() * quality);
+        shapeRenderer.rect((mapSize * MapConfig.BOX_SIZE - shiftX - 1.5f + (float)MapConfig.WALL_THICKNESS / 2) * quality, 0,Gdx.graphics.getWidth() * quality,Gdx.graphics.getHeight() * quality);
 
 
         List<float[]> triangles = detector.getSightTriangles(localPlayerPosition, 128, 360);

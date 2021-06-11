@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
@@ -27,6 +28,7 @@ import lib.map.NameResponse;
 import lib.map.Position;
 import lib.map.StateResponse;
 import map.MapConfig;
+import map.generator.MapGenerator;
 import util.RandomNames;
 
 public class MapService extends MapGrpc.MapImplBase {
@@ -152,9 +154,15 @@ public class MapService extends MapGrpc.MapImplBase {
     public Map<UUID, Position> updateInitialPositions() {
         handleDisconnectedClients();
         Map<UUID, Position> positions = new HashMap<>();
+
+        Random random = new Random(lastSeed);
+        float randomRotation = (float)random.nextInt(360);
+
+         boolean[][] spawnMap = new MapGenerator(lastLength).getSpawnMap(lastSeed, lastGeneratorType);
+
         for (Map.Entry<StreamObserver<StateResponse>, UUID> entry : clients.entrySet()) {
             UUID id = entry.getValue();
-            positions.put(id, getStartingPosition(id.toString()));
+            positions.put(id, getStartingPosition(id.toString(), clients.size(), randomRotation, spawnMap));
         }
         return positions;
     }
@@ -174,29 +182,33 @@ public class MapService extends MapGrpc.MapImplBase {
         disconnectedClients.clear();
     }
 
-    private Position getStartingPosition(String id) {
-        float side = lastLength;
-        float circuit = 4 * side;
-        float gapBetweenPlayers = circuit / clients.size();
+    private Position getStartingPosition(String id, int numberOfClients, float randomRotation/*deg*/, boolean[][] spawnMap) {
         int i = new ArrayList<>(clients.values()).indexOf(UUID.fromString(id));
-        float distance = i * gapBetweenPlayers;
+        double rotation = Math.toRadians(360.0 / numberOfClients * i + randomRotation);
+        float center = lastLength / 2.0f;
+        float maxRadius = lastLength * (float) Math.sqrt(2) / 2 + 2;
 
         Position.Builder result = Position.newBuilder();
-        if (distance <= side - 1 || side > 4 * side - 1) {
-            result.setPositionX(distance + 0.5f).setPositionY(0.5f);
-        } else if (distance <= 2 * side - 1) {
-            result.setPositionX(side - 0.5f).setPositionY(distance % side + 0.5f);
-        } else if (distance <= 3 * side - 1) {
-            result.setPositionX(side - distance % side - 0.5f).setPositionY(side - 0.5f);
-        } else // distance <= 4 * side - 1
-        {
-            result.setPositionX(0.5f).setPositionY(side - distance % side - 0.5f);
+
+        for (float r = maxRadius; r >= 0; r -= 0.5) {
+            int x = (int) Math.round(Math.cos(rotation) * r + center);
+            int y = (int) Math.round(Math.sin(rotation) * r + center);
+            if (x >= 0 && y >= 0 && x < lastLength && y < lastLength && spawnMap[x][y]) {
+                result.setPositionX((x + 0.5f) * MapConfig.BOX_SIZE);
+                result.setPositionY((y + 0.5f) * MapConfig.BOX_SIZE);
+                return result.build();
+            }
         }
 
-        result.setPositionX(result.getPositionX() * MapConfig.BOX_SIZE);
-        result.setPositionY(result.getPositionY() * MapConfig.BOX_SIZE);
-
-        return result.build();
+        Random random = new Random(lastSeed);
+        while (true) {
+            int x = random.nextInt(lastLength);
+            int y = random.nextInt(lastLength);
+            if (spawnMap[x][y]) {
+                result.setPositionX((x + 0.5f) * MapConfig.BOX_SIZE);
+                result.setPositionY((y + 0.5f) * MapConfig.BOX_SIZE);
+                return result.build();
+            }
+        }
     }
-
 }

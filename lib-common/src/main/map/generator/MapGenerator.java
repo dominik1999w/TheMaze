@@ -34,16 +34,21 @@ public class MapGenerator {
     }
 
     public Map generateMap(int seed, int generatorType) {
+        generateGraph(seed, generatorType);
+        return new Map(graph);
+    }
+
+    private void generateGraph(int seed, int generatorType) {
         this.random = new Random(seed);
 
         if (generatorType == 1) {
-            return generateRandomMap();
+            generateRandomMap();
         }
         else if (generatorType == 2) {
-            return generateCaves();
+            generateCaves();
         }
         else if (generatorType == 3) {
-            return generateDungeon();
+            generateDungeon();
         }
         else {
             for (int i = 0; i < length; i++) {
@@ -51,9 +56,28 @@ public class MapGenerator {
                     graph[i][j] = new Map.Node(i, j, new ArrayList<>(Arrays.asList(WallType.values())));
                 }
             }
-            return new Map(graph);
         }
     }
+
+    public boolean[][] getSpawnMap(int seed, int generatorType){
+        generateGraph(seed, generatorType);
+        boolean[][] spawnMap = new boolean[length][length];
+        for(int i = 0; i<length; i++) {
+            for(int j = 0; j<length; j++) {
+                if (!graph[i][j].hasWall(UP_WALL) ||
+                        !graph[i][j].hasWall(DOWN_WALL) ||
+                        !graph[i][j].hasWall(RIGHT_WALL) ||
+                        !graph[i][j].hasWall(LEFT_WALL)) {
+                    spawnMap[i][j] = true;
+                }
+                else {
+                    spawnMap[i][j] = false;
+                }
+            }
+        }
+        return spawnMap;
+    }
+
 
     class Edge {
         Point2Di u;
@@ -95,7 +119,7 @@ public class MapGenerator {
         }
     }
 
-    void findRoomsOnLine(int beginX, int beginY, int endX, int endY, int[][] grid, ArrayList<Room> rooms) {
+    private void findRoomsOnLine(int beginX, int beginY, int endX, int endY, int[][] grid, ArrayList<Room> rooms) {
         int lastRoomIndex = -1;
         boolean legitLine = false;
         int numberOfBorders = 0;
@@ -356,7 +380,7 @@ public class MapGenerator {
         return result;
     }
 
-    static boolean onSegment(Point2Di p, Point2Di q, Point2Di r) {
+    private static boolean onSegment(Point2Di p, Point2Di q, Point2Di r) {
         if (q.x() <= Math.max(p.x(), r.x()) && q.x() >= Math.min(p.x(), r.x()) &&
                 q.y() <= Math.max(p.y(), r.y()) && q.y() >= Math.min(p.y(), r.y())) {
             return true;
@@ -366,7 +390,7 @@ public class MapGenerator {
         }
     }
 
-    static int orientation(Point2Di p, Point2Di q, Point2Di r) {
+    private static int orientation(Point2Di p, Point2Di q, Point2Di r) {
         int val = (q.y() - p.y()) * (r.x() - q.x()) -(q.x() - p.x()) * (r.y() - q.y());
 
         if (val == 0) {
@@ -391,7 +415,7 @@ public class MapGenerator {
     }
 
 
-    private Map generateCaves() {
+    private void generateCaves() {
         float pivotFill = 0.1f * (float) length * length;
         int randomEdges = (int)Math.sqrt(pivotFill/2) + 1;
 
@@ -517,11 +541,9 @@ public class MapGenerator {
                 }
             }
         }
-
-        return new Map(graph);
     }
 
-    private Map generateRandomMap() {
+    private void generateRandomMap() {
         for (int i = 0; i < length; i++) {
             for (int j = 0; j < length; j++) {
                 graph[i][j] = new Map.Node(i, j, new ArrayList<>(Arrays.asList(WallType.values())));
@@ -542,8 +564,6 @@ public class MapGenerator {
                 }
             }
         }
-
-        return new Map(graph);
     }
 
     private void dfs(Map.Node[][] graph, boolean[][] visited, int i, int j) {
