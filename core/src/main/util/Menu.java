@@ -26,7 +26,7 @@ public class Menu {
             container.setSize(width, height);
             container.setPosition(posX, posY);
             container.fillX();
-            container.setDebug(true);
+            //container.setDebug(true);
             return this;
         }
 
