@@ -66,7 +66,7 @@ public class Game {
         gameTask = new CustomTimer();
         gameTask.executeAtFixedRate(delta -> {
             if (newRoundStarted.get()) {
-                gameService.startNewRound(mapService.updateInitialPositions());
+                gameService.startNewRound(mapService.updateInitialPositions(false));
                 newRoundStarted.set(false);
             }
             if (Iterables.isEmpty(gameService.getWorld().getConnectedPlayers())) {
@@ -154,7 +154,7 @@ public class Game {
             public void run() {
                 mapService.dispatchMessages();
                 mapService.broadcastMapState((mapLength, seed, generatorType, initialPositions) -> {
-                    gameService.initializeWorld(Game.this, mapLength, seed, generatorType, mapService.updateInitialPositions()); // required for world preview during pregame countdown
+                    gameService.initializeWorld(Game.this, mapLength, seed, generatorType, mapService.updateInitialPositions(true)); // required for world preview during pregame countdown
                     latch.countDown();
                     cancel();
                 });

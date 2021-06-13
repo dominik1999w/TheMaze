@@ -108,7 +108,7 @@ public class MapService extends MapGrpc.MapImplBase {
     }
 
     public void broadcastMapState(StartGameHandler gameHandler) {
-        Map<UUID, Position> positions = updateInitialPositions();
+        Map<UUID, Position> positions = updateInitialPositions(true);
         for (Map.Entry<StreamObserver<StateResponse>, UUID> entry : clients.entrySet()) {
             try {
                 entry.getKey().onNext(
@@ -151,7 +151,7 @@ public class MapService extends MapGrpc.MapImplBase {
         queueLock.unlock();
     }
 
-    public Map<UUID, Position> updateInitialPositions() {
+    public Map<UUID, Position> updateInitialPositions(boolean initializingWorld) {
         handleDisconnectedClients();
         Map<UUID, Position> positions = new HashMap<>();
 
@@ -162,7 +162,15 @@ public class MapService extends MapGrpc.MapImplBase {
 
         for (Map.Entry<StreamObserver<StateResponse>, UUID> entry : clients.entrySet()) {
             UUID id = entry.getValue();
-            positions.put(id, getStartingPosition(id.toString(), clients.size(), randomRotation, spawnMap));
+            if (initializingWorld) {
+                Position.Builder result = Position.newBuilder();
+                result.setPositionX(-100000);
+                result.setPositionY(-100000);
+                positions.put(id, result.build());
+            }
+            else {
+                positions.put(id, getStartingPosition(id.toString(), clients.size(), randomRotation, spawnMap));
+            }
         }
         return positions;
     }
